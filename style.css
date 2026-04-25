@@ -71,8 +71,10 @@ body {
 }
 
 .section {
-    /* border-top: 1px solid #ddd; */
-    transition: transform 1s, opacity 1s;
+  /* border-top: 1px solid #ddd; */
+  transition:
+    transform 1s,
+    opacity 1s;
 }
 
 .section--hidden {
@@ -87,10 +89,8 @@ img {
 .lazy-img {
   filter: blur(5px);
   /* Optional: prevent gray borders around blurred edges */
-  transform: scale(1.02); 
+  transform: scale(1.02);
 }
-
-
 
 h1 {
   /* text-transform: uppercase; */
@@ -213,6 +213,20 @@ p {
   justify-content: center;
 }
 
+.slider {
+  width: 100%;
+  position: relative;
+  /* IN THE END */
+  overflow: hidden;
+}
+
+.slides {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  transition: transform 1s;
+}
+
 .main-section .slider-btns {
   width: 65%;
   height: 100%;
@@ -227,31 +241,31 @@ p {
   margin-top: 20px;
 }
 
+.main-section .dots__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: transparent;
+  border: 2px solid #fff;
+  margin: 0 5px;
+  cursor: pointer;
+}
+
+.main-section .dots__dot--active {
+  background-color: #fff;
+}
+
 .main-section .dots {
   position: absolute;
-  z-index: 10;
   bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
   display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
-.main-section .dots > .first,
-.main-section .dots > .second,
-.main-section .dots > .third,
-.main-section .dots > .fourth,
-.main-section .dots > .fifth {
-  border: 2px solid var(--bg-white);
-  border-radius: 50%;
-  margin-left: 10px;
-}
-
-.main-section .dots > .first {
-  margin-left: 0;
-}
-
-.main-section .dots .active {
-  background-color: var(--bg-white);
+.main-section .dots__dot:hover {
+  background-color: rgba(255, 255, 255, 0.5);
 }
 
 .main-section .slider-btns .fa-solid {
@@ -265,7 +279,7 @@ p {
 
 /* Base style for all sliders */
 .main-section .slides {
-  position: relative;
+  position: absolute;
   display: flex;
   align-items: center;
   justify-content: center;
