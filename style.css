@@ -756,7 +756,6 @@ label {
 }
 
 .about-me-section .floating-card img {
-  width: 70%;
   height: 100%;
   object-fit: contain;
   display: block; /* Good practice, removes potential small gaps */
@@ -868,19 +867,22 @@ label {
 /* Styles for Feedback Section */
 
 .feedbacks {
+  box-sizing: border-box;
   width: 75%;
   height: auto;
   margin: 0 auto;
   margin-bottom: 100px;
   position: relative;
-  overflow: hidden;
   min-height: 65vh;
-
 }
 
 .feedbacks-track {
   display: flex;
   height: 100%;
+  position: relative;
+  overflow: hidden;
+  min-height: 65vh;
+  width: 100%;
 }
 
 
@@ -896,6 +898,13 @@ label {
 
 .feedbacks button {
   cursor: pointer;
+}
+
+.feed-heading {
+  position: absolute;
+  top: -80px; 
+  left: 0;
+  width: 100%;
 }
 
 .feed-heading h2 {
@@ -1004,10 +1013,11 @@ label {
 
 .feedbacks .dots {
   position: absolute;
-  bottom: 0px;
+  bottom: -50px;
  z-index: 30;
  left: 50%;
  transform: translate(-50%);
+ display: flex;
 }
 
 .feedbacks .dots__dot {
@@ -1481,6 +1491,7 @@ label {
 
   .tariff {
     width: 100%;
+    margin-bottom: 200px;
   }
 
   .tarrif_column {
@@ -1517,8 +1528,7 @@ label {
   }
 
   .feedbacks {
-    width: 84%;
-    height: 95vh;
+    height: auto;
     margin-bottom: var(--section-space);
     box-shadow:
       0 1px 1px hsl(0deg 0% 0% / 0.075),
@@ -1528,12 +1538,24 @@ label {
       0 16px 16px hsl(0deg 0% 0% / 0.075);
   }
 
+  .feedbacks,
+  .feedbacks-track {
+    min-height: unset; /* Kills the 65vh restriction */
+    height: auto; 
+    padding-bottom: 15px; /* Gives a little breathing room at the bottom */
+  }
+
  
   .feedbacks .feed {
     grid-template-columns: repeat(4, 1fr);
     grid-template-areas:
       'b b b b'
       'a a a a';
+  }
+
+   /* Make the first slide relative so it pushes the container height open */
+  .feedbacks .feed:first-child {
+    position: relative;
   }
 
   .feed-description {
@@ -1576,6 +1598,19 @@ label {
     display: none;
   }
 
+  .image10 {
+    display: none;
+  }
+
+  .image11 {
+    display: none;
+  }
+
+  .image9 {
+    display: none;
+  }
+
+
   .feedbacks .btn1 {
   position: absolute;
   left: -20px;   /* 👈 move outside */
@@ -1606,6 +1641,7 @@ label {
   }
 
   .contact-section .contact-form {
+    margin-top: 100px;
     width: 83%;
     padding: 15px 0 10px 0;
     text-align: center;
