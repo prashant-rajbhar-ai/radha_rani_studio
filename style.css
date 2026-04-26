@@ -626,8 +626,7 @@ label {
 .section-video {
   width: 70%;
   height: 80vh;
-  margin: 0 auto;
-  margin-bottom: var(--section-space);
+  margin: var(--section-space) auto;
   overflow: hidden;
   position: relative;
   display: flex;
@@ -1408,6 +1407,7 @@ label {
     flex-direction: column;
     height: auto;
     width: 90%;
+    margin-top: var(--section-space);
     margin-bottom: 0;
   }
 
