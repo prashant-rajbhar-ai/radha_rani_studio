@@ -214,18 +214,24 @@ p {
 }
 
 .slider {
+  display: flex;
   width: 100%;
-  position: relative;
-  /* IN THE END */
-  overflow: hidden;
+  height: 100%;
+  
+  transition: transform 2s cubic-bezier(0.7, 0, 0.3, 1);
 }
 
 .slides {
-  position: absolute;
-  top: 0;
-  width: 100%;
-  transition: transform 1s;
+  min-width: 100%; 
+  height: 100%;
+  position: relative; /
 }
+
+
+.main-section {
+  overflow: hidden; 
+}
+
 
 .main-section .slider-btns {
   width: 65%;
@@ -860,13 +866,23 @@ label {
 }
 
 /* Styles for Feedback Section */
+
 .feedbacks {
   width: 75%;
   height: auto;
   margin: 0 auto;
   margin-bottom: 100px;
   position: relative;
+  overflow: hidden;
+  min-height: 65vh;
+
 }
+
+.feedbacks-track {
+  display: flex;
+  height: 100%;
+}
+
 
 .feedbacks .special-btn {
   background-color: transparent;
@@ -874,17 +890,19 @@ label {
   font-size: var(--h1);
   font-weight: 900;
   color: var(--text-dark);
+  position: relative;
+  z-index: 10;
 }
 
 .feedbacks button {
   cursor: pointer;
 }
 
-.feedbacks h2 {
+.feed-heading h2 {
   font-family: 'Roboto Slab';
   text-transform: uppercase;
   text-align: center;
-  margin-bottom: 50px;
+  margin-bottom: 20px;
 }
 
 .feedbacks .gtrbtn {
@@ -896,10 +914,20 @@ label {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  z-index: 30 ;
 }
 
-.feed {
+
+
+.feedbacks .feed {
+  min-width: 90%;
+  max-width: 100%;
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
   padding: 0 5%;
+  transition: transform 1s cubic-bezier(0.7, 0, 0.3, 1);
   display: grid;
   gap: var(--gutter-gap);
   grid-template-areas:
@@ -975,27 +1003,29 @@ label {
 }
 
 .feedbacks .dots {
-  margin: 50px auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: absolute;
+  bottom: 0px;
+ z-index: 30;
+ left: 50%;
+ transform: translate(-50%);
 }
 
-.dots .first,
-.second,
-.third,
-.fourth,
-.fifth {
-  width: 15px;
-  height: 15px;
-  border: 2px solid var(--text-dark);
+.feedbacks .dots__dot {
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  margin-left: 10px;
+  background-color: transparent;
+  border: 2px solid var(--text-dark);
+  margin: 0 5px;
+  cursor: pointer;
+  
 }
 
-.dots .active {
+.feedbacks .dots__dot--active {
   background-color: var(--text-dark);
 }
+
+
 
 /* /////////////////////////////////// */
 
@@ -1154,9 +1184,7 @@ label {
   .feedbacks {
     width: 85%;
   }
-  .feedbacks .gtrbtn {
-    width: 105%;
-  }
+  
 }
 
 @media only screen and (max-width: 1070px) {
@@ -1478,19 +1506,7 @@ label {
     padding: 30px;
   }
 
-  .tariff .gtrbtn {
-    display: none;
-  }
-
-  .tariff .dots .first,
-  .second,
-  .third,
-  .fourth,
-  .fifth {
-    width: 10px;
-    height: 10px;
-  }
-
+  
   .tarrif_column .col3,
   .col2 {
     display: none;
@@ -1502,8 +1518,7 @@ label {
 
   .feedbacks {
     width: 84%;
-    height: auto;
-    padding: 10px 0px;
+    height: 95vh;
     margin-bottom: var(--section-space);
     box-shadow:
       0 1px 1px hsl(0deg 0% 0% / 0.075),
@@ -1513,12 +1528,8 @@ label {
       0 16px 16px hsl(0deg 0% 0% / 0.075);
   }
 
-  .feedbacks .gtrbtn {
-    width: 115%;
-  }
-
-  .feed {
-    padding: 0 8%;
+ 
+  .feedbacks .feed {
     grid-template-columns: repeat(4, 1fr);
     grid-template-areas:
       'b b b b'
@@ -1565,6 +1576,15 @@ label {
     display: none;
   }
 
+  .feedbacks .btn1 {
+  position: absolute;
+  left: -20px;   /* 👈 move outside */
+}
+
+.feedbacks .btn2 {
+  position: absolute;
+  right: -20px;  /* 👈 move outside */
+}
   .feedbacks .feed-description .separator {
     font-size: 1.2rem;
   }
@@ -1577,23 +1597,7 @@ label {
     margin-bottom: var(--space-md);
   }
 
-  .feedbacks .dots {
-    margin: var(--space-md) auto;
-  }
-
-  .feedbacks .dots .first,
-  .second,
-  .third,
-  .fourth,
-  .fifth {
-    width: 10px;
-    height: 10px;
-  }
-
-  .feedbacks .dots .first {
-    margin-left: 0;
-  }
-
+ 
   .contact-section {
     flex-direction: column;
     align-items: center;
