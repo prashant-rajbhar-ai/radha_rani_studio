@@ -796,7 +796,7 @@ label {
 /* Styles for Tarrif Section */
 
 .tariff {
-  width: 75%;
+  width: 80%;
   margin: 0 auto;
   margin-bottom: 100px;
   position: relative;
@@ -817,7 +817,7 @@ label {
   color: var(--text-dark);
 }
 
-.tariff .gtrbtn {
+/* .tariff .gtrbtn {
   width: 105%;
   display: flex;
   align-items: center;
@@ -826,7 +826,7 @@ label {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-}
+} */
 
 .tariff .gtrbtn button:hover {
   cursor: pointer;
@@ -840,14 +840,18 @@ label {
 }
 
 .tariff .tarrif_column {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-evenly;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  justify-content: center;
+  align-items: stretch;
 }
 
 .tarrif_column .col {
-  padding: 40px;
+  width: auto;
+  padding: 30px 20px;
   border: 2px solid var(--text-dark);
+  display: flex;
 }
 
 .tarrif_column .card-details {
@@ -869,16 +873,23 @@ label {
 }
 
 .tarrif_column .card-details li {
-  padding: 8px;
+  padding: 12px 8px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  gap: 20px;
 }
 
 .tarrif_column .card-details .label {
-  margin: 0 30px 0 0;
+  flex-shrink: 0;
+  font-weight: 600;
 }
 
-.tarrif_column .col a {
+.tarrif_column .card-details .value {
+  text-align: right;
+}
+
+.tarrif_column .col {
   display: block; /* NOTES - Link are inline by default */
   text-align: center;
 }
@@ -893,7 +904,10 @@ label {
 }
 
 .tarrif_column .active {
+  border-width: 2px;
   opacity: 100%;
+  transform: scale(1.05);
+  z-index: 2;
 }
 
 /* Styles for Feedback Section */
@@ -1354,10 +1368,10 @@ label {
 /* --- TARIFF DESKTOP OVERRIDES --- */
 @media only screen and (min-width: 726px) {
   .tariff .dots {
-    display: none !important; /* Hide dots on large screens */
+    display: none !important;
   }
   .tarrif_column .col {
-    transform: none !important; /* Stop JS from sliding cards on desktop */
+    transform: none !important;
   }
 }
 
@@ -1509,6 +1523,7 @@ label {
 
   /* --- TARIFF MOBILE SLIDER --- */
   .tariff .tarrif_column {
+    min-height: 500px;
     position: relative;
     overflow: hidden;
     display: block; /* Removes the flex layout so absolute positioning works */
@@ -1518,6 +1533,9 @@ label {
   }
 
   .tariff .col {
+    padding-top: 30px;
+    padding-bottom: 30px;
+    width: 90%;
     position: absolute;
     top: 0;
     left: 5%; /* Centers the card since width is 90% */
