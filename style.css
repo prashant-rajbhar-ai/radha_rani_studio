@@ -64,6 +64,11 @@
 }
 
 /* GENERAL ELEMENT STYLES */
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: var(--body-font);
   color: var(--text-dark);
@@ -1548,10 +1553,9 @@ label {
     background-color: var(--text-dark);
   }
 
-.tariff h2 {
-  margin: 100px 0 20px 0;
-}
-
+  .tariff h2 {
+    margin: 100px 0 20px 0;
+  }
 
   .feedbacks {
     margin-top: 200px;
