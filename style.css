@@ -1501,6 +1501,10 @@ label {
     padding: 15px;
   }
 
+  .tariff .col2 , .col3 {
+    display: none;
+  }
+
   .tariff h2 {
     margin-top: var(--section-space);
   }
