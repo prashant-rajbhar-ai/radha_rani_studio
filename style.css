@@ -1624,6 +1624,10 @@ label {
     display: none;
   }
 
+  .feedbacks .gtrbtn {
+    width: 103%;
+  }
+
 
   .feedbacks .btn1 {
   position: absolute;
