@@ -82,6 +82,12 @@ body {
   transform: translateY(8rem);
 }
 
+/* Enable custom horizontal swipe handling */
+.slider,
+.feedbacks-track {
+  touch-action: pan-y;
+}
+
 img {
   transition: filter 0.5s ease-in-out;
 }
@@ -217,7 +223,7 @@ p {
   display: flex;
   width: 100%;
   height: 100%;
-  
+
   transition: transform 2s cubic-bezier(0.7, 0, 0.3, 1);
 }
 
@@ -229,11 +235,10 @@ p {
   height: 100%;
 }
 
-
 .main-section .slides {
   position: absolute;
-  top: 0;  
-  left: 0;  
+  top: 0;
+  left: 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -243,9 +248,8 @@ p {
 }
 
 .main-section {
-  overflow: hidden; 
+  overflow: hidden;
 }
-
 
 .main-section .slider-btns {
   width: 65%;
@@ -898,7 +902,6 @@ label {
   width: 100%;
 }
 
-
 .feedbacks .special-btn {
   background-color: transparent;
   border: none;
@@ -915,7 +918,7 @@ label {
 
 .feed-heading {
   position: absolute;
-  top: -80px; 
+  top: -80px;
   left: 0;
   width: 100%;
 }
@@ -936,10 +939,8 @@ label {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 30 ;
+  z-index: 30;
 }
-
-
 
 .feedbacks .feed {
   min-width: 90%;
@@ -1027,10 +1028,10 @@ label {
 .feedbacks .dots {
   position: absolute;
   bottom: -50px;
- z-index: 30;
- left: 50%;
- transform: translate(-50%);
- display: flex;
+  z-index: 30;
+  left: 50%;
+  transform: translate(-50%);
+  display: flex;
 }
 
 .feedbacks .dots__dot {
@@ -1041,14 +1042,11 @@ label {
   border: 2px solid var(--text-dark);
   margin: 0 5px;
   cursor: pointer;
-  
 }
 
 .feedbacks .dots__dot--active {
   background-color: var(--text-dark);
 }
-
-
 
 /* /////////////////////////////////// */
 
@@ -1207,7 +1205,6 @@ label {
   .feedbacks {
     width: 85%;
   }
-  
 }
 
 @media only screen and (max-width: 1070px) {
@@ -1476,33 +1473,6 @@ label {
     border-radius: 10px;
   }
 
-  /* 
-  .tariff {
-    width: 100%;
-    margin-top: 80px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .tariff .tarrif_column {
-    width: 85%;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .tarrif_column .col {
-    opacity: 1;
-    padding: 10px;
-    width: 90%;
-    margin: 0 auto;
-    
-  }
-
-   */
-
   .tariff {
     width: 100%;
     margin-bottom: 200px;
@@ -1511,7 +1481,6 @@ label {
   .tarrif_column {
     width: 100%;
     gap: 16px;
-    /* overflow-x: auto; */
   }
 
   .tarrif_column > .col {
@@ -1528,13 +1497,8 @@ label {
   }
 
   .tariff .col {
-    padding: 30px;
-  }
-
-  
-  .tarrif_column .col3,
-  .col2 {
-    display: none;
+    width: 90%;
+    padding: 15px;
   }
 
   .tariff h2 {
@@ -1555,11 +1519,10 @@ label {
   .feedbacks,
   .feedbacks-track {
     min-height: unset; /* Kills the 65vh restriction */
-    height: auto; 
+    height: auto;
     padding-bottom: 15px; /* Gives a little breathing room at the bottom */
   }
 
- 
   .feedbacks .feed {
     grid-template-columns: repeat(4, 1fr);
     grid-template-areas:
@@ -1567,7 +1530,7 @@ label {
       'a a a a';
   }
 
-   /* Make the first slide relative so it pushes the container height open */
+  /* Make the first slide relative so it pushes the container height open */
   .feedbacks .feed:first-child {
     position: relative;
   }
@@ -1628,16 +1591,15 @@ label {
     width: 103%;
   }
 
-
   .feedbacks .btn1 {
-  position: absolute;
-  left: -20px;   /* 👈 move outside */
-}
+    position: absolute;
+    left: -20px; /* 👈 move outside */
+  }
 
-.feedbacks .btn2 {
-  position: absolute;
-  right: -20px;  /* 👈 move outside */
-}
+  .feedbacks .btn2 {
+    position: absolute;
+    right: -20px; /* 👈 move outside */
+  }
   .feedbacks .feed-description .separator {
     font-size: 1.2rem;
   }
@@ -1650,7 +1612,6 @@ label {
     margin-bottom: var(--space-md);
   }
 
- 
   .contact-section {
     flex-direction: column;
     align-items: center;

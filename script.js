@@ -177,7 +177,7 @@ const revealSection = function (entries, observer) {
 const sectionObserver = new IntersectionObserver(revealSection, {
   root: null,
   threshold: 0,
-  rootMargin: '-50px',
+  rootMargin: '-50px'
 });
 
 allSection.forEach(function (section) {
@@ -213,7 +213,6 @@ imgTagets.forEach(img => imgObserver.observe(img));
 
 ///////////////////////////////////////////////
 /// Slider
-
 /*
 const createSlider = function (containerSelector, slideSelector) {
   const container = document.querySelector(containerSelector);
@@ -281,26 +280,6 @@ const createSlider = function (containerSelector, slideSelector) {
       activateDot(curSlide);
     }
   });
-
-
-  // Touch Event Variables for Swipe Support
-  let startX = 0;
-  let endX = 0;
-
-  container.addEventListener('touchstart', e => {
-    startX = e.changedTouches[0].screenX;
-  }, { passive: true });
-
-  container.addEventListener('touchend', e => {
-    endX = e.changedTouches[0].screenX;
-    handleSwipe();
-  });
-
-  const handleSwipe = function () {
-    const threshold = 50; // Minimum pixel distance to trigger a swipe
-    if (startX - endX > threshold) nextSlide(); // Swiped Left -> Next
-    if (endX - startX > threshold) prevSlide(); // Swiped Right -> Previous
-  };
 };
 
 // Hero slider
@@ -308,12 +287,13 @@ createSlider('.main-section', '.slides');
 
 // Feedback slider
 createSlider('.feedbacks', '.feed');
-
 */
+
+///////////////////////////////////////////////
+/// Slider
 
 const createSlider = function (containerSelector, slideSelector) {
   const container = document.querySelector(containerSelector);
-  if (!container) return; // Safety check in case the section doesn't exist
 
   const slides = container.querySelectorAll(slideSelector);
   const btnLeft = container.querySelector('.fa-chevron-left');
@@ -324,32 +304,29 @@ const createSlider = function (containerSelector, slideSelector) {
   const maxSlide = slides.length;
 
   const createDots = function () {
-    if (!dotContainer) return; // Safety check
     slides.forEach((_, i) => {
       dotContainer.insertAdjacentHTML(
         'beforeend',
-        `<button class="dots__dot" data-slide="${i}"></button>`,
+        `<button class="dots__dot" data-slide="${i}"></button>`
       );
     });
   };
 
   const activateDot = function (slide) {
-    if (!dotContainer) return; // Safety check
     dotContainer
       .querySelectorAll('.dots__dot')
       .forEach(dot => dot.classList.remove('dots__dot--active'));
 
-    const activeDot = dotContainer.querySelector(
-      `.dots__dot[data-slide="${slide}"]`,
-    );
-    if (activeDot) activeDot.classList.add('dots__dot--active');
+    if (dotContainer.querySelector(`.dots__dot[data-slide="${slide}"]`)) {
+      dotContainer
+        .querySelector(`.dots__dot[data-slide="${slide}"]`)
+        .classList.add('dots__dot--active');
+    }
   };
 
   const goToSlide = function (slide) {
     slides.forEach((s, i) => {
       s.style.transform = `translateX(${100 * (i - slide)}%)`;
-      // Optional: Add a smooth transition directly via JS
-      s.style.transition = 'transform 0.5s ease';
     });
   };
 
@@ -373,7 +350,6 @@ const createSlider = function (containerSelector, slideSelector) {
 
   init();
 
-  // Only add click events if the buttons exist
   if (btnRight) btnRight.addEventListener('click', nextSlide);
   if (btnLeft) btnLeft.addEventListener('click', prevSlide);
 
@@ -387,33 +363,29 @@ const createSlider = function (containerSelector, slideSelector) {
     });
   }
 
-  // --- NEW: TOUCH / SWIPE LOGIC ---
+  // Touch Event Variables for Swipe Support
   let startX = 0;
   let endX = 0;
 
-  container.addEventListener(
-    'touchstart',
-    e => {
-      startX = e.changedTouches[0].screenX;
-    },
-    { passive: true },
-  );
+  // Use clientX for better accuracy within the viewport
+  container.addEventListener('touchstart', e => {
+    startX = e.touches[0].clientX;
+  }, { passive: true });
 
   container.addEventListener('touchend', e => {
-    endX = e.changedTouches[0].screenX;
-    const threshold = 50; // Minimum swipe distance
-    if (startX - endX > threshold) nextSlide(); // Swiped Left
-    if (endX - startX > threshold) prevSlide(); // Swiped Right
+    endX = e.changedTouches[0].clientX;
+    handleSwipe();
   });
+
+  const handleSwipe = function () {
+    const threshold = 50; // Minimum pixel distance to trigger a swipe
+    if (startX - endX > threshold) nextSlide(); // Swiped Left -> Next
+    if (endX - startX > threshold) prevSlide(); // Swiped Right -> Previous
+  };
 };
 
-// Hero slider
+// Initialize Hero slider
 createSlider('.main-section', '.slides');
 
-// Feedback slider
+// Initialize Feedback slider
 createSlider('.feedbacks', '.feed');
-
-// Conditionally initialize Tariff slider ONLY on mobile screens
-if (window.innerWidth <= 725) {
-  createSlider('.tariff', '.col');
-}
