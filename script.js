@@ -177,7 +177,7 @@ const revealSection = function (entries, observer) {
 const sectionObserver = new IntersectionObserver(revealSection, {
   root: null,
   threshold: 0,
-  rootMargin: '-50px'
+  rootMargin: '-50px',
 });
 
 allSection.forEach(function (section) {
@@ -292,7 +292,7 @@ createSlider('.feedbacks', '.feed');
 ///////////////////////////////////////////////
 /// Slider
 
-const createSlider = function (containerSelector, slideSelector) {
+const createSlider = function (containerSelector, slideSelector, gap = 0) {
   const container = document.querySelector(containerSelector);
 
   const slides = container.querySelectorAll(slideSelector);
@@ -307,7 +307,7 @@ const createSlider = function (containerSelector, slideSelector) {
     slides.forEach((_, i) => {
       dotContainer.insertAdjacentHTML(
         'beforeend',
-        `<button class="dots__dot" data-slide="${i}"></button>`
+        `<button class="dots__dot" data-slide="${i}"></button>`,
       );
     });
   };
@@ -324,9 +324,17 @@ const createSlider = function (containerSelector, slideSelector) {
     }
   };
 
+  // NEW: Function to handle the active class on the slides themselves
+  const activateSlide = function (slide) {
+    slides.forEach(s => s.classList.remove('active'));
+    if (slides[slide]) {
+      slides[slide].classList.add('active');
+    }
+  };
+
   const goToSlide = function (slide) {
     slides.forEach((s, i) => {
-      s.style.transform = `translateX(${100 * (i - slide)}%)`;
+      s.style.transform = `translateX(calc(${100 * (i - slide)}% + ${gap * (i - slide)}px))`;
     });
   };
 
@@ -334,18 +342,21 @@ const createSlider = function (containerSelector, slideSelector) {
     curSlide = (curSlide + 1) % maxSlide;
     goToSlide(curSlide);
     activateDot(curSlide);
+    activateSlide(curSlide); // Update slide class
   };
 
   const prevSlide = function () {
     curSlide = (curSlide - 1 + maxSlide) % maxSlide;
     goToSlide(curSlide);
     activateDot(curSlide);
+    activateSlide(curSlide); // Update slide class
   };
 
   const init = function () {
     goToSlide(0);
     createDots();
     activateDot(0);
+    activateSlide(0); // Set initial active slide
   };
 
   init();
@@ -359,6 +370,7 @@ const createSlider = function (containerSelector, slideSelector) {
         curSlide = Number(e.target.dataset.slide);
         goToSlide(curSlide);
         activateDot(curSlide);
+        activateSlide(curSlide); // Update slide class
       }
     });
   }
@@ -368,9 +380,13 @@ const createSlider = function (containerSelector, slideSelector) {
   let endX = 0;
 
   // Use clientX for better accuracy within the viewport
-  container.addEventListener('touchstart', e => {
-    startX = e.touches[0].clientX;
-  }, { passive: true });
+  container.addEventListener(
+    'touchstart',
+    e => {
+      startX = e.touches[0].clientX;
+    },
+    { passive: true },
+  );
 
   container.addEventListener('touchend', e => {
     endX = e.changedTouches[0].clientX;
@@ -388,4 +404,7 @@ const createSlider = function (containerSelector, slideSelector) {
 createSlider('.main-section', '.slides');
 
 // Initialize Feedback slider
-createSlider('.feedbacks', '.feed');
+createSlider('.feedbacks', '.feed', 20);
+
+// Initialize Tariff slider
+createSlider('.tariff', '.col', 30);

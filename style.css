@@ -279,11 +279,21 @@ p {
   background-color: #fff;
 }
 
-.main-section .dots {
+/* .main-section .dots {
   position: absolute;
   bottom: 10%;
   left: 50%;
   transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+} */
+
+.main-section .dots {
+  position: absolute;
+  bottom: 10%;
+  left: 0;
+  width: 100%;
+  justify-content: center;
   z-index: 10;
   display: flex;
 }
@@ -887,8 +897,7 @@ label {
   box-sizing: border-box;
   width: 75%;
   height: auto;
-  margin: 0 auto;
-  margin-bottom: 100px;
+  margin: 200px auto;
   position: relative;
   min-height: 65vh;
 }
@@ -1025,12 +1034,22 @@ label {
   margin: 0 0 20px 0;
 }
 
-.feedbacks .dots {
+/* .feedbacks .dots {
   position: absolute;
   bottom: -50px;
   z-index: 30;
   left: 50%;
   transform: translate(-50%);
+  display: flex;
+} */
+
+.feedbacks .dots {
+  position: absolute;
+  bottom: -50px;
+  left: 0;
+  width: 100%;
+  justify-content: center;
+  z-index: 30;
   display: flex;
 }
 
@@ -1327,6 +1346,16 @@ label {
   }
 }
 
+/* --- TARIFF DESKTOP OVERRIDES --- */
+@media only screen and (min-width: 726px) {
+  .tariff .dots {
+    display: none !important; /* Hide dots on large screens */
+  }
+  .tarrif_column .col {
+    transform: none !important; /* Stop JS from sliding cards on desktop */
+  }
+}
+
 @media only screen and (max-width: 725px) {
   .open-launch-modal {
     width: 70%;
@@ -1473,43 +1502,59 @@ label {
     border-radius: 10px;
   }
 
-  .tariff {
+  /* --- TARIFF MOBILE SLIDER --- */
+  .tariff .tarrif_column {
+    position: relative;
+    overflow: hidden;
+    display: block; /* Removes the flex layout so absolute positioning works */
+    touch-action: pan-y; /* Ensures vertical scrolling still works while swiping */
     width: 100%;
-    margin-bottom: 200px;
-  }
-
-  .tarrif_column {
-    width: 100%;
-    gap: 16px;
-  }
-
-  .tarrif_column > .col {
-    border: none;
-    opacity: 1;
-    width: 75%;
-    box-shadow:
-      0 -1px 2px hsl(0deg 0% 0% / 0.05),
-      /* Subtle top shadow */ 0 1px 1px hsl(0deg 0% 0% / 0.075),
-      0 2px 2px hsl(0deg 0% 0% / 0.075),
-      0 4px 4px hsl(0deg 0% 0% / 0.075),
-      0 8px 8px hsl(0deg 0% 0% / 0.075),
-      0 16px 16px hsl(0deg 0% 0% / 0.075);
+    padding-bottom: 20px; /* Optional breathing room */
   }
 
   .tariff .col {
-    width: 90%;
-    padding: 15px;
+    position: absolute;
+    top: 0;
+    left: 5%; /* Centers the card since width is 90% */
+    width: 85%;
+    transition: transform 0.8s cubic-bezier(0.7, 0, 0.3, 1);
   }
 
-  .tariff .col2 , .col3 {
-    display: none;
+  /* This brilliant trick forces the container to take the height of the first slide */
+  .tariff .col:first-child {
+    position: relative;
   }
 
-  .tariff h2 {
-    margin-top: var(--section-space);
+  /* Position the generated dots */
+  .tariff .dots {
+    display: flex;
+    position: absolute;
+    bottom: -30px;
+    left: -30px;
+    width: 100%;
+    justify-content: center;
   }
+  .tariff .dots__dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: transparent;
+    border: 2px solid var(--text-dark);
+    margin: 0 5px;
+    cursor: pointer;
+  }
+
+  .tariff .dots__dot--active {
+    background-color: var(--text-dark);
+  }
+
+.tariff h2 {
+  margin: 100px 0 20px 0;
+}
+
 
   .feedbacks {
+    margin-top: 200px;
     height: auto;
     margin-bottom: var(--section-space);
     box-shadow:
