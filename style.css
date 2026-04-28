@@ -1331,6 +1331,11 @@ label {
 }
 
 @media (max-width: 768px) {
+
+  .tariff {
+    width: 90%;
+    margin: 100px auto;
+  }
   .tariff_wrapper {
     position: relative;
     overflow: hidden;
