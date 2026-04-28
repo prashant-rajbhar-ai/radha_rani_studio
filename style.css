@@ -316,6 +316,29 @@ p {
   cursor: pointer;
 }
 
+/* Update this section in your style.css */
+.main-section .slider-btns {
+  width: 65%;
+  height: 100%;
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 20px;
+
+  /* Add this line: */
+  pointer-events: none;
+}
+
+/* Add this to ensure the arrows still work: */
+.main-section .slider-btns .fa-solid {
+  pointer-events: auto;
+}
+
 /* Base style for all sliders */
 .main-section .slides {
   position: absolute;
@@ -365,7 +388,7 @@ p {
   border: 2px solid var(--bg-white);
   border-radius: 5px;
   position: relative;
-  z-index: 4;
+  z-index: 10;
 }
 
 .main-section .slides .text-content .btn:hover {
@@ -796,119 +819,95 @@ label {
 /* Styles for Tarrif Section */
 
 .tariff {
+
   width: 80%;
-  margin: 0 auto;
-  margin-bottom: 100px;
-  position: relative;
-}
-
-.tariff .dots {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: var(--space-lg);
-}
-
-.tariff .special-btn {
-  background-color: transparent;
-  border: none;
-  font-size: var(--h1);
-  font-weight: 900;
-  color: var(--text-dark);
-}
-
-/* .tariff .gtrbtn {
-  width: 105%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-} */
-
-.tariff .gtrbtn button:hover {
-  cursor: pointer;
+  margin: 250px auto;
 }
 
 .tariff h2 {
-  text-transform: uppercase;
   text-align: center;
-  margin: 0 0 50px 0;
-  margin-top: 200px;
+  text-transform: uppercase;
+  margin: 50px 0;
 }
 
-.tariff .tarrif_column {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  justify-content: center;
-  align-items: stretch;
-}
-
-.tarrif_column .col {
-  width: auto;
-  padding: 30px 20px;
-  border: 2px solid var(--text-dark);
+.tariff_wrapper {
   display: flex;
+  gap: var(--gutter-gap);
+  margin: 20px 0 0 0;
 }
 
-.tarrif_column .card-details {
+.tariff_wrapper .col {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  border: 2px solid var(--text-dark);
+  border-radius: 5px;
+  opacity: 0.5;
+  
+}
+
+
+
+.tariff_wrapper .active {
+  transform: scale(1.05);
+  opacity: 1;
+}
+
+.tariff_wrapper .col h3 {
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.tariff_wrapper .col h4 {
+  margin: 10px 0;
+  text-align: center;
+}
+
+.tariff_wrapper ul {
+  padding-left: 0px;
+  margin: 15px 0;
   list-style: none;
 }
 
-.tarrif_column h3 {
-  font-family: var(--heading-font);
-  font-size: var(--h3);
-  text-transform: uppercase;
-  text-align: center;
+.tariff_wrapper li {
+  padding-left: 15px;
+  margin-bottom: 8px;
+  position: relative;
 }
 
-.tarrif_column h4 {
-  font-family: 'Roboto Slab';
-  text-align: center;
-  font-size: var(--h4);
-  margin: 10px 0;
+.tariff_wrapper li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--text-dark);
 }
 
-.tarrif_column .card-details li {
-  padding: 12px 8px;
+.tariff_wrapper .col button {
+  margin-top: auto;
+}
+
+.tariff .dots__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: transparent;
+  border: 2px solid var(--text-dark);
+  margin: 0 5px;
+  cursor: pointer;
+}
+
+.tariff .dots {
+  margin: 20px 0 0 0;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 20px;
+  justify-content: center;
 }
 
-.tarrif_column .card-details .label {
-  flex-shrink: 0;
-  font-weight: 600;
+.tariff .dots__dot--active {
+  background-color: var(--text-dark);
 }
 
-.tarrif_column .card-details .value {
-  text-align: right;
-}
-
-.tarrif_column .col {
-  display: block; /* NOTES - Link are inline by default */
-  text-align: center;
-}
-
-.tariff .brown-button {
-  margin-top: 30px;
-  font-size: var(--p);
-}
-
-.tarrif_column .col {
-  opacity: 50%;
-}
-
-.tarrif_column .active {
-  border-width: 2px;
-  opacity: 100%;
-  transform: scale(1.05);
-  z-index: 2;
-}
 
 /* Styles for Feedback Section */
 
@@ -1053,14 +1052,6 @@ label {
   margin: 0 0 20px 0;
 }
 
-/* .feedbacks .dots {
-  position: absolute;
-  bottom: -50px;
-  z-index: 30;
-  left: 50%;
-  transform: translate(-50%);
-  display: flex;
-} */
 
 .feedbacks .dots {
   position: absolute;
@@ -1234,12 +1225,6 @@ label {
     width: 65%;
   }
 
-  .tariff {
-    width: 85%;
-  }
-  .tarrif_column .col {
-    padding: 20px;
-  }
   .feedbacks {
     width: 85%;
   }
@@ -1251,15 +1236,6 @@ label {
   }
   .contact-section .contact-address {
     margin-left: 15px;
-  }
-}
-
-@media only screen and (max-width: 900px) {
-  .tariff {
-    width: 95%;
-  }
-  .tariff .col {
-    padding: 8px;
   }
 }
 
@@ -1354,6 +1330,26 @@ label {
   transition: all 0.3s ease; /* Smooth transition for non-animated states */
 }
 
+@media (max-width: 768px) {
+  .tariff_wrapper {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    min-height: 500px;
+  }
+
+  .tariff_wrapper .col {
+    position: absolute; 
+    top: 0;
+    left: 0;     
+    min-height: 100%;
+    min-width: 100%;
+    transition: transform 0.5s ease;
+    box-sizing: border-box;
+  }
+}
+
+
 @media only screen and (max-width: 767px) {
   .modal {
     width: 90%;
@@ -1362,16 +1358,6 @@ label {
 
   .modal .modal-form {
     width: 95%;
-  }
-}
-
-/* --- TARIFF DESKTOP OVERRIDES --- */
-@media only screen and (min-width: 726px) {
-  .tariff .dots {
-    display: none !important;
-  }
-  .tarrif_column .col {
-    transform: none !important;
   }
 }
 
@@ -1514,66 +1500,10 @@ label {
   }
 
   .about-me-section .about-picture-1 img {
-    /* width: 200px;
-    height: 200px;
-    border-radius: 50%;
-    object-fit: cover; */
     border-radius: 10px;
   }
 
-  /* --- TARIFF MOBILE SLIDER --- */
-  .tariff .tarrif_column {
-    min-height: 500px;
-    position: relative;
-    overflow: hidden;
-    display: block; /* Removes the flex layout so absolute positioning works */
-    touch-action: pan-y; /* Ensures vertical scrolling still works while swiping */
-    width: 100%;
-    padding-bottom: 20px; /* Optional breathing room */
-  }
 
-  .tariff .col {
-    padding-top: 30px;
-    padding-bottom: 30px;
-    width: 90%;
-    position: absolute;
-    top: 0;
-    left: 5%; /* Centers the card since width is 90% */
-    width: 85%;
-    transition: transform 0.8s cubic-bezier(0.7, 0, 0.3, 1);
-  }
-
-  /* This brilliant trick forces the container to take the height of the first slide */
-  .tariff .col:first-child {
-    position: relative;
-  }
-
-  /* Position the generated dots */
-  .tariff .dots {
-    display: flex;
-    position: absolute;
-    bottom: -30px;
-    left: -30px;
-    width: 100%;
-    justify-content: center;
-  }
-  .tariff .dots__dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background-color: transparent;
-    border: 2px solid var(--text-dark);
-    margin: 0 5px;
-    cursor: pointer;
-  }
-
-  .tariff .dots__dot--active {
-    background-color: var(--text-dark);
-  }
-
-  .tariff h2 {
-    margin: 100px 0 20px 0;
-  }
 
   .feedbacks {
     margin-top: 200px;
@@ -1766,5 +1696,11 @@ label {
   .footer p {
     font-size: 0.6rem;
     margin: 5px 0 0 0;
+  }
+}
+
+@media only screen and (max-width: 477px) {
+  .tarrif_wrapper {
+    min-height: 550px;
   }
 }

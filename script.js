@@ -116,6 +116,7 @@ const closeLaunchBtn = document.querySelector('.close-launch-modal');
 bookingBtns.forEach(btn => {
   btn.addEventListener('click', e => {
     e.preventDefault();
+    e.stopPropagation();
     launchModal.classList.remove('hidden');
     globalOverlay.classList.remove('hidden'); // Reusing existing overlay
     body.classList.add('no-scroll');
@@ -210,84 +211,6 @@ const imgObserver = new IntersectionObserver(loadImg, {
 });
 
 imgTagets.forEach(img => imgObserver.observe(img));
-
-///////////////////////////////////////////////
-/// Slider
-/*
-const createSlider = function (containerSelector, slideSelector) {
-  const container = document.querySelector(containerSelector);
-
-  const slides = container.querySelectorAll(slideSelector);
-  const btnLeft = container.querySelector('.fa-chevron-left');
-  const btnRight = container.querySelector('.fa-chevron-right');
-  const dotContainer = container.querySelector('.dots');
-
-  let curSlide = 0;
-  const maxSlide = slides.length;
-
-  const createDots = function () {
-    slides.forEach((_, i) => {
-      dotContainer.insertAdjacentHTML(
-        'beforeend',
-        `<button class="dots__dot" data-slide="${i}"></button>`
-      );
-    });
-  };
-
-  const activateDot = function (slide) {
-    dotContainer
-      .querySelectorAll('.dots__dot')
-      .forEach(dot => dot.classList.remove('dots__dot--active'));
-
-    dotContainer
-      .querySelector(`.dots__dot[data-slide="${slide}"]`)
-      .classList.add('dots__dot--active');
-  };
-
-  const goToSlide = function (slide) {
-    slides.forEach((s, i) => {
-      s.style.transform = `translateX(${100 * (i - slide)}%)`;
-    });
-  };
-
-  const nextSlide = function () {
-    curSlide = (curSlide + 1) % maxSlide;
-    goToSlide(curSlide);
-    activateDot(curSlide);
-  };
-
-  const prevSlide = function () {
-    curSlide = (curSlide - 1 + maxSlide) % maxSlide;
-    goToSlide(curSlide);
-    activateDot(curSlide);
-  };
-
-  const init = function () {
-    goToSlide(0);
-    createDots();
-    activateDot(0);
-  };
-
-  init();
-
-  btnRight.addEventListener('click', nextSlide);
-  btnLeft.addEventListener('click', prevSlide);
-
-  dotContainer.addEventListener('click', function (e) {
-    if (e.target.classList.contains('dots__dot')) {
-      curSlide = Number(e.target.dataset.slide);
-      goToSlide(curSlide);
-      activateDot(curSlide);
-    }
-  });
-};
-
-// Hero slider
-createSlider('.main-section', '.slides');
-
-// Feedback slider
-createSlider('.feedbacks', '.feed');
-*/
 
 ///////////////////////////////////////////////
 /// Slider
@@ -407,4 +330,23 @@ createSlider('.main-section', '.slides');
 createSlider('.feedbacks', '.feed', 20);
 
 // Initialize Tariff slider
-createSlider('.tariff', '.col', 30);
+// createSlider('.tariff', '.col', 0);
+
+if (window.innerWidth <= 768) {
+  createSlider('.tariff', '.col', 0);
+}
+
+
+
+// Active class for tariff section
+const tariffCols = document.querySelectorAll('.tariff_wrapper .col');
+
+tariffCols.forEach(col => {
+  col.addEventListener('click', () => {
+    // 1. Remove active from all
+    tariffCols.forEach(c => c.classList.remove('active'));
+
+    // 2. Add active to clicked one
+    col.classList.add('active');
+  });
+});
