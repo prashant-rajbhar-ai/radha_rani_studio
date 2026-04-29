@@ -845,10 +845,15 @@ label {
   border-radius: 10px;
 }
 
+.tariff .col-0 {
+  display: none;
+}
+
 .tariff_wrapper .active {
   transform: scale(1.05);
   opacity: 1;
 }
+
 
 .tariff_wrapper .col h3 {
   text-align: center;
@@ -858,12 +863,16 @@ label {
 .tariff_wrapper .col h4 {
   margin: 10px 0;
   text-align: center;
+  font-weight: 700;
+  font-size: 2rem;
 }
 
 .tariff_wrapper .col ul,
 .price-box {
   padding: 0px 20px;
 }
+
+
 
 /* REMOVE default bullets */
 .tariff_wrapper ul {
@@ -897,6 +906,16 @@ label {
 /* Ensure alignment */
 .tariff_wrapper li::before {
   min-width: 18px;
+}
+
+.highlight-feature {
+  text-align: center;
+  font-size: 0.9rem;
+  background: #f1f3f5;
+  padding: 6px;
+  margin: 10px 20px;
+  border-radius: 6px;
+  font-weight: 600;
 }
 
 .tariff_wrapper .col button {
@@ -1386,6 +1405,10 @@ label {
     padding: 0 10px;
   }
 
+  .tariff .col-0 {
+    display: block;
+  }
+
   .tariff_wrapper {
     position: relative;
     overflow: hidden;
@@ -1771,17 +1794,3 @@ label {
 }
 
 
-@media only screen and (max-width: 450px) {
- .tariff_wrapper {
-  padding: 0;
- }
-
- .tariff .dots {
-  margin: 0;
- }
-
- .tariff h2 {
-  margin: 0;
- }
-
-}
