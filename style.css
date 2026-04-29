@@ -1413,7 +1413,7 @@ label {
     position: relative;
     overflow: hidden;
     width: 100%;
-    min-height: 540px;
+    min-height: 580px;
     padding: 25px 0;
   }
 
@@ -1432,9 +1432,6 @@ label {
     overflow: hidden;
   }
 
-  .tariff_wrapper .col button {
-    border-radius: 0; /* remove it */
-  }
   .tariff_wrapper {
     overflow: hidden;
   }
