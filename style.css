@@ -1791,6 +1791,22 @@ label {
     font-size: 0.6rem;
     margin: 5px 0 0 0;
   }
+
+  .tariff_wrapper {
+    margin: 0;
+  }
+
+  .tariff h2 {
+    margin: 0;
+  }
 }
 
+@media only screen and (max-width: 360px) {
 
+  .tariff_wrapper {
+    /* min-height: 550px; */
+    
+  }
+
+  
+}
