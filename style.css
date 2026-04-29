@@ -859,28 +859,67 @@ label {
   margin: 10px 0;
   text-align: center;
 }
-
+/* REMOVE default bullets */
 .tariff_wrapper ul {
-  padding-left: 0px;
-  margin: 15px 0;
   list-style: none;
+  padding-left: 0;
+  margin: 15px 0;
 }
 
+/* LIST STYLE */
 .tariff_wrapper li {
-  padding-left: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 8px;
-  position: relative;
 }
 
+.tariff_wrapper li.yes::before {
+  content: '✔';
+  color: #28a745;
+  font-weight: bold;
+}
+
+.tariff_wrapper li.no::before {
+  content: '❌';
+}
+
+.tariff_wrapper li.no {
+  opacity: 0.7;
+}
+
+/* Ensure alignment */
 .tariff_wrapper li::before {
-  content: '•';
-  position: absolute;
-  left: 0;
-  color: var(--text-dark);
+  min-width: 18px;
 }
 
 .tariff_wrapper .col button {
   margin-top: auto;
+}
+
+/* Badge */
+.badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #ff5c5c;
+  color: white;
+  padding: 4px 8px;
+  font-size: 10px;
+  border-radius: 10px;
+}
+
+.card-top {
+  position: relative;
+  height: 160px;
+  overflow: hidden; /* IMPORTANT */
+}
+
+.card-top img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 🔥 KEY FIX */
+  display: block;
 }
 
 .tariff .dots__dot {
