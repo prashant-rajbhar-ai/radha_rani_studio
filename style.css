@@ -929,12 +929,12 @@ label {
 }
 
 .tariff_wrapper .col button {
-  width: 100%;            
-  margin: 0;              
-  border-radius: 0 0 10px 10px; 
-  border: none;           
-  padding: 14px 0;      
-  background: var(--text-dark);   
+  width: 100%;
+  margin: 0;
+  border-radius: 0 0 10px 10px;
+  border: none;
+  padding: 14px 0;
+  background: var(--text-dark);
   color: white;
 }
 
@@ -1383,23 +1383,37 @@ label {
   .tariff {
     width: 90%;
     margin: 100px auto;
+    padding: 0 10px;
   }
 
   .tariff_wrapper {
     position: relative;
     overflow: hidden;
     width: 100%;
-    min-height: 500px;
+    min-height: 540px;
+    padding: 25px 0;
   }
 
   .tariff_wrapper .col {
     position: absolute;
-    top: 0;
-    left: 0;
-    min-height: 100%;
-    min-width: 100%;
+    top: 25px;
+    left: 5%;
+    width: 90%;
+
     transition: transform 0.5s ease;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
     box-sizing: border-box;
+    border-radius: 10px;
+    background-color: #ffffff;
+
+    overflow: hidden;
+  }
+
+  .tariff_wrapper .col button {
+    border-radius: 0; /* remove it */
+  }
+  .tariff_wrapper {
+    overflow: hidden;
   }
 }
 
@@ -1750,17 +1764,10 @@ label {
   }
 }
 
-@media only screen and (max-width: 435px) {
-  .tariff_wrapper {
-    min-height: 530px;
-  }
-  .tariff_wrapper .col {
-    padding: 10px;
-  }
-}
 
-@media only screen and (max-width: 380px) {
-  .tariff_wrapper .col li {
-    margin-bottom: 5px;
-  }
+@media only screen and (max-width: 767px) {
+ .tariff_wrapper {
+  padding: 0;
+ }
+
 }

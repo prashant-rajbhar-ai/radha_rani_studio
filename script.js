@@ -333,7 +333,7 @@ createSlider('.feedbacks', '.feed', 20);
 // createSlider('.tariff', '.col', 0);
 
 if (window.innerWidth <= 768) {
-  createSlider('.tariff', '.col', 0);
+  createSlider('.tariff', '.col', 60);
 }
 
 
