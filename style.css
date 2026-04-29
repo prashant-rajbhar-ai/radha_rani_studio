@@ -1765,9 +1765,17 @@ label {
 }
 
 
-@media only screen and (max-width: 767px) {
+@media only screen and (max-width: 450px) {
  .tariff_wrapper {
   padding: 0;
+ }
+
+ .tariff .dots {
+  margin: 0;
+ }
+
+ .tariff h2 {
+  margin: 0;
  }
 
 }
