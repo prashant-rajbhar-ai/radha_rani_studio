@@ -837,12 +837,12 @@ label {
 
 .tariff_wrapper .col {
   flex: 1;
-  padding: 20px;
   display: flex;
   flex-direction: column;
-  border: 2px solid var(--text-dark);
-  border-radius: 5px;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
   opacity: 0.5;
+  overflow: hidden;
+  border-radius: 10px;
 }
 
 .tariff_wrapper .active {
@@ -859,6 +859,12 @@ label {
   margin: 10px 0;
   text-align: center;
 }
+
+.tariff_wrapper .col ul,
+.price-box {
+  padding: 0px 20px;
+}
+
 /* REMOVE default bullets */
 .tariff_wrapper ul {
   list-style: none;
@@ -920,6 +926,16 @@ label {
   height: 100%;
   object-fit: cover; /* 🔥 KEY FIX */
   display: block;
+}
+
+.tariff_wrapper .col button {
+  width: 100%;            
+  margin: 0;              
+  border-radius: 0 0 10px 10px; 
+  border: none;           
+  padding: 14px 0;      
+  background: var(--text-dark);   
+  color: white;
 }
 
 .tariff .dots__dot {
