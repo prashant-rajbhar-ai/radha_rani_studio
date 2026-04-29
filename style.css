@@ -1587,6 +1587,7 @@ label {
     min-height: unset; /* Kills the 65vh restriction */
     height: auto;
     padding-bottom: 15px; /* Gives a little breathing room at the bottom */
+    border-radius: 10px;
   }
 
   .feedbacks .feed {
@@ -1687,6 +1688,7 @@ label {
 
   .contact-section .contact-form {
     margin-top: 100px;
+    margin-bottom: 50px;
     width: 83%;
     padding: 15px 0 10px 0;
     text-align: center;
@@ -1697,6 +1699,8 @@ label {
       0 4px 4px hsl(0deg 0% 0% / 0.075),
       0 8px 8px hsl(0deg 0% 0% / 0.075),
       0 16px 16px hsl(0deg 0% 0% / 0.075);
+
+    border-radius: 10px;
   }
 
   .contact-section .contact-form input {
@@ -1708,7 +1712,7 @@ label {
   }
 
   .contact-section .contact-address {
-    width: 80%;
+    width: 76%;
     gap: 0;
     margin-left: 0;
     padding: 10px 20px;
@@ -1721,6 +1725,8 @@ label {
       0 4px 4px hsl(0deg 0% 0% / 0.075),
       0 8px 8px hsl(0deg 0% 0% / 0.075),
       0 16px 16px hsl(0deg 0% 0% / 0.075);
+
+    border-radius: 10px;
   }
 
   .contact-section .contact-address .navigation a {
