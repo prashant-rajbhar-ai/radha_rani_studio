@@ -1796,14 +1796,9 @@ label {
   .tariff h2 {
     margin: 0;
   }
-}
 
-@media only screen and (max-width: 360px) {
-
-  .tariff_wrapper {
-    /* min-height: 550px; */
-    
+  .tariff .dots {
+    margin: 0;
   }
-
-  
 }
+
