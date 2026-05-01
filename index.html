@@ -150,7 +150,7 @@
           </div>
         </div>
 
-        <div class="slide-3 slides">
+        <div class="slide-3 slides" id="portfolio">
           <picture
             ><source srcset="images/slide-3-image.webp" type="image/webp" />
             <img
@@ -380,10 +380,13 @@
 
     <section class="section-video section">
       <div class="video video-1">
-        <video>
-          <source src="images/video1.webm" type="video/webm" />
-          <source src="images/video1.mp4" type="video/mp4" />
-          Your browser does not support the video tag
+        <video
+          class="lazy-video"
+          preload="none"
+          poster="images/video-thumb-1.png"
+        >
+          <source data-src="images/video1.webm" type="video/webm" />
+          <source data-src="images/video1.mp4" type="video/mp4" />
         </video>
         <div class="custom-play-btn">
           <div class="play-icon"></div>
@@ -391,11 +394,14 @@
       </div>
 
       <div class="video video-2">
-        <video>
-          <!-- NOTES Removing controls from video button will hide default controls-->
-          <source src="images/video2.webm" type="video/webm" />
-          <source src="images/video2.mp4" type="video/mp4" />
-          Your browser does not support the video tag
+        <!-- NOTES Removing controls from video button will hide default controls-->
+        <video
+          class="lazy-video"
+          preload="none"
+          poster="images/video-thumb-2.png"
+        >
+          <source data-src="images/video2.webm" type="video/webm" />
+          <source data-src="images/video2.mp4" type="video/mp4" />
         </video>
         <div class="custom-play-btn">
           <div class="play-icon"></div>

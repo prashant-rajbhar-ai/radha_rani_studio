@@ -65,36 +65,71 @@ document.addEventListener('keydown', function (e) {
 ///////////////////////////////
 
 // LOGIC FOR PLAYING VIDEO IN A DIV
-// 1. Select all video containers
+///////////////////////////////
+// VIDEO SYSTEM (FINAL VERSION)
+
+// Select all video containers
 const videoContainers = document.querySelectorAll('.section-video .video');
 
 videoContainers.forEach(container => {
   const video = container.querySelector('video');
   const playBtn = container.querySelector('.custom-play-btn');
 
-  // Ensure controls are hidden on page load
+  // Hide controls initially
   video.controls = false;
 
-  // 1. CLICK ON BUTTON: Start video and show controls
+  // PLAY BUTTON CLICK
   playBtn.addEventListener('click', e => {
     e.stopPropagation();
-    video.play();
-    video.controls = true; // This brings back the seek bar/volume
+
+    const sources = video.querySelectorAll('source');
+
+    // 🔥 Ensure video is loaded (important for lazy loading)
+    if (video.readyState === 0) {
+      sources.forEach(source => {
+        if (!source.src) {
+          source.src = source.dataset.src;
+        }
+      });
+      video.load();
+    }
+
+    // 🔥 Pause all other videos (pro UX)
+    document.querySelectorAll('.section-video video').forEach(v => {
+      if (v !== video) {
+        v.pause();
+        v.controls = false;
+
+        const otherBtn = v
+          .closest('.video')
+          .querySelector('.custom-play-btn');
+
+        otherBtn.style.opacity = '1';
+        otherBtn.style.pointerEvents = 'auto';
+      }
+    });
+
+    // 🔥 Play current video safely
+    video.play().catch(err => {
+      console.log('Play failed:', err);
+    });
+
+    video.controls = true;
     playBtn.style.opacity = '0';
     playBtn.style.pointerEvents = 'none';
   });
 
-  // 2. CLICK ON VIDEO: Pause and hide controls (optional)
+  // CLICK ON VIDEO → Pause
   video.addEventListener('click', () => {
     if (!video.paused) {
       video.pause();
-      video.controls = false; // Hide controls when paused
+      video.controls = false;
       playBtn.style.opacity = '1';
       playBtn.style.pointerEvents = 'auto';
     }
   });
 
-  // 3. Reset when video ends
+  // WHEN VIDEO ENDS → Reset
   video.addEventListener('ended', () => {
     video.controls = false;
     playBtn.style.opacity = '1';
@@ -102,6 +137,38 @@ videoContainers.forEach(container => {
   });
 });
 
+///////////////////////////////////////////////////////////
+// LAZY LOADING VIDEO
+
+const videoTargets = document.querySelectorAll('.lazy-video');
+
+const loadVideo = function (entries, observer) {
+  const [entry] = entries;
+
+  if (!entry.isIntersecting) return;
+
+  const video = entry.target;
+  const sources = video.querySelectorAll('source');
+
+  // Load sources
+  sources.forEach(source => {
+    if (!source.src) {
+      source.src = source.dataset.src;
+    }
+  });
+
+  video.load();
+
+  observer.unobserve(video);
+};
+
+const videoObserver = new IntersectionObserver(loadVideo, {
+  root: null,
+  threshold: 0,
+  rootMargin: '200px',
+});
+
+videoTargets.forEach(video => videoObserver.observe(video));
 /////////////////////////////////////////////////////////////
 
 // script.js
