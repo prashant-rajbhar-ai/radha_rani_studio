@@ -215,7 +215,12 @@ imgTagets.forEach(img => imgObserver.observe(img));
 ///////////////////////////////////////////////
 /// Slider
 
-const createSlider = function (containerSelector, slideSelector, gap = 0) {
+const createSlider = function (
+  containerSelector,
+  slideSelector,
+  gap = 0,
+  effect = 'slide',
+) {
   const container = document.querySelector(containerSelector);
 
   const slides = container.querySelectorAll(slideSelector);
@@ -257,7 +262,11 @@ const createSlider = function (containerSelector, slideSelector, gap = 0) {
 
   const goToSlide = function (slide) {
     slides.forEach((s, i) => {
-      s.style.transform = `translateX(calc(${100 * (i - slide)}% + ${gap * (i - slide)}px))`;
+      if (effect === 'fade') {
+        s.style.transform = 'translateX(0)';
+      } else {
+        s.style.transform = `translateX(calc(${100 * (i - slide)}% + ${gap * (i - slide)}px))`;
+      }
     });
   };
 
@@ -324,7 +333,7 @@ const createSlider = function (containerSelector, slideSelector, gap = 0) {
 };
 
 // Initialize Hero slider
-createSlider('.main-section', '.slides');
+createSlider('.main-section', '.slides', 0, 'fade');
 
 // Initialize Feedback slider
 createSlider('.feedbacks', '.feed', 20);
@@ -335,8 +344,6 @@ createSlider('.feedbacks', '.feed', 20);
 if (window.innerWidth <= 768) {
   createSlider('.tariff', '.col', 60);
 }
-
-
 
 // Active class for tariff section
 const tariffCols = document.querySelectorAll('.tariff_wrapper .col');
