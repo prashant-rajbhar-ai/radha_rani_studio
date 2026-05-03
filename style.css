@@ -1492,12 +1492,12 @@ label {
 
 @media only screen and (max-width: 767px) {
   .modal {
-    width: 90%;
+    width: 85%;
     padding: 15px;
   }
 
   .modal .modal-form {
-    width: 95%;
+    width: 100%;
   }
 }
 
