@@ -1432,7 +1432,7 @@ label {
     position: relative;
     overflow: hidden;
     width: 100%;
-    min-height: 580px;
+    min-height: 530px;
     padding: 15px 0;
   }
 
@@ -1457,7 +1457,7 @@ label {
   }
 
   .tariff .card-top {
-    
+    height: 130px;
   }
 
   .tariff .gtrbtn {
@@ -1479,6 +1479,14 @@ label {
     border: none;
     font-size: 2rem;
     cursor: pointer;
+  }
+
+  .tariff_wrapper .col  h4 {
+    margin: 5px 0;
+  }
+
+  .tariff_wrapper li {
+    margin-bottom: 5px;
   }
 }
 
