@@ -424,3 +424,37 @@ tariffCols.forEach(col => {
     col.classList.add('active');
   });
 });
+
+
+
+////////////////////////////////////////////
+// Form submission
+////////////////////////////////////////////
+// Form submission (Fixed for Netlify)
+const contactForm = document.querySelector('.contact-form form');
+
+if (contactForm) {
+  contactForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(contactForm);
+    
+    fetch("/", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      // Important: Netlify needs the form-name included in the body
+      body: new URLSearchParams(formData).toString(),
+    })
+    .then((response) => {
+      if (response.ok) {
+        alert("Message sent successfully!");
+        contactForm.reset(); 
+      } else {
+        // Log status to help debug
+        console.error('Server response:', response.status);
+        throw new Error("Form submission failed");
+      }
+    })
+    .catch((error) => alert("Error: " + error));
+  });
+}

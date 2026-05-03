@@ -519,17 +519,17 @@
 
       <div class="tariff_column">
         <div class="gtrbtn">
-        <div class="btn1">
-          <button class="special-btn">
-            <i class="fa-solid fa-chevron-left"></i>
-          </button>
+          <div class="btn1">
+            <button class="special-btn">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+          </div>
+          <div class="btn2">
+            <button class="special-btn">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
         </div>
-        <div class="btn2">
-          <button class="special-btn">
-            <i class="fa-solid fa-chevron-right"></i>
-          </button>
-        </div>
-      </div>
         <div class="tariff_wrapper">
           <!-- Small Events -->
           <div class="col col-0">
@@ -1181,25 +1181,34 @@
 
     <div class="contact-section section" id="contact">
       <div class="contact-form">
-        <form action="">
-          <input type="text" name="name" id="name" placeholder="Name" /> <br />
+        <form name="contact" method="POST" data-netlify="true">
+          <input type="hidden" name="form-name" value="contact" />
+
+          <input
+            type="text"
+            name="name"
+            id="name"
+            placeholder="Name"
+            required
+          />
+          <br />
           <input
             type="email"
             name="email"
             id="contact-email"
             placeholder="Email"
+            required
           />
           <br />
-          <input
-            type="text"
-            name="question"
+
+          <textarea
+            name="message"
             id="question"
             placeholder="Message"
-          />
+          ></textarea>
           <br />
-          <a href="#">
-            <button class="b">Submit</button>
-          </a>
+
+          <button type="submit" class="brown-button">Submit</button>
         </form>
 
         <div class="social-media">
