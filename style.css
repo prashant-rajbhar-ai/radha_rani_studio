@@ -351,10 +351,12 @@ p {
 
   opacity: 0;
   visibility: hidden;
-  transition: opacity 1s ease-in-out, visibility 1s ease-in-out;
+  transition:
+    opacity 1s ease-in-out,
+    visibility 1s ease-in-out;
 }
 
-.main-section .slides.active{
+.main-section .slides.active {
   opacity: 1;
   visibility: visible;
   z-index: 2;
@@ -842,6 +844,7 @@ label {
 .tariff_wrapper {
   display: flex;
   gap: var(--gutter-gap);
+  gap: 60px;
   margin: 20px 0 0 0;
 }
 
@@ -849,6 +852,7 @@ label {
   flex: 1;
   display: flex;
   flex-direction: column;
+  
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
   opacity: 0.5;
   overflow: hidden;
@@ -879,6 +883,9 @@ label {
 .tariff_wrapper .col ul,
 .price-box {
   padding: 0px 20px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 /* REMOVE default bullets */
@@ -983,6 +990,10 @@ label {
 
 .tariff .dots__dot--active {
   background-color: var(--text-dark);
+}
+
+.tariff .gtrbtn {
+  display: none;
 }
 
 /* Styles for Feedback Section */
@@ -1410,6 +1421,7 @@ label {
     width: 90%;
     margin: 100px auto;
     padding: 0 10px;
+    position: relative;
   }
 
   .tariff .col-0 {
@@ -1421,7 +1433,7 @@ label {
     overflow: hidden;
     width: 100%;
     min-height: 580px;
-    padding: 25px 0;
+    padding: 15px 0;
   }
 
   .tariff_wrapper .col {
@@ -1442,6 +1454,31 @@ label {
 
   .tariff_wrapper {
     overflow: hidden;
+  }
+
+  .tariff .card-top {
+    
+  }
+
+  .tariff .gtrbtn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 30;
+    pointer-events: none;
+  }
+
+  .tariff .special-btn {
+    pointer-events: auto;
+    background: none;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
   }
 }
 
