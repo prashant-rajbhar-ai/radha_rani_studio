@@ -95,6 +95,7 @@ body {
 
 img {
   transition: filter 0.5s ease-in-out;
+  border-radius: 5px;
 }
 
 .lazy-img {
@@ -761,7 +762,7 @@ label {
   margin-left: 5px;
 }
 
-/* Styles for about-me-section */
+/* STYLES FOR ABOUT - ME SECTION */
 #about-me h2 {
   text-align: center;
   margin: 30px 0;
@@ -779,7 +780,7 @@ label {
     'c d'; /* NOTES - Use dots while definnig grid template area to leave empty space */
 }
 
-.about-text-1 {
+.about-text{
   grid-area: a;
 }
 
@@ -797,10 +798,29 @@ label {
   align-items: center;
   justify-content: center;
 }
+
+/* 1. Control the height by locking the aspect ratio */
+.about-picture-1 {
+  grid-area: b;
+  width: 100%;
+  aspect-ratio: 5 / 6; 
+  overflow: hidden;  
+  border-radius: 10px; 
+}
+
+.about-picture-2 {
+  grid-area: c;
+  width: 100%;
+  aspect-ratio: 5 / 6; 
+  overflow: hidden;
+  border-radius: 10px; 
+}
+
 .about-me-section .about-picture-1 img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: top;
   display: block; /* Good practice, removes potential small gaps */
 }
 
@@ -808,7 +828,12 @@ label {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: top;
   display: block; /* Good practice, removes potential small gaps */
+}
+
+.about-text-2 {
+  margin-top: 50px;
 }
 
 .floating-card {
@@ -852,7 +877,7 @@ label {
   flex: 1;
   display: flex;
   flex-direction: column;
-  
+
   box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
   opacity: 0.5;
   overflow: hidden;
@@ -1178,7 +1203,8 @@ label {
   margin-top: 15px;
 }
 
-.contact-section .contact-form input,textarea {
+.contact-section .contact-form input,
+textarea {
   width: 100%;
   height: 25px;
   margin: 0 0 10px 0;
@@ -1481,7 +1507,7 @@ label {
     cursor: pointer;
   }
 
-  .tariff_wrapper .col  h4 {
+  .tariff_wrapper .col h4 {
     margin: 5px 0;
   }
 
@@ -1776,7 +1802,8 @@ label {
     border-radius: 10px;
   }
 
-  .contact-section .contact-form input, textarea {
+  .contact-section .contact-form input,
+  textarea {
     width: 90%;
   }
 
