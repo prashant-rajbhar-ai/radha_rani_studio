@@ -4,9 +4,9 @@ A wedding photography and videography business website built using HTML, CSS, Ja
 
 ## Project Structure
 
-Radha-Rani-Studio/
-├── frontend/   -> Static frontend files
-├── backend/    -> Backend API and database logic
+Radha-Rani-Studio
+├── frontend  -> Static frontend files
+├── backend   -> Backend API and database logic
 
 ## Frontend Technologies
 
@@ -36,4 +36,4 @@ Radha-Rani-Studio/
 
 ## Author
 
-Prashant Bhardwaj
+Prashant Rajbhar
