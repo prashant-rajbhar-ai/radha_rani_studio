@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.DS_Store
+.parcel-cache/
+.prettierrc
+
+# Core Security: Block all environment secret keys everywhere
+*.env
+config.env
+config_3.env
+backend/config.env
+backend/config_3.env

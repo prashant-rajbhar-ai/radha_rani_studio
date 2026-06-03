@@ -11,12 +11,14 @@
     "start:prod": "cross-env NODE_ENV=production nodemon server.js"
   },
   "dependencies": {
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^4.22.1",
     "mongodb": "^7.2.0",
     "mongoose": "^8.24.0",
     "morgan": "^1.10.1",
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "razorpay": "^2.9.6"
   },
   "devDependencies": {
     "cross-env": "^10.1.0",
