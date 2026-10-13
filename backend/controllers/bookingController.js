@@ -100,3 +100,5 @@ exports.verifyPayment = catchAsync(async (req, res, next) => {
     booking,
   });
 });
+
+

@@ -62,10 +62,7 @@ document.addEventListener("keydown", function (e) {
   }
 });
 
-///////////////////////////////
-
 // LOGIC FOR PLAYING VIDEO IN A DIV
-///////////////////////////////
 // VIDEO SYSTEM (FINAL VERSION)
 
 // Select all video containers
@@ -78,13 +75,13 @@ videoContainers.forEach((container) => {
   // Hide controls initially
   video.controls = false;
 
-  // PLAY BUTTON CLICK
+  //PLAY BUTTON CLICK
   playBtn.addEventListener("click", (e) => {
     e.stopPropagation();
 
     const sources = video.querySelectorAll("source");
 
-    // 🔥 Ensure video is loaded (important for lazy loading)
+    //Ensure video is loaded (important for lazy loading)
     if (video.readyState === 0) {
       sources.forEach((source) => {
         if (!source.src) {
@@ -94,7 +91,7 @@ videoContainers.forEach((container) => {
       video.load();
     }
 
-    // 🔥 Pause all other videos (pro UX)
+    //Pause all other videos (pro UX)
     document.querySelectorAll(".section-video video").forEach((v) => {
       if (v !== video) {
         v.pause();
@@ -107,7 +104,7 @@ videoContainers.forEach((container) => {
       }
     });
 
-    // 🔥 Play current video safely
+    //Play current video safely
     video.play().catch((err) => {
       console.log("Play failed:", err);
     });
@@ -167,38 +164,9 @@ const videoObserver = new IntersectionObserver(loadVideo, {
 });
 
 videoTargets.forEach((video) => videoObserver.observe(video));
+
 /////////////////////////////////////////////////////////////
-
-// script.js
-
-// 1. Select the launch message and the EXISTING overlay
-// const launchModal = document.querySelector(".open-launch-modal");
-// const globalOverlay = document.querySelector(".modal-overlay"); // Using your existing overlay
-// const bookingBtns = document.querySelectorAll(".booking-btn");
-// const closeLaunchBtn = document.querySelector(".close-launch-modal");
-
-// // 2. Open both when "Book Now" is clicked
-// bookingBtns.forEach((btn) => {
-//   btn.addEventListener("click", (e) => {
-//     e.preventDefault();
-//     e.stopPropagation();
-//     launchModal.classList.remove("hidden");
-//     globalOverlay.classList.remove("hidden"); // Reusing existing overlay
-//     body.classList.add("no-scroll");
-//   });
-// });
-
-// // 3. Close both when "Got it!" is clicked
-// closeLaunchBtn.addEventListener("click", () => {
-//   launchModal.classList.add("hidden");
-//   globalOverlay.classList.add("hidden"); // Reusing existing overlay
-//   body.classList.remove("no-scroll");
-// });
-
-////////////////////////////////////////// SMOOTH SCROLLING
-
 // Smooth scroll
-
 document
   .querySelector(".updated-navbar")
   .addEventListener("click", function (e) {
@@ -425,7 +393,6 @@ tariffCols.forEach((col) => {
 
 ////////////////////////////////////////////
 // Form submission
-////////////////////////////////////////////
 // Form submission (Fixed for Netlify)
 const contactForm = document.querySelector(".contact-form form");
 
@@ -457,7 +424,6 @@ if (contactForm) {
 
 ////////////////////////////////////////////
 // BACKEND AUTHENTICATION INTEGRATION
-////////////////////////////////////////////
 
 const loginForm = document.querySelector(".modal-form form");
 const emailInput = document.getElementById("email");
@@ -510,54 +476,63 @@ if (loginForm) {
 
 ////////////////////////////////////////////
 // LIVE RAZORPAY FRONTEND GATEWAY CHECKOUT
-////////////////////////////////////////////
 
-const bookingBtns = document.querySelectorAll('.booking-btn');
+const bookingBtns = document.querySelectorAll(".booking-btn");
 
-bookingBtns.forEach(btn => {
-  btn.addEventListener('click', async (e) => {
+bookingBtns.forEach((btn) => {
+  btn.addEventListener("click", async (e) => {
     e.preventDefault();
     e.stopPropagation();
 
     // 1. Enforce that a user session must be authenticated to check out
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      alert('Please log in first via the Client Gallery to initiate a studio booking.');
+      alert(
+        "Please log in first via the Client Gallery to initiate a studio booking.",
+      );
       openModal(); // Triggers your built-in sliding login window panel
       return;
     }
 
     // 2. Request targeted shoot date parameter
-    const eventDate = prompt('Please enter your event date (YYYY-MM-DD):');
-    if (!eventDate) return; 
+    const eventDate = prompt("Please enter your event date (YYYY-MM-DD):");
+    if (!eventDate) return;
 
     try {
       // 3. Programmatically capture your live package from your active database collection catalog
-      const pkgResponse = await fetch('http://localhost:3000/api/v1/packages');
+      const pkgResponse = await fetch("http://localhost:3000/api/v1/packages");
       const pkgData = await pkgResponse.json();
-      
+
       if (!pkgData.data.packages || pkgData.data.packages.length === 0) {
-        alert('No photography services found in database. Create a service via Postman admin first.');
+        alert(
+          "No photography services found in database. Create a service via Postman admin first.",
+        );
         return;
       }
-      
+
       // Auto-targets the live package you generated inside MongoDB Atlas
       const activePackageId = pkgData.data.packages[0]._id;
 
       // 4. Contact your local Node application port to mint an order token code
-      const orderResponse = await fetch(`http://localhost:3000/api/v1/bookings/create-order/${activePackageId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+      const orderResponse = await fetch(
+        `http://localhost:3000/api/v1/bookings/create-order/${activePackageId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ eventDate }),
         },
-        body: JSON.stringify({ eventDate })
-      });
+      );
 
       const orderData = await orderResponse.json();
 
       if (!orderResponse.ok) {
-        throw new Error(orderData.message || 'Failed to establish database transaction session.');
+        throw new Error(
+          orderData.message ||
+            "Failed to establish database transaction session.",
+        );
       }
 
       // 5. Build official Razorpay modal display configuration window
@@ -565,55 +540,66 @@ bookingBtns.forEach(btn => {
         key: orderData.key_id, // Safely delivered from environment config
         amount: orderData.order.amount,
         currency: orderData.order.currency,
-        name: 'Radha Rani Studio',
-        description: 'Professional Wedding Photography & Videography Booking',
-        image: 'images/favicon-transparent.png',
+        name: "Radha Rani Studio",
+        description: "Professional Wedding Photography & Videography Booking",
+        image: "images/favicon-transparent.png",
         order_id: orderData.order.id, // Links transaction UI container directly to backend record
         handler: async function (response) {
           // This loop auto-fires when authorization completes on screen
           try {
-            const verifyResponse = await fetch('http://localhost:3000/api/v1/bookings/verify', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+            const verifyResponse = await fetch(
+              "http://localhost:3000/api/v1/bookings/verify",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                }),
               },
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_signature: response.razorpay_signature
-              })
-            });
+            );
 
             const verifyData = await verifyResponse.json();
 
             if (verifyResponse.ok) {
-              alert('Payment Successful! Your photoshoot event date has been locked in for Radha Rani Studio.');
-              window.location.reload(); 
+              alert(
+                "Payment Successful! Your photoshoot event date has been locked in for Radha Rani Studio.",
+              );
+              window.location.reload();
             } else {
-              alert(verifyData.message || 'Signature encryption mismatch error.');
+              alert(
+                verifyData.message || "Signature encryption mismatch error.",
+              );
             }
           } catch (err) {
-            console.error('Verification Error:', err);
-            alert('Internal server authentication failure during receipt validation.');
+            console.error("Verification Error:", err);
+            alert(
+              "Internal server authentication failure during receipt validation.",
+            );
           }
         },
         prefill: {
-          name: 'Client Name',
-          email: 'client@example.com'
+          name: "Client Name",
+          email: "client@example.com",
         },
         theme: {
-          color: '#312418' // Matches your exact brand dark luxury theme hex token custom property
-        }
+          color: "#312418", // Matches your exact brand dark luxury theme hex token custom property
+        },
       };
 
       // 6. Launch the official secure overlay payment overlay container interface
       const rzpWindow = new Razorpay(options);
       rzpWindow.open();
-
     } catch (err) {
-      console.error('Checkout error flow capture:', err);
-      alert(err.message || 'Failed to launch transaction gateway check connection ports.');
+      console.error("Checkout error flow capture:", err);
+      alert(
+        err.message ||
+          "Failed to launch transaction gateway check connection ports.",
+      );
     }
   });
 });

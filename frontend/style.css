@@ -10,8 +10,8 @@
   --text-dark: #312418;
   --text-light: #dbdbd9;
   --primary-bg: #ffffff;
-  --body-font: 'Open Sans', sans-serif;
-  --heading-font: 'Roboto Slab', sans-serif;
+  --body-font: "Open Sans", sans-serif;
+  --heading-font: "Roboto Slab", sans-serif;
 
   --h1: clamp(1.8rem, 5vw, 3rem);
   --h2: clamp(1.8rem, 4vw, 2.5rem);
@@ -95,7 +95,7 @@ body {
 
 img {
   transition: filter 0.5s ease-in-out;
-  border-radius: 5px;
+  /* border-radius: 5px; */
 }
 
 .lazy-img {
@@ -485,7 +485,7 @@ p {
   margin: 16px 0;
 }
 
-/* ////////////////////////////////////////////////// */
+/*Close Modal*/
 
 .close-modal {
   position: absolute;
@@ -498,15 +498,13 @@ p {
   background: none;
 }
 
-/* -------------------------- */
 /* CLASSES TO MAKE MODAL WORK */
-
 /* This class will be added to the body when the modal is active */
 .no-scroll {
   overflow: hidden;
-  height: 100vh; /* Prevents any layout shifting */
+  height: 100vh;
 }
-/* NOTES Disable scrolling when modal window is open */
+
 .hidden {
   display: none;
 }
@@ -594,7 +592,6 @@ label {
 /* /////////////////////////////////////////////////// */
 
 /* Sytle for the grid - section */
-
 .portfolio {
   width: 75%;
   margin: var(--section-space) auto;
@@ -613,14 +610,14 @@ label {
   gap: var(--gutter-gap);
   grid-template-columns: repeat(12, 1fr);
   grid-template-areas:
-    'a a a b b b c c c c c c'
-    'a a a b b b c c c c c c'
-    'a a a b b b c c c c c c'
-    'a a a b b b h h i i j j'
-    'd d e e g g h h i i j j'
-    'd d e e g g k k k k k k'
-    'd d f f g g k k k k k k'
-    'd d f f g g k k k k k k';
+    "a a a b b b c c c c c c"
+    "a a a b b b c c c c c c"
+    "a a a b b b c c c c c c"
+    "a a a b b b h h i i j j"
+    "d d e e g g h h i i j j"
+    "d d e e g g k k k k k k"
+    "d d f f g g k k k k k k"
+    "d d f f g g k k k k k k";
   height: 75vh;
 }
 
@@ -776,11 +773,11 @@ label {
   display: grid;
   gap: var(--gutter-gap);
   grid-template-areas:
-    'a b'
-    'c d'; /* NOTES - Use dots while definnig grid template area to leave empty space */
+    "a b"
+    "c d";
 }
 
-.about-text{
+.about-text {
   grid-area: a;
 }
 
@@ -803,17 +800,17 @@ label {
 .about-picture-1 {
   grid-area: b;
   width: 100%;
-  aspect-ratio: 5 / 6; 
-  overflow: hidden;  
-  border-radius: 10px; 
+  aspect-ratio: 5 / 6;
+  overflow: hidden;
+  border-radius: 10px;
 }
 
 .about-picture-2 {
   grid-area: c;
   width: 100%;
-  aspect-ratio: 5 / 6; 
+  aspect-ratio: 5 / 6;
   overflow: hidden;
-  border-radius: 10px; 
+  border-radius: 10px;
 }
 
 .about-me-section .about-picture-1 img {
@@ -821,7 +818,7 @@ label {
   height: 100%;
   object-fit: cover;
   object-position: top;
-  display: block; /* Good practice, removes potential small gaps */
+  display: block;
 }
 
 .about-me-section .about-picture-2 img {
@@ -829,7 +826,7 @@ label {
   height: 100%;
   object-fit: cover;
   object-position: top;
-  display: block; /* Good practice, removes potential small gaps */
+  display: block;
 }
 
 .about-text-2 {
@@ -850,7 +847,7 @@ label {
 .about-me-section .floating-card img {
   height: 100%;
   object-fit: contain;
-  display: block; /* Good practice, removes potential small gaps */
+  display: block;
 }
 
 /* Styles for Tariff Section */
@@ -929,13 +926,13 @@ label {
 }
 
 .tariff_wrapper li.yes::before {
-  content: '✔';
+  content: "✔";
   color: #28a745;
   font-weight: bold;
 }
 
 .tariff_wrapper li.no::before {
-  content: '❌';
+  content: "❌";
 }
 
 .tariff_wrapper li.no {
@@ -976,13 +973,13 @@ label {
 .card-top {
   position: relative;
   height: 160px;
-  overflow: hidden; /* IMPORTANT */
+  overflow: hidden;
 }
 
 .card-top img {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* 🔥 KEY FIX */
+  object-fit: cover;
   display: block;
 }
 
@@ -1022,7 +1019,6 @@ label {
 }
 
 /* Styles for Feedback Section */
-
 .feedbacks {
   box-sizing: border-box;
   width: 75%;
@@ -1063,7 +1059,7 @@ label {
 }
 
 .feed-heading h2 {
-  font-family: 'Roboto Slab';
+  font-family: "Roboto Slab";
   text-transform: uppercase;
   text-align: center;
   margin-bottom: 20px;
@@ -1093,15 +1089,15 @@ label {
   display: grid;
   gap: var(--gutter-gap);
   grid-template-areas:
-    'a a a b b b'
-    'c d e f g h';
+    "a a a b b b"
+    "c d e f g h";
 }
 
 .feed .feed-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  display: block; /* Good practice, removes potential small gaps */
+  display: block;
 }
 .feed-description {
   grid-area: a;
@@ -1153,7 +1149,7 @@ label {
 .feedbacks .feed-description .stars {
   /* margin-right: auto; */
   font-size: 18px;
-  margin: 0 auto 20px 0; /* NOTES Align a flex item in left corner */
+  margin: 0 auto 20px 0;
 }
 
 .feedbacks .feed-description .stars i {
@@ -1259,36 +1255,31 @@ textarea {
   margin: 12px 0;
 }
 
-/* Container styling */
-
 .social-media a {
   margin: 0 5px;
   font-size: 24px;
   transition: transform 0.3s ease;
-  text-decoration: none; /* Removes underline from icons */
+  text-decoration: none;
 }
 
-/* Original Brand Colors */
 .fa-facebook {
-  color: #1877f2; /* Official Facebook Blue */
+  color: #1877f2;
 }
 
 .fa-instagram {
-  /* Instagram uses a gradient, but this Hex is the primary brand pink */
   color: #e4405f;
 }
 
 .fa-whatsapp {
-  color: #25d366; /* Official WhatsApp Green */
+  color: #25d366;
 }
 
-/* Hover Effect */
 .social-media a:hover {
   transform: scale(1.2);
-  text-decoration: none; /* Ensures no underline on hover */
+  text-decoration: none;
 }
-/* Styles for the footer section */
 
+/* Styles for the footer section */
 .footer {
   width: 90%;
   margin: 0 auto;
@@ -1302,7 +1293,6 @@ textarea {
   margin: 10px 0;
 }
 
-/* ///////////////////////////////////////////////////////////// */
 /* MEDIA QUERIES FOR RESPONSIVENESS */
 
 @media only screen and (max-width: 1288px) {
@@ -1437,9 +1427,9 @@ textarea {
   background-color: black;
   height: 4px;
   width: 30px;
-  margin: 3px 0; /* Vertical margin only */
+  margin: 3px 0;
   border-radius: 10px;
-  transition: all 0.3s ease; /* Smooth transition for non-animated states */
+  transition: all 0.3s ease;
 }
 
 @media only screen and (max-width: 768px) {
@@ -1692,8 +1682,8 @@ textarea {
   .feedbacks .feed {
     grid-template-columns: repeat(4, 1fr);
     grid-template-areas:
-      'b b b b'
-      'a a a a';
+      "b b b b"
+      "a a a a";
   }
 
   /* Make the first slide relative so it pushes the container height open */
@@ -1759,12 +1749,12 @@ textarea {
 
   .feedbacks .btn1 {
     position: absolute;
-    left: -20px; /* 👈 move outside */
+    left: -20px;
   }
 
   .feedbacks .btn2 {
     position: absolute;
-    right: -20px; /* 👈 move outside */
+    right: -20px;
   }
   .feedbacks .feed-description .separator {
     font-size: 1.2rem;
