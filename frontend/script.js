@@ -511,7 +511,15 @@ bookingBtns.forEach((btn) => {
       }
 
       // Auto-targets the live package you generated inside MongoDB Atlas
-      const activePackageId = pkgData.data.packages[0]._id;
+      const selectedPackage = pkgData.data.packages.find(
+        (pkg) => pkg.name === btn.dataset.packageName,
+      );
+
+      if (!selectedPackage) {
+        throw new Error("Selected package was not found. Please try again.");
+      }
+
+      const activePackageId = selectedPackage._id;
 
       // 4. Contact your local Node application port to mint an order token code
       const orderResponse = await fetch(
@@ -581,6 +589,13 @@ bookingBtns.forEach((btn) => {
               "Internal server authentication failure during receipt validation.",
             );
           }
+        },
+        modal: {
+          ondismiss: function () {
+            alert(
+              "Payment cancelled. Your booking is not confirmed. You can try again whenever you're ready.",
+            );
+          },
         },
         prefill: {
           name: "Client Name",

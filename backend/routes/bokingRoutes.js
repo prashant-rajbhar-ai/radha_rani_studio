@@ -9,5 +9,7 @@ router.use(authController.protect);
 
 router.post('/create-order/:packageId', bookingController.createOrder);
 router.post('/verify', bookingController.verifyPayment);
+router.get('/my-bookings', bookingController.getMyBookings);
+
 
 module.exports = router;

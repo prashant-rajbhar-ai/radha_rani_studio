@@ -4,12 +4,13 @@ const authController = require('./../controllers/authController');
 
 const router = express.Router();
 
+// Public routes
 router.post('/signup', authController.signup);
 router.post('/login', authController.login);
-
 router.post('/forgotPassword', authController.forgotPassword);
 router.patch('/resetPassword/:token', authController.resetPassword);
 
+// Routes for the logged-in user
 router.patch(
   '/updateMyPassword',
   authController.protect,
@@ -17,7 +18,12 @@ router.patch(
 );
 
 router.patch('/updateMe', authController.protect, userController.updateMe);
+
 router.delete('/deleteMe', authController.protect, userController.deleteMe);
+
+// All routes below require authentication AND administrator access
+router.use(authController.protect);
+router.use(authController.restrictTo('admin'));
 
 router
   .route('/')
@@ -31,4 +37,3 @@ router
   .delete(userController.deleteUser);
 
 module.exports = router;
-
