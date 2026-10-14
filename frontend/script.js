@@ -423,56 +423,109 @@ if (contactForm) {
 }
 
 ////////////////////////////////////////////
+
 // BACKEND AUTHENTICATION INTEGRATION
 
-const loginForm = document.querySelector(".modal-form form");
-const emailInput = document.getElementById("email");
-const passwordInput = document.getElementById("password");
+const API_BASE = "https://radha-rani-studio.onrender.com/api/v1/users";
 
-if (loginForm) {
-  loginForm.addEventListener("submit", async (e) => {
-    e.preventDefault(); // Prevents the page from reloading on form submission
+const loginForm = document.getElementById("login-form");
+const registerForm = document.getElementById("register-form");
 
-    const email = emailInput.value;
-    const password = passwordInput.value;
+const showRegisterLink = document.getElementById("show-register");
+const showLoginLink = document.getElementById("show-login");
 
-    try {
-      // Send a POST request to your local Node backend endpoint
-      const response = await fetch("https://radha-rani-studio.onrender.com/api/v1/users/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
+const switchAuthForm = (showRegister) => {
+  loginForm.classList.toggle("hidden", showRegister);
+  registerForm.classList.toggle("hidden", !showRegister);
+};
 
-      const data = await response.json();
+showRegisterLink.addEventListener("click", (e) => {
+  e.preventDefault();
+  switchAuthForm(true);
+});
 
-      if (response.ok) {
-        alert("Login successful! Welcome to Radha Rani Studio.");
+showLoginLink.addEventListener("click", (e) => {
+  e.preventDefault();
+  switchAuthForm(false);
+});
 
-        // 1. Store the secret JWT token securely inside the browser storage
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("userRole", data.data.user.role);
+// LOGIN
+loginForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
 
-        // 2. Clear input fields and close the modal automatically
-        loginForm.reset();
-        closeModal();
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
 
-        // 3. Update navbar UI based on login status if necessary
-        console.log("Logged in user token:", data.token);
-      } else {
-        // Displays error messages generated from your backend errorController
-        alert(data.message || "Incorrect email or password.");
-      }
-    } catch (err) {
-      alert(
-        "Cannot connect to the authentication server. Ensure backend is running.",
-      );
-      console.error("Login Error:", err);
+  try {
+    const response = await fetch(`${API_BASE}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.message || "Login failed. Please check your details.");
+      return;
     }
-  });
-}
+
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("userRole", data.data.user.role);
+
+    alert("Login successful! Welcome to Radha Rani Studio.");
+    loginForm.reset();
+    switchAuthForm(false);
+    closeModal();
+  } catch (error) {
+    console.error("Login error:", error);
+    alert("Unable to connect to the server. Please try again.");
+  }
+});
+
+// REGISTRATION
+registerForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const name = document.getElementById("register-name").value.trim();
+  const email = document.getElementById("register-email").value.trim();
+  const password = document.getElementById("register-password").value;
+
+  const passwordConfirm = prompt("Please re-enter your password to confirm:");
+
+  if (passwordConfirm === null) return;
+
+  if (password !== passwordConfirm) {
+    alert("Passwords do not match. Please try again.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password, passwordConfirm }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      alert(data.message || "Registration failed. Please try again.");
+      return;
+    }
+
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("userRole", data.data.user.role);
+
+    alert("Account created successfully! You are now logged in.");
+    registerForm.reset();
+    switchAuthForm(false);
+    closeModal();
+  } catch (error) {
+    console.error("Registration error:", error);
+    alert("Unable to connect to the server. Please try again.");
+  }
+});
 
 ////////////////////////////////////////////
 // LIVE RAZORPAY FRONTEND GATEWAY CHECKOUT
@@ -500,7 +553,9 @@ bookingBtns.forEach((btn) => {
 
     try {
       // 3. Programmatically capture your live package from your active database collection catalog
-      const pkgResponse = await fetch("https://radha-rani-studio.onrender.com/api/v1/packages");
+      const pkgResponse = await fetch(
+        "https://radha-rani-studio.onrender.com/api/v1/packages",
+      );
       const pkgData = await pkgResponse.json();
 
       if (!pkgData.data.packages || pkgData.data.packages.length === 0) {
