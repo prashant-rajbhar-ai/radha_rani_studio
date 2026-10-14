@@ -438,7 +438,7 @@ if (loginForm) {
 
     try {
       // Send a POST request to your local Node backend endpoint
-      const response = await fetch("http://localhost:3000/api/v1/users/login", {
+      const response = await fetch("https://radha-rani-studio.onrender.com/api/v1/users/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -500,7 +500,7 @@ bookingBtns.forEach((btn) => {
 
     try {
       // 3. Programmatically capture your live package from your active database collection catalog
-      const pkgResponse = await fetch("http://localhost:3000/api/v1/packages");
+      const pkgResponse = await fetch("https://radha-rani-studio.onrender.com/api/v1/packages");
       const pkgData = await pkgResponse.json();
 
       if (!pkgData.data.packages || pkgData.data.packages.length === 0) {
@@ -523,7 +523,7 @@ bookingBtns.forEach((btn) => {
 
       // 4. Contact your local Node application port to mint an order token code
       const orderResponse = await fetch(
-        `http://localhost:3000/api/v1/bookings/create-order/${activePackageId}`,
+        `https://radha-rani-studio.onrender.com/api/v1/bookings/create-order/${activePackageId}`,
         {
           method: "POST",
           headers: {
@@ -556,7 +556,7 @@ bookingBtns.forEach((btn) => {
           // This loop auto-fires when authorization completes on screen
           try {
             const verifyResponse = await fetch(
-              "http://localhost:3000/api/v1/bookings/verify",
+              "https://radha-rani-studio.onrender.com/api/v1/bookings/verify",
               {
                 method: "POST",
                 headers: {
