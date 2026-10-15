@@ -569,6 +569,10 @@ loginForm.addEventListener("submit", async (e) => {
 
     localStorage.setItem("token", data.token);
     localStorage.setItem("userRole", data.data.user.role);
+    localStorage.setItem("userName", data.data.user.name || name);
+    localStorage.setItem("userEmail", data.data.user.email || email);
+    localStorage.setItem("userName", data.data.user.name || "Customer");
+    localStorage.setItem("userEmail", data.data.user.email || email);
 
     loginForm.reset();
     switchAuthForm(false);
@@ -684,53 +688,346 @@ registerForm.addEventListener("submit", async (e) => {
 ////////////////////////////////////////////
 // LIVE RAZORPAY FRONTEND GATEWAY CHECKOUT
 
+// Custom branded event-date calendar. Returns YYYY-MM-DD or null if cancelled.
+const eventDateOverlay = document.getElementById("event-date-overlay");
+const eventDateSelectedLabel = document.getElementById("event-date-selected-label");
+const eventDateMonth = document.getElementById("event-date-month");
+const eventDateYear = document.getElementById("event-date-year");
+const eventDateDays = document.getElementById("event-date-days");
+let calendarViewDate = new Date();
+let calendarSelectedDate = null;
+let resolveEventDate = null;
+
+const calendarMonthNames = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+const calendarToday = new Date();
+calendarToday.setHours(0, 0, 0, 0);
+
+function dateToISO(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function updateSelectedDateLabel() {
+  eventDateSelectedLabel.textContent = calendarSelectedDate
+    ? calendarSelectedDate.toLocaleDateString("en-IN", {
+        weekday: "short", month: "short", day: "numeric"
+      })
+    : "Select a date";
+}
+
+function renderEventCalendar() {
+  if (!eventDateMonth || !eventDateYear || !eventDateDays) return;
+  eventDateMonth.innerHTML = calendarMonthNames.map((name, index) =>
+    `<option value="${index}">${name}</option>`
+  ).join("");
+  const currentYear = calendarToday.getFullYear();
+  const yearOptions = [];
+  for (let year = currentYear; year <= currentYear + 10; year++) {
+    yearOptions.push(`<option value="${year}">${year}</option>`);
+  }
+  eventDateYear.innerHTML = yearOptions.join("");
+  eventDateMonth.value = String(calendarViewDate.getMonth());
+  eventDateYear.value = String(calendarViewDate.getFullYear());
+
+  eventDateDays.innerHTML = "";
+  const firstWeekday = new Date(
+    calendarViewDate.getFullYear(), calendarViewDate.getMonth(), 1
+  ).getDay();
+  const daysInMonth = new Date(
+    calendarViewDate.getFullYear(), calendarViewDate.getMonth() + 1, 0
+  ).getDate();
+
+  for (let blank = 0; blank < firstWeekday; blank++) {
+    const empty = document.createElement("span");
+    empty.className = "event-date-empty";
+    empty.setAttribute("aria-hidden", "true");
+    eventDateDays.appendChild(empty);
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(
+      calendarViewDate.getFullYear(), calendarViewDate.getMonth(), day
+    );
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "event-date-day";
+    button.textContent = String(day);
+    button.setAttribute("aria-label", date.toLocaleDateString("en-IN", {
+      day: "numeric", month: "long", year: "numeric"
+    }));
+    if (date < calendarToday) {
+      button.disabled = true;
+      button.classList.add("is-past");
+    }
+    if (calendarSelectedDate && dateToISO(date) === dateToISO(calendarSelectedDate)) {
+      button.classList.add("is-selected");
+      button.setAttribute("aria-pressed", "true");
+    }
+    button.addEventListener("click", () => {
+      calendarSelectedDate = date;
+      updateSelectedDateLabel();
+      renderEventCalendar();
+    });
+    eventDateDays.appendChild(button);
+  }
+  updateSelectedDateLabel();
+}
+
+function selectEventDate() {
+  if (!eventDateOverlay) {
+    // Fail safely if the calendar markup has not been added.
+    return Promise.resolve(null);
+  }
+  calendarSelectedDate = null;
+  calendarViewDate = new Date(Math.max(Date.now(), calendarToday.getTime()));
+  calendarViewDate.setDate(1);
+  renderEventCalendar();
+  eventDateOverlay.classList.remove("hidden");
+  eventDateOverlay.setAttribute("aria-hidden", "false");
+  document.body.classList.add("no-scroll");
+
+  return new Promise((resolve) => {
+    resolveEventDate = resolve;
+  });
+}
+
+function closeEventDatePicker(value = null) {
+  eventDateOverlay?.classList.add("hidden");
+  eventDateOverlay?.setAttribute("aria-hidden", "true");
+  if (typeof closeAuthSuccess === "function" &&
+      authSuccessOverlay?.classList.contains("hidden") &&
+      modal?.classList.contains("hidden") && overlay?.classList.contains("hidden")) {
+    document.body.classList.remove("no-scroll");
+  } else if (!authSuccessOverlay || authSuccessOverlay.classList.contains("hidden")) {
+    document.body.classList.remove("no-scroll");
+  }
+  if (resolveEventDate) {
+    resolveEventDate(value);
+    resolveEventDate = null;
+  }
+}
+
+eventDateMonth?.addEventListener("change", () => {
+  calendarViewDate.setMonth(Number(eventDateMonth.value));
+  renderEventCalendar();
+});
+eventDateYear?.addEventListener("change", () => {
+  calendarViewDate.setFullYear(Number(eventDateYear.value));
+  renderEventCalendar();
+});
+document.getElementById("event-date-prev")?.addEventListener("click", () => {
+  const previous = new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth() - 1, 1);
+  if (previous.getFullYear() < calendarToday.getFullYear() ||
+      (previous.getFullYear() === calendarToday.getFullYear() && previous.getMonth() < calendarToday.getMonth())) return;
+  calendarViewDate = previous;
+  renderEventCalendar();
+});
+document.getElementById("event-date-next")?.addEventListener("click", () => {
+  if (calendarViewDate.getFullYear() >= calendarToday.getFullYear() + 10 &&
+      calendarViewDate.getMonth() === 11) return;
+  calendarViewDate = new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth() + 1, 1);
+  renderEventCalendar();
+});
+document.getElementById("event-date-edit")?.addEventListener("click", () => eventDateMonth?.focus());
+document.getElementById("event-date-cancel")?.addEventListener("click", () => closeEventDatePicker(null));
+document.getElementById("event-date-confirm")?.addEventListener("click", () => {
+  if (!calendarSelectedDate) {
+    eventDateSelectedLabel.textContent = "Please select a date";
+    return;
+  }
+  closeEventDatePicker(dateToISO(calendarSelectedDate));
+});
+eventDateOverlay?.addEventListener("click", (event) => {
+  if (event.target === eventDateOverlay) closeEventDatePicker(null);
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && eventDateOverlay && !eventDateOverlay.classList.contains("hidden")) {
+    closeEventDatePicker(null);
+  }
+});
+
+
+// Booking flow with branded inline feedback. Payment/order API logic is preserved.
 const bookingBtns = document.querySelectorAll(".booking-btn");
+const bookingFeedback = document.getElementById("booking-feedback");
+
+function setBookingFeedback(message, type = "") {
+  if (!bookingFeedback) return;
+  bookingFeedback.textContent = message;
+  bookingFeedback.classList.toggle("is-visible", Boolean(message));
+  bookingFeedback.classList.toggle("is-success", type === "success");
+  bookingFeedback.classList.toggle("is-error", type === "error");
+  bookingFeedback.classList.toggle("is-info", type === "info");
+}
+
+const receiptOverlay = document.getElementById("booking-receipt-overlay");
+let currentReceiptText = "";
+
+function formatReceiptDate(isoDate) {
+  if (!isoDate) return "—";
+  const parts = String(isoDate).slice(0, 10).split("-").map(Number);
+  if (parts.length !== 3 || parts.some(Number.isNaN)) return String(isoDate);
+  return new Date(parts[0], parts[1] - 1, parts[2]).toLocaleDateString("en-IN", {
+    day: "numeric", month: "long", year: "numeric"
+  });
+}
+
+function setReceiptValue(id, value) {
+  const element = document.getElementById(id);
+  if (element) element.textContent = value || "—";
+}
+
+function showBookingReceipt({ booking, packageName, eventDate, amountPaise, paymentId }) {
+  const userName = localStorage.getItem("userName") || booking?.user?.name || "Customer";
+  const userEmail = localStorage.getItem("userEmail") || booking?.user?.email || "Not provided";
+  const receiptId = booking?._id || booking?.id || paymentId || `RRS-${Date.now()}`;
+  const amount = Number.isFinite(Number(amountPaise))
+    ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(Number(amountPaise) / 100)
+    : "Amount unavailable";
+  const issuedAt = new Date().toLocaleString("en-IN", {
+    day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit"
+  });
+
+  setReceiptValue("receipt-amount", amount);
+  setReceiptValue("receipt-number", String(receiptId));
+  setReceiptValue("receipt-customer", userName);
+  setReceiptValue("receipt-email", userEmail);
+  setReceiptValue("receipt-package", packageName || booking?.package?.name || "Photography package");
+  setReceiptValue("receipt-event-date", formatReceiptDate(booking?.eventDate || eventDate));
+  setReceiptValue("receipt-venue", booking?.venue || "To be confirmed with the studio");
+  setReceiptValue("receipt-payment-id", paymentId || booking?.razorpayPaymentId || "—");
+  setReceiptValue("receipt-issued-at", issuedAt);
+
+  currentReceiptText = [
+    "RADHA RANI STUDIO — PAYMENT RECEIPT",
+    `Receipt number: ${receiptId}`,
+    `Customer: ${userName}`,
+    `Email: ${userEmail}`,
+    `Package: ${packageName || booking?.package?.name || "Photography package"}`,
+    `Event date: ${formatReceiptDate(booking?.eventDate || eventDate)}`,
+    `Venue: ${booking?.venue || "To be confirmed with the studio"}`,
+    `Amount paid: ${amount}`,
+    `Payment ID: ${paymentId || booking?.razorpayPaymentId || "—"}`,
+    "Payment status: PAID",
+    `Receipt issued: ${issuedAt}`,
+    "Contact: +91 7458006822 | radharanistudio2026@gmail.com"
+  ].join("\n");
+
+  if (receiptOverlay) {
+    receiptOverlay.classList.remove("hidden");
+    receiptOverlay.setAttribute("aria-hidden", "false");
+    document.body.classList.add("no-scroll");
+    document.getElementById("booking-receipt-print")?.focus();
+  }
+}
+
+function closeBookingReceipt() {
+  receiptOverlay?.classList.add("hidden");
+  receiptOverlay?.setAttribute("aria-hidden", "true");
+  if (eventDateOverlay?.classList.contains("hidden") && modal?.classList.contains("hidden") && overlay?.classList.contains("hidden") && authSuccessOverlay?.classList.contains("hidden")) {
+    document.body.classList.remove("no-scroll");
+  }
+}
+
+document.getElementById("booking-receipt-close")?.addEventListener("click", closeBookingReceipt);
+receiptOverlay?.addEventListener("click", (event) => {
+  if (event.target === receiptOverlay) closeBookingReceipt();
+});
+document.getElementById("booking-receipt-print")?.addEventListener("click", () => window.print());
+document.getElementById("booking-receipt-share")?.addEventListener("click", async () => {
+  const feedback = document.getElementById("receipt-share-feedback");
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: "Radha Rani Studio — Payment Receipt", text: currentReceiptText });
+      if (feedback) feedback.textContent = "Receipt shared.";
+    } else if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(currentReceiptText);
+      if (feedback) feedback.textContent = "Receipt details copied. You can paste them into WhatsApp or another app.";
+    } else {
+      if (feedback) feedback.textContent = "Use Print / Save PDF to save a copy of your receipt.";
+    }
+  } catch (error) {
+    if (error?.name !== "AbortError" && feedback) feedback.textContent = "Sharing was unavailable. Use Print / Save PDF to save your receipt.";
+  }
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && receiptOverlay && !receiptOverlay.classList.contains("hidden")) closeBookingReceipt();
+});
+
+function setBookingButtonBusy(button, busy) {
+  if (!button) return;
+  if (busy) {
+    button.dataset.originalText = button.textContent.trim();
+    button.disabled = true;
+    button.setAttribute("aria-busy", "true");
+    button.textContent = "Please wait...";
+  } else {
+    button.disabled = false;
+    button.removeAttribute("aria-busy");
+    if (button.dataset.originalText) {
+      button.textContent = button.dataset.originalText;
+      delete button.dataset.originalText;
+    }
+  }
+}
 
 bookingBtns.forEach((btn) => {
   btn.addEventListener("click", async (e) => {
     e.preventDefault();
     e.stopPropagation();
+    setBookingFeedback("");
 
-    // 1. Enforce that a user session must be authenticated to check out
     const token = localStorage.getItem("token");
     if (!token) {
-      alert(
-        "Please log in first via the Client Gallery to initiate a studio booking.",
+      setAuthFeedback(
+        loginFeedback,
+        "Please log in to continue with your booking. After signing in, select your package again.",
+        "error",
       );
-      openModal(); // Triggers your built-in sliding login window panel
+      switchAuthForm(false);
+      openModal();
+      document.getElementById("email")?.focus();
       return;
     }
 
-    // 2. Request targeted shoot date parameter
-    const eventDate = prompt("Please enter your event date (YYYY-MM-DD):");
+    const eventDate = await selectEventDate();
     if (!eventDate) return;
 
+    setBookingButtonBusy(btn, true);
+    setBookingFeedback("Preparing your booking. Please wait...", "info");
+
     try {
-      // 3. Programmatically capture your live package from your active database collection catalog
       const pkgResponse = await fetch(
         "https://radha-rani-studio.onrender.com/api/v1/packages",
       );
+      if (!pkgResponse.ok) {
+        throw new Error("We couldn't load the photography packages. Please try again shortly.");
+      }
       const pkgData = await pkgResponse.json();
+      const packages = pkgData?.data?.packages;
 
-      if (!pkgData.data.packages || pkgData.data.packages.length === 0) {
-        alert(
-          "No photography services found in database. Create a service via Postman admin first.",
+      if (!Array.isArray(packages) || packages.length === 0) {
+        setBookingFeedback(
+          "Our packages are temporarily unavailable. Please try again later or contact us for assistance.",
+          "error",
         );
         return;
       }
 
-      // Auto-targets the live package you generated inside MongoDB Atlas
-      const selectedPackage = pkgData.data.packages.find(
+      const selectedPackage = packages.find(
         (pkg) => pkg.name === btn.dataset.packageName,
       );
 
       if (!selectedPackage) {
-        throw new Error("Selected package was not found. Please try again.");
+        throw new Error("We couldn't find the selected package. Please refresh the page and try again.");
       }
 
       const activePackageId = selectedPackage._id;
-
-      // 4. Contact your local Node application port to mint an order token code
       const orderResponse = await fetch(
         `https://radha-rani-studio.onrender.com/api/v1/bookings/create-order/${activePackageId}`,
         {
@@ -743,26 +1040,40 @@ bookingBtns.forEach((btn) => {
         },
       );
 
-      const orderData = await orderResponse.json();
-
+      const orderData = await orderResponse.json().catch(() => ({}));
       if (!orderResponse.ok) {
+        if (orderResponse.status === 401 || orderResponse.status === 403) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("userRole");
+          setAuthFeedback(
+            loginFeedback,
+            "Your session may have expired. Please log in again to continue booking.",
+            "error",
+          );
+          switchAuthForm(false);
+          openModal();
+          return;
+        }
         throw new Error(
-          orderData.message ||
-            "Failed to establish database transaction session.",
+          orderData.message || "We couldn't start your booking. Please try again.",
         );
       }
 
-      // 5. Build official Razorpay modal display configuration window
+      setBookingFeedback(
+        "Your booking is ready. Complete the payment window to submit your booking.",
+        "info",
+      );
+
       const options = {
-        key: orderData.key_id, // Safely delivered from environment config
+        key: orderData.key_id,
         amount: orderData.order.amount,
         currency: orderData.order.currency,
         name: "Radha Rani Studio",
         description: "Professional Wedding Photography & Videography Booking",
         image: "images/favicon-transparent.png",
-        order_id: orderData.order.id, // Links transaction UI container directly to backend record
+        order_id: orderData.order.id,
         handler: async function (response) {
-          // This loop auto-fires when authorization completes on screen
+          setBookingFeedback("Payment received. Verifying your payment securely...", "info");
           try {
             const verifyResponse = await fetch(
               "https://radha-rani-studio.onrender.com/api/v1/bookings/verify",
@@ -780,50 +1091,65 @@ bookingBtns.forEach((btn) => {
               },
             );
 
-            const verifyData = await verifyResponse.json();
-
+            const verifyData = await verifyResponse.json().catch(() => ({}));
             if (verifyResponse.ok) {
-              alert(
-                "Payment Successful! Your photoshoot event date has been locked in for Radha Rani Studio.",
+              const verifiedBooking = verifyData?.booking || orderData?.booking || {};
+              setBookingFeedback(
+                "Payment verified successfully. Your receipt is ready to view, print, or share.",
+                "success",
               );
-              window.location.reload();
+              showBookingReceipt({
+                booking: verifiedBooking,
+                packageName: selectedPackage.name,
+                eventDate,
+                amountPaise: orderData?.order?.amount,
+                paymentId: response.razorpay_payment_id,
+              });
             } else {
-              alert(
-                verifyData.message || "Signature encryption mismatch error.",
+              setBookingFeedback(
+                verifyData.message || "We received your payment response but couldn't verify it yet. Please contact us before trying to pay again.",
+                "error",
               );
             }
           } catch (err) {
             console.error("Verification Error:", err);
-            alert(
-              "Internal server authentication failure during receipt validation.",
+            setBookingFeedback(
+              "We couldn't verify your payment right now. Please contact Radha Rani Studio before attempting another payment.",
+              "error",
             );
+          } finally {
+            setBookingButtonBusy(btn, false);
           }
         },
         modal: {
           ondismiss: function () {
-            alert(
-              "Payment cancelled. Your booking is not confirmed. You can try again whenever you're ready.",
+            setBookingFeedback(
+              "The payment window was closed. Your booking is not confirmed. You can select Book Now to try again.",
+              "info",
             );
+            setBookingButtonBusy(btn, false);
           },
         },
         prefill: {
-          name: "Client Name",
-          email: "client@example.com",
+          name: localStorage.getItem("userName") || "",
+          email: localStorage.getItem("userEmail") || "",
         },
         theme: {
-          color: "#312418", // Matches your exact brand dark luxury theme hex token custom property
+          color: "#312418",
         },
       };
 
-      // 6. Launch the official secure overlay payment overlay container interface
       const rzpWindow = new Razorpay(options);
       rzpWindow.open();
     } catch (err) {
       console.error("Checkout error flow capture:", err);
-      alert(
-        err.message ||
-          "Failed to launch transaction gateway check connection ports.",
+      setBookingFeedback(
+        err.message || "We couldn't start your booking. Please check your connection and try again.",
+        "error",
       );
+    } finally {
+      // Razorpay can remain open after order creation; its callbacks re-enable the button.
+      if (!window.Razorpay) setBookingButtonBusy(btn, false);
     }
   });
 });

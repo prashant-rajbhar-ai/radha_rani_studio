@@ -2094,3 +2094,264 @@ textarea {
   opacity: 0.65;
   cursor: wait;
 }
+
+
+/* Branded calendar date picker for booking */
+.event-date-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(24, 19, 14, .58);
+  backdrop-filter: blur(4px);
+}
+.event-date-overlay.hidden { display: none; }
+.event-date-dialog {
+  width: min(100%, 430px);
+  overflow: hidden;
+  border-radius: 10px;
+  background: #fff;
+  color: #312418;
+  box-shadow: 0 22px 55px rgba(0,0,0,.28);
+  animation: eventCalendarIn .18s ease-out;
+}
+.event-date-header {
+  padding: 22px 26px 20px;
+  background: #312418;
+  color: #fff;
+}
+.event-date-header > p {
+  margin: 0 0 18px;
+  color: #e1a932;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+}
+.event-date-selected-row { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.event-date-selected-row strong { font-size: clamp(1.65rem, 6vw, 2.2rem); font-weight:500; line-height:1.2; }
+.event-date-edit {
+  flex:0 0 auto; border:0; background:transparent; color:#fff; padding:8px; cursor:pointer; font-size:1.1rem;
+}
+.event-date-calendar { padding:16px 18px 22px; }
+.event-date-toolbar { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:18px; }
+.event-date-month-year { display:flex; gap:5px; min-width:0; }
+.event-date-month-year select {
+  max-width:150px; min-width:0; border:0; background:#fff; color:#312418;
+  padding:8px 4px; font:600 .95rem inherit; cursor:pointer;
+}
+.event-date-month-year select:focus-visible,
+.event-date-nav button:focus-visible,
+.event-date-day:focus-visible,
+.event-date-actions button:focus-visible { outline:2px solid #e1a932; outline-offset:2px; }
+.event-date-nav { display:flex; gap:8px; }
+.event-date-nav button {
+  width:34px; height:34px; border:0; border-radius:50%; background:transparent;
+  color:#312418; font-size:1.8rem; line-height:1; cursor:pointer;
+}
+.event-date-nav button:hover { background:#f7f3ec; }
+.event-date-weekdays,.event-date-days { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); text-align:center; }
+.event-date-weekdays { margin-bottom:8px; color:#776d61; font-size:.76rem; font-weight:700; }
+.event-date-weekdays span { padding:7px 0; }
+.event-date-days { row-gap:4px; }
+.event-date-day,.event-date-empty { width:38px; height:38px; justify-self:center; }
+.event-date-day {
+  border:1px solid transparent; border-radius:50%; background:transparent; color:#312418;
+  font-size:.9rem; cursor:pointer;
+}
+.event-date-day:hover:not(:disabled) { background:#f7f0e2; }
+.event-date-day.is-selected { background:#e1a932; color:#312418; font-weight:700; }
+.event-date-day:disabled { color:#c8c1b8; cursor:not-allowed; }
+.event-date-actions {
+  display:flex; justify-content:flex-end; gap:12px; padding:14px 20px;
+  border-top:1px solid #eee7dc;
+}
+.event-date-actions button {
+  border:0; border-radius:5px; background:transparent; padding:10px 12px;
+  color:#312418; font-size:.82rem; font-weight:700; letter-spacing:1px; cursor:pointer;
+}
+.event-date-actions button:last-child { color:#a87515; }
+.event-date-actions button:hover { background:#f7f3ec; }
+@keyframes eventCalendarIn { from { opacity:0; transform:translateY(6px) scale(.99); } to { opacity:1; transform:translateY(0) scale(1); } }
+@media (max-width:420px) {
+  .event-date-header { padding:18px 18px 16px; }
+  .event-date-calendar { padding:12px 8px 18px; }
+  .event-date-day,.event-date-empty { width:35px; height:35px; }
+  .event-date-month-year select { max-width:126px; font-size:.86rem; }
+}
+
+
+/* Branded inline booking feedback under the package cards */
+.booking-feedback {
+  display: none;
+  width: min(100% - 32px, 900px);
+  box-sizing: border-box;
+  margin: 18px auto 8px;
+  padding: 12px 16px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  font-size: var(--p);
+  line-height: 1.5;
+}
+.booking-feedback.is-visible { display: block; }
+.booking-feedback.is-success {
+  color: #245d3c;
+  background: #eef8f0;
+  border-color: #c6e4ce;
+}
+.booking-feedback.is-error {
+  color: #8d2822;
+  background: #fff1ef;
+  border-color: #efc4bf;
+}
+.booking-feedback.is-info {
+  color: var(--text-dark, #312418);
+  background: #fff8e8;
+  border-color: #e1a932;
+}
+.booking-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+
+/* Branded booking receipt modal */
+.receipt-overlay {
+  position: fixed; inset: 0; z-index: 3000; display: flex; align-items: center;
+  justify-content: center; padding: 18px; background: rgba(28, 21, 15, .68);
+  backdrop-filter: blur(5px); overflow-y: auto;
+}
+.receipt-overlay.hidden { display: none; }
+.receipt-dialog {
+  position: relative; width: min(100%, 680px); max-height: calc(100vh - 36px); overflow-y: auto;
+  background: #fff; border-radius: 16px; box-shadow: 0 24px 70px rgba(0,0,0,.3); padding: 18px;
+}
+.receipt-close {
+  position: sticky; top: 0; margin-left: auto; display: block; z-index: 2; width: 36px; height: 36px;
+  border: 0; border-radius: 50%; background: #f7f3ed; color: var(--text-dark, #312418); font-size: 28px; cursor: pointer;
+}
+.receipt-paper { border: 1px solid #eadfce; border-radius: 10px; padding: clamp(18px, 4vw, 32px); color: #312418; background: #fff; }
+.receipt-brand { text-align: center; padding-bottom: 18px; border-bottom: 2px solid #e1a932; }
+.receipt-brand img { width: 44px; height: 44px; object-fit: contain; }
+.receipt-brand p { margin: 7px 0 2px; font-family: var(--heading-font, serif); font-weight: 700; letter-spacing: 2px; }
+.receipt-brand span { color: #776b5d; font-size: .86rem; }
+.receipt-status { display: flex; align-items: center; gap: 12px; margin: 22px 0 8px; }
+.receipt-status > span { display: grid; place-items: center; width: 42px; height: 42px; flex: 0 0 42px; border: 1px solid #2e704d; color: #2e704d; border-radius: 50%; font-size: 24px; }
+.receipt-status h2 { font-size: clamp(1.25rem, 3vw, 1.7rem); }
+.receipt-status p { margin: 2px 0 0; color: #2e704d; font-size: .92rem; }
+.receipt-note { color: #776b5d; font-size: .92rem; margin: 10px 0 18px; }
+.receipt-amount-block { background: #f8f3e8; border-radius: 8px; padding: 14px 16px; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.receipt-amount-block span { color: #776b5d; }
+.receipt-amount-block strong { font-size: clamp(1.25rem, 4vw, 1.8rem); color: #312418; }
+.receipt-details { margin: 16px 0; }
+.receipt-details > div { display: grid; grid-template-columns: minmax(115px, 38%) 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid #eee7dd; }
+.receipt-details dt { color: #776b5d; font-size: .9rem; }
+.receipt-details dd { margin: 0; text-align: right; font-weight: 600; overflow-wrap: anywhere; font-size: .92rem; }
+.receipt-paid { display: inline-block; padding: 3px 9px; border-radius: 999px; background: #eaf5ed; color: #24603c; font-size: .75rem; letter-spacing: .5px; }
+.receipt-footer-note { color: #776b5d; font-size: .82rem; margin: 16px 0 8px; }
+.receipt-contact { border-top: 1px solid #eadfce; padding-top: 12px; text-align: center; font-size: .82rem; overflow-wrap: anywhere; }
+.receipt-actions { display: flex; gap: 10px; margin-top: 14px; }
+.receipt-action { flex: 1; min-height: 46px; padding: 10px 14px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+.receipt-action.secondary { color: #312418; background: #fff; border: 1px solid #312418; }
+.receipt-action.primary { color: #312418; background: #e1a932; border: 1px solid #e1a932; }
+.receipt-share-feedback { margin: 8px 0 0; font-size: .85rem; text-align: center; }
+@media (max-width: 520px) {
+  .receipt-overlay { padding: 8px; align-items: flex-start; }
+  .receipt-dialog { max-height: calc(100vh - 16px); padding: 10px; border-radius: 12px; }
+  .receipt-paper { padding: 16px 12px; }
+  .receipt-details > div { grid-template-columns: 40% 1fr; gap: 8px; }
+  .receipt-actions { flex-direction: column; }
+}
+@media print {
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+
+  /* Remove the site's layout from print flow so it cannot push the receipt
+     onto later pages. Keep the receipt as the only printable content. */
+  html,
+  body {
+    display: block !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  body > *:not(#booking-receipt-overlay) {
+    display: none !important;
+  }
+
+  #booking-receipt-overlay {
+    display: block !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #fff !important;
+    backdrop-filter: none !important;
+    visibility: visible !important;
+  }
+
+  #booking-receipt-overlay,
+  #booking-receipt-overlay * {
+    visibility: visible !important;
+  }
+
+  /* Hide interactive controls only; preserve the receipt's normal layout. */
+  #booking-receipt-overlay .receipt-close,
+  #booking-receipt-overlay .receipt-actions,
+  #booking-receipt-overlay .receipt-share-feedback {
+    display: none !important;
+  }
+
+  #booking-receipt-overlay .receipt-dialog {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    transform: none !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: #fff !important;
+  }
+
+  #booking-receipt-overlay .receipt-paper {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 8mm !important;
+    border: 1px solid #ddd !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    color: #312418 !important;
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+
+  #booking-receipt-overlay .receipt-details > div {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

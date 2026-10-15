@@ -792,6 +792,7 @@
         </div>
       </div>
 
+      <p id="booking-feedback" class="booking-feedback" role="status" aria-live="polite" aria-atomic="true"></p>
       <div class="dots"></div>
     </section>
 
@@ -1412,7 +1413,82 @@
       <p>Designed and Developed by Prashant.</p>
     </footer>
 
+    <!-- Custom event-date picker for booking -->
+    <div class="event-date-overlay hidden" id="event-date-overlay" aria-hidden="true">
+      <section class="event-date-dialog" role="dialog" aria-modal="true"
+        aria-labelledby="event-date-title">
+        <div class="event-date-header">
+          <p id="event-date-title">SELECT DATE</p>
+          <div class="event-date-selected-row">
+            <strong id="event-date-selected-label">Select a date</strong>
+            <button type="button" id="event-date-edit" class="event-date-edit" aria-label="Choose month and year">
+              <i class="fa-solid fa-pen" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+        <div class="event-date-calendar">
+          <div class="event-date-toolbar">
+            <div class="event-date-month-year">
+              <select id="event-date-month" aria-label="Select month"></select>
+              <select id="event-date-year" aria-label="Select year"></select>
+            </div>
+            <div class="event-date-nav">
+              <button type="button" id="event-date-prev" aria-label="Previous month">&#8249;</button>
+              <button type="button" id="event-date-next" aria-label="Next month">&#8250;</button>
+            </div>
+          </div>
+          <div class="event-date-weekdays" aria-hidden="true">
+            <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+          </div>
+          <div class="event-date-days" id="event-date-days"></div>
+        </div>
+        <div class="event-date-actions">
+          <button type="button" id="event-date-cancel">CANCEL</button>
+          <button type="button" id="event-date-confirm">OK</button>
+        </div>
+      </section>
+    </div>
+
+
+    <!-- Branded booking receipt, shown only after payment verification succeeds -->
+    <div class="receipt-overlay hidden" id="booking-receipt-overlay" aria-hidden="true">
+      <section class="receipt-dialog" role="dialog" aria-modal="true"
+        aria-labelledby="booking-receipt-title" aria-describedby="booking-receipt-status">
+        <button type="button" class="receipt-close" id="booking-receipt-close" aria-label="Close receipt">&times;</button>
+        <div class="receipt-paper" id="booking-receipt-paper">
+          <div class="receipt-brand">
+            <img src="images/favicon-transparent.png" alt="" />
+            <p>RADHA RANI STUDIO</p>
+            <span>Wedding Photography &amp; Videography</span>
+          </div>
+          <div class="receipt-status"><span aria-hidden="true">✓</span><div><h2 id="booking-receipt-title">Payment receipt</h2><p id="booking-receipt-status">Payment verified</p></div></div>
+          <p class="receipt-note">Thank you for booking with us. Keep this receipt for your records.</p>
+          <div class="receipt-amount-block"><span>Amount paid</span><strong id="receipt-amount">₹0</strong></div>
+          <dl class="receipt-details">
+            <div><dt>Receipt number</dt><dd id="receipt-number">—</dd></div>
+            <div><dt>Customer name</dt><dd id="receipt-customer">—</dd></div>
+            <div><dt>Email address</dt><dd id="receipt-email">—</dd></div>
+            <div><dt>Photography package</dt><dd id="receipt-package">—</dd></div>
+            <div><dt>Event date</dt><dd id="receipt-event-date">—</dd></div>
+            <div><dt>Venue</dt><dd id="receipt-venue">To be confirmed with the studio</dd></div>
+            <div><dt>Payment ID</dt><dd id="receipt-payment-id">—</dd></div>
+            <div><dt>Payment status</dt><dd><span class="receipt-paid">PAID</span></dd></div>
+            <div><dt>Receipt issued</dt><dd id="receipt-issued-at">—</dd></div>
+          </dl>
+          <p class="receipt-footer-note">Please contact Radha Rani Studio if any detail needs correction. Venue and event logistics should be confirmed directly with the studio.</p>
+          <div class="receipt-contact">+91 7458006822 · radharanistudio2026@gmail.com</div>
+        </div>
+        <div class="receipt-actions">
+          <button type="button" class="receipt-action secondary" id="booking-receipt-share">Share receipt</button>
+          <button type="button" class="receipt-action primary" id="booking-receipt-print">Print / Save PDF</button>
+        </div>
+        <p class="receipt-share-feedback" id="receipt-share-feedback" role="status" aria-live="polite"></p>
+      </section>
+    </div>
+
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="script.js"></script>
+
+
   </body>
 </html>
