@@ -488,16 +488,28 @@ registerForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const name = document.getElementById("register-name").value.trim();
-  const email = document.getElementById("register-email").value.trim();
+  const email = document.getElementById("register-email").value;
   const password = document.getElementById("register-password").value;
-
-  const passwordConfirm = prompt("Please re-enter your password to confirm:");
-
-  if (passwordConfirm === null) return;
+  const passwordConfirm = document.getElementById(
+    "register-password-confirm",
+  ).value;
 
   if (password !== passwordConfirm) {
-    alert("Passwords do not match. Please try again.");
+    const message = document.getElementById("password-match-message");
+
+    if (message) {
+      message.textContent = "Passwords do not match.";
+      message.style.color = "#c0392b";
+    }
+
+    document.getElementById("register-password-confirm").focus();
     return;
+  }
+
+  const message = document.getElementById("password-match-message");
+
+  if (message) {
+    message.textContent = "";
   }
 
   try {
@@ -671,5 +683,34 @@ bookingBtns.forEach((btn) => {
           "Failed to launch transaction gateway check connection ports.",
       );
     }
+  });
+});
+
+document.querySelectorAll(".toggle-password").forEach((button) => {
+  button.addEventListener("click", () => {
+    const targetId = button.dataset.target;
+    const passwordInput = document.getElementById(targetId);
+
+    if (!passwordInput) return;
+
+    const isPasswordHidden = passwordInput.type === "password";
+
+    // Toggle password visibility
+    passwordInput.type = isPasswordHidden ? "text" : "password";
+
+    // Update the eye icon
+    const eyeIcon = button.querySelector("i");
+
+    if (eyeIcon) {
+      eyeIcon.classList.toggle("fa-eye", !isPasswordHidden);
+      eyeIcon.classList.toggle("fa-eye-slash", isPasswordHidden);
+    }
+
+    // Update accessibility state
+    button.setAttribute("aria-pressed", String(isPasswordHidden));
+    button.setAttribute(
+      "aria-label",
+      isPasswordHidden ? "Hide password" : "Show password",
+    );
   });
 });

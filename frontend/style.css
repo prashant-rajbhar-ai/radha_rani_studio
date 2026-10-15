@@ -1871,3 +1871,50 @@ textarea {
     margin: 0;
   }
 }
+
+/* Password field and eye button */
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.password-input-wrapper input {
+  width: 100%;
+  box-sizing: border-box;
+  padding-right: 45px;
+}
+
+.password-input-wrapper button.toggle-password {
+  position: absolute !important;
+  top: 50% !important;
+  right: 8px !important;
+  left: auto !important;
+  bottom: auto !important;
+  transform: translateY(-50%) !important;
+
+  width: 32px !important;
+  min-width: 32px !important;
+  height: 32px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #33251b;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.password-input-wrapper button.toggle-password i {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.password-input-wrapper button.toggle-password:hover {
+  background: transparent !important;
+}
