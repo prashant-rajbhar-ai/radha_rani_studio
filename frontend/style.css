@@ -1918,3 +1918,179 @@ textarea {
 .password-input-wrapper button.toggle-password:hover {
   background: transparent !important;
 }
+
+/* Branded login and registration feedback */
+.auth-feedback {
+  display: none;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 8px 0 12px !important;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 0.9rem !important;
+  line-height: 1.45;
+  text-align: left !important;
+}
+.auth-feedback.is-visible { display: block; }
+.auth-feedback.is-error {
+  color: #8d2822;
+  background: #fff1ef;
+  border: 1px solid #efc4bf;
+}
+.auth-feedback.is-success {
+  color: #245d3c;
+  background: #eef8f0;
+  border: 1px solid #c6e4ce;
+}
+.password-match-message.is-error {
+  display: block;
+  width: 100%;
+  color: #8d2822 !important;
+  background: #fff1ef;
+  border: 1px solid #efc4bf;
+  border-radius: 6px;
+  padding: 8px 10px;
+  text-align: left !important;
+  font-size: 0.85rem !important;
+}
+.auth-feedback[aria-busy="true"] { opacity: 0.7; }
+.modal .modal-form button:disabled { opacity: 0.65; cursor: wait; }
+
+/* Success confirmation dialog for login and registration only */
+.auth-success-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(28, 21, 14, 0.62);
+  backdrop-filter: blur(4px);
+}
+.auth-success-overlay.hidden { display: none; }
+.auth-success-dialog {
+  position: relative;
+  width: min(100%, 440px);
+  padding: 38px 30px 30px;
+  border: 1px solid #eee3d2;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
+  text-align: center;
+  animation: authSuccessIn 220ms ease-out;
+}
+.auth-success-close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  border: 0;
+  background: transparent;
+  color: var(--text-dark, #312418);
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+}
+.auth-success-icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 15px;
+  border: 1px solid #e1a932;
+  border-radius: 50%;
+  color: #286749;
+  font-size: 23px;
+}
+.auth-success-eyebrow {
+  margin: 0 0 7px !important;
+  color: #a87515;
+  font-size: 0.7rem !important;
+  font-weight: 700;
+  letter-spacing: 1.7px;
+}
+.auth-success-dialog h2 {
+  margin: 0;
+  color: #312418;
+  font-family: var(--heading-font, "Roboto Slab", serif);
+  font-size: clamp(1.45rem, 4vw, 1.9rem);
+}
+.auth-success-dialog > p:not(.auth-success-eyebrow) {
+  margin: 12px 0 24px;
+  color: #6f655a;
+  font-size: 0.98rem;
+}
+.auth-success-continue {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 18px;
+  border: 1px solid #e1a932;
+  border-radius: 6px;
+  background: #e1a932;
+  color: #312418;
+  font-weight: 700;
+  cursor: pointer;
+}
+.auth-success-continue:hover { background: #d39a21; }
+.auth-success-close:focus-visible,
+.auth-success-continue:focus-visible {
+  outline: 3px solid rgba(225, 169, 50, 0.45);
+  outline-offset: 3px;
+}
+@keyframes authSuccessIn {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .auth-success-dialog { animation: none; }
+}
+
+
+/* Inline next step for an already-registered email address */
+.inline-login-action {
+  display: none;
+  width: 100%;
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--text-dark, #312418);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--text-dark, #312418);
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+}
+.inline-login-action.is-visible { display: block; }
+.inline-login-action:hover {
+  background: var(--text-dark, #312418);
+  color: #fff;
+}
+
+
+/* Contact form inline feedback shown directly below the Submit button */
+.contact-form-feedback {
+  display: none;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 12px 0 0 !important;
+  padding: 11px 13px;
+  border-radius: 6px;
+  font-size: 0.9rem !important;
+  line-height: 1.5;
+  text-align: left;
+}
+.contact-form-feedback.is-visible { display: block; }
+.contact-form-feedback.is-success {
+  color: #245d3c;
+  background: #eef8f0;
+  border: 1px solid #c6e4ce;
+}
+.contact-form-feedback.is-error {
+  color: #8d2822;
+  background: #fff1ef;
+  border: 1px solid #efc4bf;
+}
+.contact-form form button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}

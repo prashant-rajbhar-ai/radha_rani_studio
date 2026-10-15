@@ -244,6 +244,7 @@
         <form id="login-form">
           <h2>Login</h2>
           <p>Welcome back to Radha Rani Studio</p>
+          <p class="auth-feedback" id="login-feedback" role="status" aria-live="polite"></p>
 
           <label for="email">Email Address</label>
           <input type="email" name="email" id="email" required />
@@ -288,6 +289,7 @@
         <form id="register-form" class="hidden">
           <h2>Create Account</h2>
           <p>Join Radha Rani Studio</p>
+          <p class="auth-feedback" id="register-feedback" role="status" aria-live="polite"></p>
 
           <label for="register-name">Full Name</label>
           <input
@@ -363,6 +365,24 @@
       </div>
     </div>
     <div class="modal-overlay hidden"></div>
+
+    <!-- Branded confirmation dialog for login and registration -->
+    <div class="auth-success-overlay hidden" id="auth-success-overlay">
+      <section class="auth-success-dialog" role="dialog" aria-modal="true"
+        aria-labelledby="auth-success-title" aria-describedby="auth-success-description">
+        <button type="button" class="auth-success-close" id="auth-success-close"
+          aria-label="Close confirmation">&times;</button>
+        <div class="auth-success-icon" aria-hidden="true">
+          <i class="fa-solid fa-check"></i>
+        </div>
+        <p class="auth-success-eyebrow">RADHA RANI STUDIO</p>
+        <h2 id="auth-success-title">Welcome back!</h2>
+        <p id="auth-success-description">You are signed in successfully.</p>
+        <button type="button" class="auth-success-continue" id="auth-success-continue">
+          Continue to website
+        </button>
+      </section>
+    </div>
 
     <!-- //////////////////////////////////////////////// -->
 
@@ -1335,6 +1355,13 @@
           <br />
 
           <button type="submit" class="brown-button">Submit</button>
+          <p
+            id="contact-form-feedback"
+            class="contact-form-feedback"
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+          ></p>
         </form>
 
         <div class="social-media">

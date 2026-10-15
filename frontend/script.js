@@ -392,33 +392,64 @@ tariffCols.forEach((col) => {
 });
 
 ////////////////////////////////////////////
-// Form submission
-// Form submission (Fixed for Netlify)
+// Contact form submission (Netlify) with inline feedback
 const contactForm = document.querySelector(".contact-form form");
+const contactFormFeedback = document.getElementById("contact-form-feedback");
+
+function setContactFormFeedback(message, type = "") {
+  if (!contactFormFeedback) return;
+  contactFormFeedback.textContent = message;
+  contactFormFeedback.classList.toggle("is-visible", Boolean(message));
+  contactFormFeedback.classList.toggle("is-success", type === "success");
+  contactFormFeedback.classList.toggle("is-error", type === "error");
+}
 
 if (contactForm) {
-  contactForm.addEventListener("submit", (e) => {
+  contactForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+    setContactFormFeedback("");
 
+    const submitButton = contactForm.querySelector('button[type="submit"]');
+    const originalButtonText = submitButton ? submitButton.textContent : "Submit";
     const formData = new FormData(contactForm);
 
-    fetch("/", {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      // Important: Netlify needs the form-name included in the body
-      body: new URLSearchParams(formData).toString(),
-    })
-      .then((response) => {
-        if (response.ok) {
-          alert("Message sent successfully!");
-          contactForm.reset();
-        } else {
-          // Log status to help debug
-          console.error("Server response:", response.status);
-          throw new Error("Form submission failed");
-        }
-      })
-      .catch((error) => alert("Error: " + error));
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.setAttribute("aria-busy", "true");
+      submitButton.textContent = "Sending...";
+    }
+
+    try {
+      const response = await fetch("/", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        // Netlify requires the form-name value to be included in the body.
+        body: new URLSearchParams(formData).toString(),
+      });
+
+      if (!response.ok) {
+        console.error("Contact form response status:", response.status);
+        throw new Error("Contact form submission failed");
+      }
+
+      contactForm.reset();
+      setContactFormFeedback(
+        "Thank you for contacting us! Your message has been sent successfully.",
+        "success",
+      );
+    } catch (error) {
+      console.error("Contact form submission error:", error);
+      setContactFormFeedback(
+        "We couldn't send your message right now. Please check your connection and try again.",
+        "error",
+      );
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.removeAttribute("aria-busy");
+        submitButton.textContent = originalButtonText;
+      }
+    }
   });
 }
 
@@ -430,14 +461,58 @@ const API_BASE = "https://radha-rani-studio.onrender.com/api/v1/users";
 
 const loginForm = document.getElementById("login-form");
 const registerForm = document.getElementById("register-form");
-
 const showRegisterLink = document.getElementById("show-register");
 const showLoginLink = document.getElementById("show-login");
+
+const loginFeedback = document.getElementById("login-feedback");
+const registerFeedback = document.getElementById("register-feedback");
+const authSuccessOverlay = document.getElementById("auth-success-overlay");
+const authSuccessTitle = document.getElementById("auth-success-title");
+const authSuccessDescription = document.getElementById("auth-success-description");
+const authSuccessClose = document.getElementById("auth-success-close");
+const authSuccessContinue = document.getElementById("auth-success-continue");
 
 const switchAuthForm = (showRegister) => {
   loginForm.classList.toggle("hidden", showRegister);
   registerForm.classList.toggle("hidden", !showRegister);
+  clearAuthFeedback();
 };
+
+function setAuthFeedback(element, message, type = "error") {
+  if (!element) return;
+  element.textContent = message;
+  element.classList.toggle("is-error", type === "error");
+  element.classList.toggle("is-success", type === "success");
+  element.classList.toggle("is-visible", Boolean(message));
+}
+
+function clearAuthFeedback() {
+  setAuthFeedback(loginFeedback, "");
+  setAuthFeedback(registerFeedback, "");
+  const duplicateEmailAction = document.getElementById("duplicate-email-login-action");
+  if (duplicateEmailAction) duplicateEmailAction.classList.remove("is-visible");
+  const passwordMessage = document.getElementById("password-match-message");
+  if (passwordMessage) {
+    passwordMessage.textContent = "";
+    passwordMessage.classList.remove("is-error", "is-success");
+  }
+}
+
+function showAuthSuccess(title, description) {
+  if (!authSuccessOverlay) return;
+  authSuccessTitle.textContent = title;
+  authSuccessDescription.textContent = description;
+  authSuccessOverlay.classList.remove("hidden");
+  document.body.classList.add("no-scroll");
+  authSuccessContinue?.focus();
+}
+
+function closeAuthSuccess() {
+  authSuccessOverlay?.classList.add("hidden");
+  if (modal?.classList.contains("hidden") && overlay?.classList.contains("hidden")) {
+    document.body.classList.remove("no-scroll");
+  }
+}
 
 showRegisterLink.addEventListener("click", (e) => {
   e.preventDefault();
@@ -449,12 +524,31 @@ showLoginLink.addEventListener("click", (e) => {
   switchAuthForm(false);
 });
 
+authSuccessClose?.addEventListener("click", closeAuthSuccess);
+authSuccessContinue?.addEventListener("click", closeAuthSuccess);
+authSuccessOverlay?.addEventListener("click", (e) => {
+  if (e.target === authSuccessOverlay) closeAuthSuccess();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && authSuccessOverlay && !authSuccessOverlay.classList.contains("hidden")) {
+    closeAuthSuccess();
+  }
+});
+
 // LOGIN
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+  setAuthFeedback(loginFeedback, "");
 
+  const submitButton = loginForm.querySelector('button[type="submit"]');
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
+
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.setAttribute("aria-busy", "true");
+  }
 
   try {
     const response = await fetch(`${API_BASE}/login`, {
@@ -463,53 +557,64 @@ loginForm.addEventListener("submit", async (e) => {
       body: JSON.stringify({ email, password }),
     });
 
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      alert(data.message || "Login failed. Please check your details.");
+      setAuthFeedback(
+        loginFeedback,
+        data.message || "We couldn't sign you in. Check your email and password, then try again.",
+      );
       return;
     }
 
     localStorage.setItem("token", data.token);
     localStorage.setItem("userRole", data.data.user.role);
 
-    alert("Login successful! Welcome to Radha Rani Studio.");
     loginForm.reset();
     switchAuthForm(false);
     closeModal();
+    showAuthSuccess("Welcome back!", "You have successfully logged in to Radha Rani Studio.");
   } catch (error) {
     console.error("Login error:", error);
-    alert("Unable to connect to the server. Please try again.");
+    setAuthFeedback(loginFeedback, "We couldn't connect to the server. Please check your connection and try again.");
+  } finally {
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.removeAttribute("aria-busy");
+    }
   }
 });
 
 // REGISTRATION
 registerForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+  setAuthFeedback(registerFeedback, "");
 
   const name = document.getElementById("register-name").value.trim();
-  const email = document.getElementById("register-email").value;
+  const email = document.getElementById("register-email").value.trim();
   const password = document.getElementById("register-password").value;
-  const passwordConfirm = document.getElementById(
-    "register-password-confirm",
-  ).value;
+  const passwordConfirm = document.getElementById("register-password-confirm").value;
+  const passwordMessage = document.getElementById("password-match-message");
 
   if (password !== passwordConfirm) {
-    const message = document.getElementById("password-match-message");
-
-    if (message) {
-      message.textContent = "Passwords do not match.";
-      message.style.color = "#c0392b";
+    if (passwordMessage) {
+      passwordMessage.textContent = "Passwords do not match. Please check both fields.";
+      passwordMessage.classList.add("is-error", "is-visible");
+      passwordMessage.classList.remove("is-success");
     }
-
     document.getElementById("register-password-confirm").focus();
     return;
   }
 
-  const message = document.getElementById("password-match-message");
+  if (passwordMessage) {
+    passwordMessage.textContent = "";
+    passwordMessage.classList.remove("is-error", "is-success", "is-visible");
+  }
 
-  if (message) {
-    message.textContent = "";
+  const submitButton = registerForm.querySelector('button[type="submit"]');
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.setAttribute("aria-busy", "true");
   }
 
   try {
@@ -519,23 +624,60 @@ registerForm.addEventListener("submit", async (e) => {
       body: JSON.stringify({ name, email, password, passwordConfirm }),
     });
 
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      alert(data.message || "Registration failed. Please try again.");
+      // Convert technical backend errors into clear, user-friendly messages.
+      const backendMessage = String(data.message || "");
+      const isDuplicateEmail =
+        response.status === 409 ||
+        /E11000|duplicate key|email_1 dup key|already exists/i.test(backendMessage);
+
+      if (isDuplicateEmail) {
+        setAuthFeedback(
+          registerFeedback,
+          "An account with this email address already exists. Please log in to your existing account, or use a different email address to create a new account.",
+        );
+
+        // Offer a direct path to the login form without showing a browser alert.
+        let loginAction = document.getElementById("duplicate-email-login-action");
+        if (!loginAction && registerFeedback) {
+          loginAction = document.createElement("button");
+          loginAction.type = "button";
+          loginAction.id = "duplicate-email-login-action";
+          loginAction.className = "inline-login-action";
+          loginAction.textContent = "Go to Login";
+          loginAction.addEventListener("click", () => {
+            switchAuthForm(false);
+            document.getElementById("email")?.focus();
+          });
+          registerFeedback.insertAdjacentElement("afterend", loginAction);
+        }
+        if (loginAction) loginAction.classList.add("is-visible");
+      } else {
+        setAuthFeedback(
+          registerFeedback,
+          "We couldn't create your account. Please review your details and try again.",
+        );
+      }
       return;
     }
 
     localStorage.setItem("token", data.token);
     localStorage.setItem("userRole", data.data.user.role);
 
-    alert("Account created successfully! You are now logged in.");
     registerForm.reset();
     switchAuthForm(false);
     closeModal();
+    showAuthSuccess("Account created!", "Your Radha Rani Studio account is ready. You are now logged in.");
   } catch (error) {
     console.error("Registration error:", error);
-    alert("Unable to connect to the server. Please try again.");
+    setAuthFeedback(registerFeedback, "We couldn't connect to the server. Please check your connection and try again.");
+  } finally {
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.removeAttribute("aria-busy");
+    }
   }
 });
 
