@@ -111,7 +111,17 @@
         <a class="nav__link" href="#tariffs">Price</a>
         <a class="nav__link" href="#feedbacks">Feedbacks</a>
         <a class="nav__link" href="#contact">Contact</a>
-        <button class="show-modal brown-button">Client Gallery</button>
+        <div class="account-control" id="desktop-account-control">
+          <button type="button" class="show-modal brown-button account-login" id="desktop-login-button">Login</button>
+          <button type="button" class="account-trigger hidden" id="desktop-account-trigger" aria-expanded="false" aria-controls="desktop-account-menu">
+            <span class="account-name" id="desktop-account-name">Account</span>
+            <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+          </button>
+          <div class="account-menu hidden" id="desktop-account-menu">
+            <a href="#" class="account-menu-item" data-account-action="gallery">View Gallery</a>
+            <button type="button" class="account-menu-item" data-account-action="logout">Log Out</button>
+          </div>
+        </div>
 
         <div class="hamburger">
           <div class="bar1 bar"></div>
@@ -228,9 +238,17 @@
       <a class="mobileNavLinks nav__link" href="#tariffs">Price</a>
       <a class="mobileNavLinks nav__link" href="#feedbacks">Feedbacks</a>
       <a class="mobileNavLinks nav__link" href="#contact">Contact</a>
-      <a class="mobileNavLinks nav__link show-modal" href="javascript:void(0)"
-        >View Your Wedding Album</a
-      >
+      <a class="mobileNavLinks nav__link show-modal" id="mobile-login-link" href="javascript:void(0)">Login</a>
+      <div class="mobile-account-links hidden" id="mobile-account-links">
+        <button type="button" class="mobile-account-identity" id="mobile-account-trigger" aria-expanded="false" aria-controls="mobile-account-actions">
+          <span id="mobile-account-name">Account</span>
+          <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+        </button>
+        <div class="mobile-account-actions hidden" id="mobile-account-actions">
+          <a class="mobileNavLinks nav__link" href="#" data-account-action="gallery">View Gallery</a>
+          <a class="mobileNavLinks nav__link" href="javascript:void(0)" data-account-action="logout">Log Out</a>
+        </div>
+      </div>
       <!--NOTES Prevent hreft default behaviour -->
     </div>
 

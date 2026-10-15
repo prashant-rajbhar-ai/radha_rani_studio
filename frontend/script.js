@@ -472,6 +472,41 @@ const authSuccessDescription = document.getElementById("auth-success-description
 const authSuccessClose = document.getElementById("auth-success-close");
 const authSuccessContinue = document.getElementById("auth-success-continue");
 
+const desktopLoginButton = document.getElementById("desktop-login-button");
+const desktopAccountTrigger = document.getElementById("desktop-account-trigger");
+const desktopAccountName = document.getElementById("desktop-account-name");
+const desktopAccountMenu = document.getElementById("desktop-account-menu");
+const mobileLoginLink = document.getElementById("mobile-login-link");
+const mobileAccountLinks = document.getElementById("mobile-account-links");
+const mobileAccountTrigger = document.getElementById("mobile-account-trigger");
+const mobileAccountActions = document.getElementById("mobile-account-actions");
+const mobileAccountName = document.getElementById("mobile-account-name");
+
+function renderAccountNavigation() {
+  const token = localStorage.getItem("token");
+  const storedName = localStorage.getItem("userName");
+  const name = (storedName || "Account").trim() || "Account";
+
+  if (desktopAccountName) desktopAccountName.textContent = name;
+  if (mobileAccountName) mobileAccountName.textContent = name;
+
+  desktopLoginButton?.classList.toggle("hidden", Boolean(token));
+  desktopAccountTrigger?.classList.toggle("hidden", !token);
+  mobileLoginLink?.classList.toggle("hidden", Boolean(token));
+  mobileAccountLinks?.classList.toggle("hidden", !token);
+}
+
+function closeAccountMenu() {
+  desktopAccountMenu?.classList.add("hidden");
+  desktopAccountTrigger?.setAttribute("aria-expanded", "false");
+  mobileAccountActions?.classList.add("hidden");
+  mobileAccountTrigger?.setAttribute("aria-expanded", "false");
+}
+
+
+
+renderAccountNavigation();
+
 const switchAuthForm = (showRegister) => {
   loginForm.classList.toggle("hidden", showRegister);
   registerForm.classList.toggle("hidden", !showRegister);
@@ -569,10 +604,9 @@ loginForm.addEventListener("submit", async (e) => {
 
     localStorage.setItem("token", data.token);
     localStorage.setItem("userRole", data.data.user.role);
-    localStorage.setItem("userName", data.data.user.name || name);
-    localStorage.setItem("userEmail", data.data.user.email || email);
     localStorage.setItem("userName", data.data.user.name || "Customer");
     localStorage.setItem("userEmail", data.data.user.email || email);
+    renderAccountNavigation();
 
     loginForm.reset();
     switchAuthForm(false);
@@ -669,6 +703,9 @@ registerForm.addEventListener("submit", async (e) => {
 
     localStorage.setItem("token", data.token);
     localStorage.setItem("userRole", data.data.user.role);
+    localStorage.setItem("userName", data.data.user.name || name);
+    localStorage.setItem("userEmail", data.data.user.email || email);
+    renderAccountNavigation();
 
     registerForm.reset();
     switchAuthForm(false);
@@ -682,6 +719,64 @@ registerForm.addEventListener("submit", async (e) => {
       submitButton.disabled = false;
       submitButton.removeAttribute("aria-busy");
     }
+  }
+});
+
+// Account menu interactions. These actions do not change booking/payment code.
+desktopAccountTrigger?.addEventListener("click", () => {
+  const isOpen = !desktopAccountMenu?.classList.contains("hidden");
+  desktopAccountMenu?.classList.toggle("hidden", isOpen);
+  desktopAccountTrigger.setAttribute("aria-expanded", String(!isOpen));
+});
+
+mobileAccountTrigger?.addEventListener("click", (event) => {
+  event.preventDefault();
+  event.stopPropagation();
+  const isOpen = !mobileAccountActions?.classList.contains("hidden");
+  mobileAccountActions?.classList.toggle("hidden", isOpen);
+  mobileAccountTrigger.setAttribute("aria-expanded", String(!isOpen));
+});
+
+document.addEventListener("click", (event) => {
+  if (!event.target.closest("#desktop-account-control")) closeAccountMenu();
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") closeAccountMenu();
+});
+
+document.querySelectorAll('[data-account-action="gallery"]').forEach((item) => {
+  item.addEventListener("click", (event) => {
+    // Keep this as a placeholder hash link until the separate gallery page is built.
+    // Stop the mobile drawer's delegated navigation handler from treating "#" as a section ID.
+    event.stopPropagation();
+    mobileNav?.classList.remove("openDrawer");
+    bar1?.classList.remove("animateBar1");
+    bar2?.classList.remove("animateBar2");
+    bar3?.classList.remove("animateBar3");
+  });
+});
+
+document.querySelectorAll('[data-account-action="logout"]').forEach((item) => {
+  item.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
+    localStorage.removeItem("userName");
+    localStorage.removeItem("userEmail");
+    closeAccountMenu();
+    renderAccountNavigation();
+    mobileNav?.classList.remove("openDrawer");
+    bar1?.classList.remove("animateBar1");
+    bar2?.classList.remove("animateBar2");
+    bar3?.classList.remove("animateBar3");
+  });
+});
+
+window.addEventListener("storage", (event) => {
+  if (["token", "userName", "userRole", "userEmail"].includes(event.key)) {
+    renderAccountNavigation();
   }
 });
 
@@ -1045,6 +1140,9 @@ bookingBtns.forEach((btn) => {
         if (orderResponse.status === 401 || orderResponse.status === 403) {
           localStorage.removeItem("token");
           localStorage.removeItem("userRole");
+          localStorage.removeItem("userName");
+          localStorage.removeItem("userEmail");
+          renderAccountNavigation();
           setAuthFeedback(
             loginFeedback,
             "Your session may have expired. Please log in again to continue booking.",
