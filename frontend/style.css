@@ -2492,3 +2492,6 @@ textarea {
 }
 .mobile-account-actions { width: 100%; }
 .mobile-account-actions.hidden { display: none; }
+
+/* Direct link to the private administrator sign-in page */
+.admin-login-nav{font-weight:700!important}

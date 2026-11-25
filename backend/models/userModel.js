@@ -15,6 +15,15 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     validate: [validator.isEmail, 'Please provide a valid email'],
   },
+  phoneNumber: {
+    type: String,
+    required: [true, 'Please provide your phone number'],
+    trim: true,
+    validate: {
+      validator: value => /^\+?[0-9][0-9\s()-]{6,18}[0-9]$/.test(value),
+      message: 'Please provide a valid phone number.',
+    },
+  },
   photo: String,
   role: {
     type: String,

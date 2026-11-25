@@ -630,6 +630,7 @@ registerForm.addEventListener("submit", async (e) => {
 
   const name = document.getElementById("register-name").value.trim();
   const email = document.getElementById("register-email").value.trim();
+  const phoneNumber = document.getElementById("register-phone").value.trim();
   const password = document.getElementById("register-password").value;
   const passwordConfirm = document.getElementById("register-password-confirm").value;
   const passwordMessage = document.getElementById("password-match-message");
@@ -659,7 +660,7 @@ registerForm.addEventListener("submit", async (e) => {
     const response = await fetch(`${API_BASE}/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password, passwordConfirm }),
+      body: JSON.stringify({ name, email, phoneNumber, password, passwordConfirm }),
     });
 
     const data = await response.json().catch(() => ({}));

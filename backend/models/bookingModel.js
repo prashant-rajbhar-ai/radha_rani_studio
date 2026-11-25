@@ -45,7 +45,7 @@ const bookingSchema = new mongoose.Schema(
 bookingSchema.pre(/^find/, function(next) {
   this.populate({
     path: 'user',
-    select: 'name email'
+    select: 'name email phoneNumber'
   }).populate({
     path: 'package',
     select: 'name price imageCover'
