@@ -56,8 +56,7 @@
       const clientBlock = document.createElement('div');
       const name = document.createElement('span'); name.className = 'client-name'; name.textContent = client.name || 'Unknown client';
       const email = document.createElement('span'); email.className = 'client-email'; email.textContent = client.email || 'No email recorded';
-      const phone = document.createElement('span'); phone.className = 'client-phone'; phone.textContent = client.phoneNumber || 'No phone recorded';
-      clientBlock.append(name, email, phone);
+      clientBlock.append(name, email);
       addCell(row, clientBlock);
       addCell(row, pkg.name || 'Package unavailable');
       addCell(row, date(booking.eventDate));
@@ -71,21 +70,9 @@
         const link = document.createElement('a');
         link.className = 'contact-link';
         link.href = `mailto:${encodeURIComponent(client.email)}?subject=${encodeURIComponent('Radha Rani Studio booking')}`;
-        link.textContent = 'Email ↗';
+        link.textContent = 'Email client ↗';
         contactCell.append(link);
-      }
-      if (client.phoneNumber) {
-        const digits = client.phoneNumber.replace(/\D/g, '');
-        const whatsapp = document.createElement('a');
-        whatsapp.className = 'contact-link whatsapp-link';
-        whatsapp.href = `https://wa.me/${digits}`;
-        whatsapp.target = '_blank';
-        whatsapp.rel = 'noopener noreferrer';
-        whatsapp.textContent = 'WhatsApp ↗';
-        if (contactCell.childNodes.length) contactCell.append(document.createElement('br'));
-        contactCell.append(whatsapp);
-      }
-      if (!client.email && !client.phoneNumber) contactCell.textContent = 'No contact details';
+      } else contactCell.textContent = 'No contact details';
       row.append(contactCell);
       tbody.append(row);
     });
@@ -151,7 +138,7 @@
   });
   $('search-input').addEventListener('input', () => {
     const term = $('search-input').value.trim().toLowerCase();
-    const filtered = state.bookings.filter((b) => [b.user?.name, b.user?.email, b.user?.phoneNumber, b.package?.name].some((v) => String(v || '').toLowerCase().includes(term)));
+    const filtered = state.bookings.filter((b) => [b.user?.name, b.user?.email, b.package?.name].some((v) => String(v || '').toLowerCase().includes(term)));
     renderBookings(filtered);
   });
   $('prev-page').addEventListener('click', () => { if (state.page > 1) { state.page -= 1; refresh(); } });
