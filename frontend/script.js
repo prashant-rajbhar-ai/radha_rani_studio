@@ -630,9 +630,24 @@ registerForm.addEventListener("submit", async (e) => {
 
   const name = document.getElementById("register-name").value.trim();
   const email = document.getElementById("register-email").value.trim();
+  const submittedPhoneNumber = document.getElementById("register-phone").value.trim();
+  const compactPhoneNumber = submittedPhoneNumber.replace(/[\s()-]/g, "");
+  const indianMobileNumber = compactPhoneNumber.startsWith("+91")
+    ? compactPhoneNumber.slice(3)
+    : compactPhoneNumber;
+  const phoneNumber = `+91${indianMobileNumber}`;
   const password = document.getElementById("register-password").value;
   const passwordConfirm = document.getElementById("register-password-confirm").value;
   const passwordMessage = document.getElementById("password-match-message");
+
+  if (!/^[6-9]\d{9}$/.test(indianMobileNumber)) {
+    setAuthFeedback(
+      registerFeedback,
+      "Please enter a valid 10-digit Indian mobile number. You may include +91.",
+    );
+    document.getElementById("register-phone").focus();
+    return;
+  }
 
   if (password !== passwordConfirm) {
     if (passwordMessage) {
@@ -659,7 +674,7 @@ registerForm.addEventListener("submit", async (e) => {
     const response = await fetch(`${API_BASE}/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, password, passwordConfirm }),
+      body: JSON.stringify({ name, email, phoneNumber, password, passwordConfirm }),
     });
 
     const data = await response.json().catch(() => ({}));

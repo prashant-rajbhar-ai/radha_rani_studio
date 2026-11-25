@@ -10,3 +10,11 @@ config.env
 config_3.env
 backend/config.env
 backend/config_3.env
+
+# Environment variables and secrets
+.env*
+!.env.example
+*.env
+
+# Dependencies
+node_modules/

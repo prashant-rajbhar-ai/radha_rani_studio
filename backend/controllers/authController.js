@@ -37,9 +37,29 @@ const createSendToken = (user, statusCode, res) => {
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
+  const submittedPhoneNumber = String(req.body.phoneNumber || '').trim();
+  const compactPhoneNumber = submittedPhoneNumber.replace(/[\s()-]/g, '');
+  const indianMobileNumber = compactPhoneNumber.startsWith('+91')
+    ? compactPhoneNumber.slice(3)
+    : compactPhoneNumber;
+
+  if (!submittedPhoneNumber) {
+    return next(new AppError('Please provide your Indian mobile number.', 400));
+  }
+
+  if (!/^[6-9]\d{9}$/.test(indianMobileNumber)) {
+    return next(
+      new AppError('Please enter a valid 10-digit Indian mobile number. You may include +91.', 400),
+    );
+  }
+
+  // Store all Indian mobile numbers in one consistent international format.
+  const phoneNumber = `+91${indianMobileNumber}`;
+
   const newUser = await User.create({
     name: req.body.name,
     email: req.body.email,
+    phoneNumber,
     password: req.body.password,
     passwordConfirm: req.body.passwordConfirm,
   });

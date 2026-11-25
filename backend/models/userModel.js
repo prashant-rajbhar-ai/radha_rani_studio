@@ -15,6 +15,21 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     validate: [validator.isEmail, 'Please provide a valid email'],
   },
+  // Optional at the schema level for compatibility with existing accounts.
+  // The public signup endpoint requires this field for every new registration.
+  phoneNumber: {
+    type: String,
+    trim: true,
+    validate: {
+      validator: function (value) {
+        if (!value) return true;
+        const compact = value.replace(/[\s()-]/g, '');
+        const indianMobile = compact.startsWith('+91') ? compact.slice(3) : compact;
+        return /^[6-9]\d{9}$/.test(indianMobile);
+      },
+      message: 'Please provide a valid 10-digit Indian mobile number. You may include +91.',
+    },
+  },
   photo: String,
   role: {
     type: String,

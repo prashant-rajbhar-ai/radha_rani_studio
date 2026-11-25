@@ -2492,3 +2492,46 @@ textarea {
 }
 .mobile-account-actions { width: 100%; }
 .mobile-account-actions.hidden { display: none; }
+
+
+/* Admin entry points on the public homepage */
+.admin-login-link {
+  display: inline-block;
+  white-space: nowrap;
+  text-decoration: none;
+  line-height: 1.2;
+}
+
+.admin-login-link:hover,
+.admin-login-link:focus-visible {
+  color: var(--bg-white);
+  background-color: var(--text-dark);
+  text-decoration: none;
+}
+
+.mobileNav .admin-mobile-login {
+  display: inline-block;
+  width: fit-content;
+  margin: 12px 0;
+  padding: 8px 14px;
+  border: 1px solid var(--text-dark);
+  border-radius: 5px;
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+.mobileNav .admin-mobile-login:hover,
+.mobileNav .admin-mobile-login:focus-visible {
+  background: #f8f1e5;
+  text-decoration: none;
+}
+
+#register-phone-hint {
+  display: block;
+  width: 100%;
+  margin: -2px 0 8px;
+  color: #817b72;
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: left;
+}

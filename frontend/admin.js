@@ -56,7 +56,8 @@
       const clientBlock = document.createElement('div');
       const name = document.createElement('span'); name.className = 'client-name'; name.textContent = client.name || 'Unknown client';
       const email = document.createElement('span'); email.className = 'client-email'; email.textContent = client.email || 'No email recorded';
-      clientBlock.append(name, email);
+      const phone = document.createElement('span'); phone.className = 'client-phone'; phone.textContent = client.phoneNumber || 'No phone recorded';
+      clientBlock.append(name, email, phone);
       addCell(row, clientBlock);
       addCell(row, pkg.name || 'Package unavailable');
       addCell(row, date(booking.eventDate));
@@ -66,13 +67,42 @@
       badge.textContent = booking.paymentStatus || 'unknown';
       addCell(row, badge);
       const contactCell = document.createElement('td');
+      const contactActions = document.createElement('div');
+      contactActions.className = 'contact-actions';
+
       if (client.email) {
-        const link = document.createElement('a');
-        link.className = 'contact-link';
-        link.href = `mailto:${encodeURIComponent(client.email)}?subject=${encodeURIComponent('Radha Rani Studio booking')}`;
-        link.textContent = 'Email client ↗';
-        contactCell.append(link);
-      } else contactCell.textContent = 'No contact details';
+        const emailLink = document.createElement('a');
+        emailLink.className = 'contact-link';
+        emailLink.href = `mailto:${encodeURIComponent(client.email)}?subject=${encodeURIComponent('Radha Rani Studio booking')}`;
+        emailLink.textContent = 'Email client ↗';
+        contactActions.append(emailLink);
+      }
+
+      if (client.phoneNumber) {
+        const phoneValue = String(client.phoneNumber).trim();
+        const telValue = phoneValue.replace(/[^\d+]/g, '');
+        const phoneDigits = phoneValue.replace(/\D/g, '');
+        let whatsappNumber = phoneDigits;
+        if (phoneDigits.length === 10) whatsappNumber = `91${phoneDigits}`;
+        else if (phoneDigits.length === 11 && phoneDigits.startsWith('0')) whatsappNumber = `91${phoneDigits.slice(1)}`;
+
+        const callLink = document.createElement('a');
+        callLink.className = 'contact-link';
+        callLink.href = `tel:${telValue}`;
+        callLink.textContent = 'Call client';
+        contactActions.append(callLink);
+
+        const whatsappLink = document.createElement('a');
+        whatsappLink.className = 'contact-link';
+        whatsappLink.href = `https://wa.me/${whatsappNumber}`;
+        whatsappLink.target = '_blank';
+        whatsappLink.rel = 'noopener noreferrer';
+        whatsappLink.textContent = 'WhatsApp ↗';
+        contactActions.append(whatsappLink);
+      }
+
+      if (contactActions.childElementCount) contactCell.append(contactActions);
+      else contactCell.textContent = 'No contact details';
       row.append(contactCell);
       tbody.append(row);
     });
@@ -138,7 +168,7 @@
   });
   $('search-input').addEventListener('input', () => {
     const term = $('search-input').value.trim().toLowerCase();
-    const filtered = state.bookings.filter((b) => [b.user?.name, b.user?.email, b.package?.name].some((v) => String(v || '').toLowerCase().includes(term)));
+    const filtered = state.bookings.filter((b) => [b.user?.name, b.user?.email, b.user?.phoneNumber, b.package?.name].some((v) => String(v || '').toLowerCase().includes(term)));
     renderBookings(filtered);
   });
   $('prev-page').addEventListener('click', () => { if (state.page > 1) { state.page -= 1; refresh(); } });
