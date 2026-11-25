@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Admin Dashboard | Radha Rani Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <main class="shell">
+    <section class="login-panel" id="login-panel" hidden>
+      <a class="brand" href="/" aria-label="Radha Rani Studio home">RADHA RANI <span>STUDIO</span></a>
+      <h1>Admin sign in</h1>
+      <p class="muted">Sign in with the administrator account for your studio.</p>
+      <form id="admin-login-form">
+        <label for="admin-email">Email address</label>
+        <input id="admin-email" name="email" type="email" autocomplete="username" required />
+        <label for="admin-password">Password</label>
+        <input id="admin-password" name="password" type="password" autocomplete="current-password" required />
+        <button class="primary-btn" type="submit">Sign in</button>
+      </form>
+      <p class="feedback" id="login-feedback" role="alert"></p>
+      <a class="back-link" href="/">← Back to website</a>
+    </section>
+
+    <section id="dashboard" hidden>
+      <header class="topbar">
+        <div>
+          <a class="brand" href="/">RADHA RANI <span>STUDIO</span></a>
+          <p class="eyebrow">BUSINESS MANAGEMENT</p>
+        </div>
+        <div class="top-actions">
+          <span class="admin-label"><span class="online-dot"></span> Administrator</span>
+          <button class="quiet-btn" id="refresh-btn" type="button">↻ Refresh</button>
+          <button class="quiet-btn" id="logout-btn" type="button">Log out</button>
+        </div>
+      </header>
+
+      <div class="page-heading">
+        <div><p class="eyebrow">OVERVIEW</p><h1>Dashboard</h1><p class="muted">A clear view of your bookings and payments.</p></div>
+        <p class="updated" id="last-updated">Not updated yet</p>
+      </div>
+
+      <p class="feedback global-feedback" id="dashboard-feedback" role="status" aria-live="polite"></p>
+
+      <section class="stats-grid" aria-label="Business summary">
+        <article class="stat-card"><span class="stat-label">Total bookings</span><strong id="stat-total">—</strong><span class="stat-note">All booking records</span></article>
+        <article class="stat-card"><span class="stat-label">Successful payments</span><strong id="stat-paid">—</strong><span class="stat-note">Verified by the server</span></article>
+        <article class="stat-card"><span class="stat-label">Pending payments</span><strong id="stat-pending">—</strong><span class="stat-note">Awaiting payment</span></article>
+        <article class="stat-card"><span class="stat-label">Payment revenue</span><strong id="stat-revenue">—</strong><span class="stat-note">Recorded paid booking amounts</span></article>
+        <article class="stat-card"><span class="stat-label">Upcoming bookings</span><strong id="stat-upcoming">—</strong><span class="stat-note">Events today or later</span></article>
+      </section>
+
+      <section class="bookings-panel">
+        <div class="panel-heading"><div><p class="eyebrow">CLIENT ACTIVITY</p><h2>Bookings</h2></div><span class="result-count" id="result-count">Loading…</span></div>
+        <div class="filters">
+          <label class="search-wrap"><span class="sr-only">Search bookings</span><input id="search-input" type="search" placeholder="Search client, email or package…" /></label>
+          <label><span class="sr-only">Filter by payment status</span><select id="status-filter"><option value="">All payment statuses</option><option value="paid">Successful</option><option value="pending">Pending</option><option value="failed">Failed</option></select></label>
+          <label><span class="sr-only">Filter from date</span><input id="from-date" type="date" /></label>
+          <label><span class="sr-only">Filter to date</span><input id="to-date" type="date" /></label>
+          <button class="quiet-btn" id="clear-filters" type="button">Clear</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Client</th><th>Package</th><th>Event date</th><th>Amount</th><th>Payment</th><th>Contact</th></tr></thead>
+            <tbody id="booking-rows"><tr><td colspan="6" class="empty-state">Loading bookings…</td></tr></tbody>
+          </table>
+        </div>
+        <div class="pagination"><span id="page-label">Page 1</span><div><button class="quiet-btn" id="prev-page" type="button" disabled>Previous</button><button class="quiet-btn" id="next-page" type="button" disabled>Next</button></div></div>
+      </section>
+      <footer>Radha Rani Studio · Private administrator area</footer>
+    </section>
+  </main>
+  <script src="admin.js"></script>
+</body>
+</html>
