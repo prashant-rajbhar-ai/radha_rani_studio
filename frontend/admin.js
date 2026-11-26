@@ -127,7 +127,12 @@
 
       const paymentStatus = booking.paymentStatus || 'pending';
       const statusLabel = paymentStatus.replace(/_/g, ' ');
-      addCell(row, makeText('span', `status status-${paymentStatus}`, statusLabel));
+      const paymentBlock = document.createElement('div');
+      paymentBlock.append(makeText('span', `status status-${paymentStatus}`, statusLabel));
+      if (booking.initialPaymentChoice) {
+        paymentBlock.append(makeText('small', 'payment-choice-note', booking.initialPaymentChoice === 'full' ? 'Full payment chosen' : '20% advance chosen'));
+      }
+      addCell(row, paymentBlock);
 
       const contactCell = document.createElement('td');
       const contactActions = document.createElement('div');
@@ -225,15 +230,18 @@
     const pkg = state.packages.find((item) => item._id === $('offline-package').value);
     if (!pkg) {
       $('offline-package-price').textContent = '—';
-      $('offline-advance-amount').textContent = '—';
+      $('offline-initial-payment-amount').textContent = '—';
       $('offline-balance-due').textContent = '—';
       return;
     }
     const price = Number(pkg.price) || 0;
     const advance = Math.round((price * 0.2 + Number.EPSILON) * 100) / 100;
+    const paymentChoice = $('offline-payment-choice').value || 'advance';
+    const initialPaymentAmount = paymentChoice === 'full' ? price : advance;
     $('offline-package-price').textContent = money(price);
-    $('offline-advance-amount').textContent = money(advance);
-    $('offline-balance-due').textContent = money(Math.max(price - advance, 0));
+    $('offline-initial-payment-label').textContent = paymentChoice === 'full' ? 'Full payment received now' : '20% advance received now';
+    $('offline-initial-payment-amount').textContent = money(initialPaymentAmount);
+    $('offline-balance-due').textContent = money(Math.max(price - initialPaymentAmount, 0));
   }
 
   function closeOfflineModal() {
@@ -247,6 +255,7 @@
     setFeedback('', 'offline-booking-feedback');
     $('offline-booking-form').reset();
     $('offline-event-date').min = todayIndia();
+    $('offline-payment-choice').value = 'advance';
     $('offline-booking-modal').hidden = false;
     try {
       await loadPackagesForOfflineForm();
@@ -352,6 +361,7 @@
     if (event.target === $('offline-booking-modal')) closeOfflineModal();
   });
   $('offline-package').addEventListener('change', updateOfflinePricePreview);
+  $('offline-payment-choice').addEventListener('change', updateOfflinePricePreview);
   $('offline-booking-form').addEventListener('submit', async (event) => {
     event.preventDefault();
     if (!event.currentTarget.reportValidity()) return;
@@ -377,6 +387,7 @@
       eventDate: String(formData.get('eventDate') || ''),
       eventLocation,
       paymentMethod: String(formData.get('paymentMethod') || ''),
+      paymentChoice: String(formData.get('paymentChoice') || 'advance'),
       paymentReference: String(formData.get('paymentReference') || '').trim(),
       adminNotes: String(formData.get('adminNotes') || '').trim(),
       advancePolicyAccepted: formData.get('advancePolicyAccepted') === 'on',
@@ -389,7 +400,7 @@
       closeOfflineModal();
       state.page = 1;
       await refresh();
-      setFeedback(response.message || 'Offline booking saved. The date is now reserved and the 20% advance has been recorded.')
+      setFeedback(response.message || 'Offline booking saved and the selected initial payment has been recorded.')
     } catch (error) {
       setFeedback(error.message, 'offline-booking-feedback');
     } finally {

@@ -1550,13 +1550,24 @@
                 placeholder="Nearby temple, school, road or other landmark" />
             </label>
           </div>
+          <fieldset class="payment-choice-panel">
+            <legend>Choose your payment option</legend>
+            <label class="payment-choice-option">
+              <input type="radio" name="paymentChoice" value="advance" checked />
+              <span><strong>Pay 20% booking advance</strong><small>Pay 20% now and the remaining 80% later.</small></span>
+            </label>
+            <label class="payment-choice-option">
+              <input type="radio" name="paymentChoice" value="full" />
+              <span><strong>Pay full package amount</strong><small>Pay 100% now. No balance will remain after successful verification.</small></span>
+            </label>
+          </fieldset>
           <div class="advance-policy-check">
             <label for="advance-policy-accepted">
               <input id="advance-policy-accepted" name="advancePolicyAccepted" type="checkbox" required />
-              <span>I understand that a <strong>20% booking advance</strong> is required to reserve my date. The advance is non-refundable for customer-initiated cancellations where permitted by applicable law. If the studio cannot provide the service and no alternative is agreed, the advance will be refunded.</span>
+              <span>I have reviewed my selected payment option. The 20% booking-advance portion may be retained for customer-initiated cancellations where permitted by applicable law and the disclosed cancellation terms. Any amount paid above 20% will be handled under those cancellation/refund terms and applicable law. If the studio cannot provide the service and no alternative is agreed, applicable refunds will be provided.</span>
             </label>
           </div>
-          <p class="event-location-note">All required fields must be completed. We currently accept bookings for event locations in India only. The remaining 80% is payable later as agreed with the studio.</p>
+          <p class="event-location-note">All required fields must be completed. We accept event locations in India only. You can pay either the 20% advance or the full package amount now.</p>
           <p class="event-location-feedback" id="event-location-feedback" role="alert" aria-live="polite"></p>
           <div class="event-location-actions">
             <button type="button" id="event-location-cancel" class="event-location-cancel">Cancel booking</button>
@@ -1580,7 +1591,7 @@
           </div>
           <div class="receipt-status"><span aria-hidden="true">✓</span><div><h2 id="booking-receipt-title">Payment receipt</h2><p id="booking-receipt-status">Payment verified</p></div></div>
           <p class="receipt-note">Thank you for booking with us. Keep this receipt for your records.</p>
-          <div class="receipt-amount-block"><span>20% advance paid</span><strong id="receipt-amount">₹0</strong></div>
+          <div class="receipt-amount-block"><span id="receipt-amount-label">Payment received</span><strong id="receipt-amount">₹0</strong></div>
           <dl class="receipt-details">
             <div><dt>Receipt number</dt><dd id="receipt-number">—</dd></div>
             <div><dt>Customer name</dt><dd id="receipt-customer">—</dd></div>

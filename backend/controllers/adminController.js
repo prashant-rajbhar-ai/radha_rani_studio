@@ -134,10 +134,14 @@ exports.createOfflineBooking = catchAsync(async (req, res, next) => {
   const email = String(req.body.email || '').trim().toLowerCase();
   if (email && !validator.isEmail(email)) return next(new AppError('Please provide a valid customer email address.', 400));
   if (!OFFLINE_PAYMENT_METHODS.includes(req.body.paymentMethod)) {
-    return next(new AppError('Select how the 20% booking advance was received.', 400));
+    return next(new AppError('Select how the initial offline payment was received.', 400));
+  }
+  const paymentChoice = req.body.paymentChoice || 'advance';
+  if (!['advance', 'full'].includes(paymentChoice)) {
+    return next(new AppError('Choose either the 20% advance or full package payment.', 400));
   }
   if (req.body.advancePolicyAccepted !== true) {
-    return next(new AppError('Confirm that the customer has been informed of and accepted the 20% advance/cancellation policy.', 400));
+    return next(new AppError('Confirm that the customer has been informed of and accepted the payment and cancellation policy.', 400));
   }
 
   const pkg = await Package.findById(req.body.packageId);
@@ -149,7 +153,8 @@ exports.createOfflineBooking = catchAsync(async (req, res, next) => {
 
   const price = roundMoney(pkg.price);
   const advanceAmount = calculateAdvance(price);
-  const balanceDue = roundMoney(Math.max(price - advanceAmount, 0));
+  const initialPaymentAmount = paymentChoice === 'full' ? price : advanceAmount;
+  const balanceDue = roundMoney(Math.max(price - initialPaymentAmount, 0));
   const booking = {
     package: pkg._id,
     clientDetails: { name: customerName, email, phoneNumber },
@@ -158,14 +163,18 @@ exports.createOfflineBooking = catchAsync(async (req, res, next) => {
     price,
     advancePercentage: ADVANCE_PERCENTAGE,
     advanceAmount,
-    amountPaid: advanceAmount,
+    initialPaymentChoice: paymentChoice,
+    initialPaymentAmount,
+    amountPaid: initialPaymentAmount,
     balanceDue,
     paymentEntries: [{
-      amount: advanceAmount,
+      amount: initialPaymentAmount,
       method: req.body.paymentMethod,
       referenceId: String(req.body.paymentReference || '').trim().slice(0, 120),
       paidAt: new Date(),
-      note: `${ADVANCE_PERCENTAGE}% offline booking advance recorded by administrator.`,
+      note: paymentChoice === 'full'
+        ? 'Full package payment recorded by administrator for an offline booking.'
+        : `${ADVANCE_PERCENTAGE}% offline booking advance recorded by administrator.`,
       recordedBy: req.user.id,
     }],
     eventDate,
@@ -189,7 +198,9 @@ exports.createOfflineBooking = catchAsync(async (req, res, next) => {
   const populated = await Booking.findById(created._id);
   res.status(201).json({
     status: 'success',
-    message: 'Offline booking saved and event date reserved.',
+    message: paymentChoice === 'full'
+      ? 'Offline booking saved. Full payment recorded and event date reserved.'
+      : 'Offline booking saved. The 20% advance was recorded and the event date reserved.',
     data: { booking: populated },
   });
 });

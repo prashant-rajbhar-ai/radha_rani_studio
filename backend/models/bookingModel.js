@@ -54,9 +54,12 @@ const bookingSchema = new mongoose.Schema(
     bookingSource: { type: String, enum: ['online', 'offline'], default: 'online', index: true },
     price: { type: Number, required: true, min: 0.01 },
     advancePercentage: { type: Number, default: 20, min: 20, max: 20 },
-    // These fields are optional so historical full-payment bookings remain valid.
-    // All newly created online/offline bookings set each amount explicitly.
+    // advanceAmount always represents the standard 20% booking advance.
     advanceAmount: { type: Number, min: 0 },
+    // Customer/admin may choose to collect the 20% advance or the full package price initially.
+    // Optional fields keep legacy booking documents readable.
+    initialPaymentChoice: { type: String, enum: ['advance', 'full'] },
+    initialPaymentAmount: { type: Number, min: 0 },
     amountPaid: { type: Number, min: 0 },
     balanceDue: { type: Number, min: 0 },
     paymentEntries: { type: [paymentEntrySchema], default: [] },

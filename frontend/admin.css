@@ -52,3 +52,5 @@
 @media(max-width:1150px){.stats-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.filters{grid-template-columns:minmax(200px,1fr) 1fr 1fr}.search-wrap{grid-column:span 3}}
 @media(max-width:900px){.panel-heading{align-items:flex-start;flex-direction:column}.panel-heading-actions{width:100%;justify-content:space-between}.filters{grid-template-columns:1fr 1fr}.search-wrap{grid-column:span 2}}
 @media(max-width:600px){.stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.panel-heading-actions{align-items:flex-start;flex-direction:column}.add-booking-btn{width:100%}.admin-modal-overlay{padding:8px}.admin-modal-dialog{max-height:calc(100vh - 16px);padding:18px}.admin-form-grid{grid-template-columns:1fr}.full-span{grid-column:1}.payment-preview{grid-template-columns:1fr}.modal-form-actions{flex-direction:column-reverse}.modal-form-actions .primary-btn,.modal-form-actions .quiet-btn{width:100%}}
+
+.payment-choice-note{display:block;margin-top:5px;color:var(--muted);font-size:10px;text-transform:none;}

@@ -87,7 +87,7 @@
   <div class="admin-modal-overlay" id="offline-booking-modal" hidden>
     <section class="admin-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="offline-modal-title">
       <div class="admin-modal-header">
-        <div><p class="eyebrow">MANUAL ENTRY</p><h2 id="offline-modal-title">Add Offline Booking</h2><p class="muted">The same 20% advance and date availability rules apply.</p></div>
+        <div><p class="eyebrow">MANUAL ENTRY</p><h2 id="offline-modal-title">Add Offline Booking</h2><p class="muted">Choose whether the customer paid the 20% advance or the full package amount. The same date availability rules apply.</p></div>
         <button class="modal-close-btn" id="close-offline-modal" type="button" aria-label="Close">×</button>
       </div>
       <form id="offline-booking-form" class="admin-form-grid">
@@ -109,15 +109,16 @@
           <label class="full-span">Nearby landmark (optional) <input name="landmark" type="text" maxlength="120" /></label>
         </div></div>
 
+        <label class="full-span">Customer's payment choice <select id="offline-payment-choice" name="paymentChoice" required><option value="advance" selected>20% booking advance</option><option value="full">Full package payment (100%)</option></select></label>
         <div class="payment-preview full-span">
           <div><span>Package price</span><strong id="offline-package-price">—</strong></div>
-          <div><span>20% advance to record</span><strong id="offline-advance-amount">—</strong></div>
-          <div><span>Balance due</span><strong id="offline-balance-due">—</strong></div>
+          <div><span id="offline-initial-payment-label">20% advance received now</span><strong id="offline-initial-payment-amount">—</strong></div>
+          <div><span>Balance due after this payment</span><strong id="offline-balance-due">—</strong></div>
         </div>
-        <label>Advance received by <select id="offline-payment-method" name="paymentMethod" required><option value="">Select method</option><option value="cash">Cash</option><option value="upi">UPI</option><option value="bank_transfer">Bank transfer</option><option value="card">Card</option></select></label>
+        <label>Initial payment received by <select id="offline-payment-method" name="paymentMethod" required><option value="">Select method</option><option value="cash">Cash</option><option value="upi">UPI</option><option value="bank_transfer">Bank transfer</option><option value="card">Card</option></select></label>
         <label>Payment reference (optional) <input name="paymentReference" type="text" maxlength="120" placeholder="UPI transaction ID / receipt no." /></label>
         <label class="full-span">Admin notes (optional) <textarea name="adminNotes" rows="2" maxlength="1000"></textarea></label>
-        <label class="policy-confirm full-span"><input name="advancePolicyAccepted" type="checkbox" required /><span>Customer has been informed of and has accepted the fixed 20% advance and cancellation policy.</span></label>
+        <label class="policy-confirm full-span"><input name="advancePolicyAccepted" type="checkbox" required /><span>Customer has been informed of and has accepted the selected payment option and cancellation policy. The 20% booking-advance portion may be retained for customer-initiated cancellations where permitted by applicable law and disclosed terms. Any amount paid above 20% is handled under the cancellation/refund terms and applicable law.</span></label>
         <p id="offline-booking-feedback" class="modal-feedback full-span" role="alert" aria-live="polite"></p>
         <div class="modal-form-actions full-span"><button class="quiet-btn" id="cancel-offline-booking" type="button">Cancel</button><button class="primary-btn" id="save-offline-booking" type="submit">Save Offline Booking</button></div>
       </form>

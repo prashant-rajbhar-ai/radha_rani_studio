@@ -1011,6 +1011,7 @@ eventLocationForm?.addEventListener("submit", (event) => {
     pinCode: String(formData.get("pinCode") || "").trim(),
     landmark: String(formData.get("landmark") || "").trim(),
     country: "India",
+    paymentChoice: String(formData.get("paymentChoice") || "advance"),
     advancePolicyAccepted: formData.get("advancePolicyAccepted") === "on",
   };
 
@@ -1098,7 +1099,10 @@ function showBookingReceipt({ booking, packageName, eventDate, amountPaise, paym
   const formatMoney = (value) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(Number(value) || 0);
   setReceiptValue("receipt-package-total", packageTotal ? formatMoney(packageTotal) : "—");
   setReceiptValue("receipt-balance-due", formatMoney(balanceDue));
+  const paymentChoice = booking?.initialPaymentChoice || (balanceDue <= 0 ? "full" : "advance");
+  const receiptPaymentLabel = paymentChoice === "full" ? "Full package payment received" : "20% booking advance received";
   const receiptPaymentStatus = balanceDue <= 0 ? "FULLY PAID" : "20% ADVANCE PAID";
+  setReceiptValue("receipt-amount-label", receiptPaymentLabel);
   setReceiptValue("receipt-payment-status", receiptPaymentStatus);
   setReceiptValue("receipt-event-date", formatReceiptDate(booking?.eventDate || eventDate));
   const venueDetails = formatEventLocation(booking?.eventLocation) || booking?.venue || "To be confirmed with the studio";
@@ -1115,7 +1119,7 @@ function showBookingReceipt({ booking, packageName, eventDate, amountPaise, paym
     `Total package price: ${packageTotal ? formatMoney(packageTotal) : "Amount unavailable"}`,
     `Event date: ${formatReceiptDate(booking?.eventDate || eventDate)}`,
     `Event venue: ${venueDetails}`,
-    `20% booking advance paid: ${amount}`,
+    `${receiptPaymentLabel}: ${amount}`,
     `Remaining balance: ${formatMoney(balanceDue)}`,
     `Payment ID: ${paymentId || booking?.razorpayPaymentId || "—"}`,
     `Payment status: ${receiptPaymentStatus}`,
@@ -1205,7 +1209,7 @@ bookingBtns.forEach((btn) => {
 
     const eventLocationWithPolicy = await collectEventLocation();
     if (!eventLocationWithPolicy) return;
-    const { advancePolicyAccepted, ...eventLocation } = eventLocationWithPolicy;
+    const { advancePolicyAccepted, paymentChoice, ...eventLocation } = eventLocationWithPolicy;
 
     setBookingButtonBusy(btn, true);
     setBookingFeedback("Preparing your booking. Please wait...", "info");
@@ -1245,7 +1249,7 @@ bookingBtns.forEach((btn) => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ eventDate, eventLocation, advancePolicyAccepted }),
+          body: JSON.stringify({ eventDate, eventLocation, advancePolicyAccepted, paymentChoice }),
         },
       );
 
@@ -1271,8 +1275,10 @@ bookingBtns.forEach((btn) => {
         );
       }
 
+      const amountDueNow = Number(orderData.payment?.amountDueNow ?? orderData.order.amount / 100);
+      const paymentChoiceLabel = paymentChoice === "full" ? "Full package payment" : "20% booking advance";
       setBookingFeedback(
-        `Your 20% advance is ${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(orderData.payment?.advanceAmount || orderData.order.amount / 100)}. Complete payment within ${orderData.payment?.holdMinutes || 30} minutes to reserve this date.`,
+        `${paymentChoiceLabel}: ${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(amountDueNow)}. Complete payment within ${orderData.payment?.holdMinutes || 30} minutes to reserve this date.`,
         "info",
       );
 
@@ -1281,7 +1287,7 @@ bookingBtns.forEach((btn) => {
         amount: orderData.order.amount,
         currency: orderData.order.currency,
         name: "Radha Rani Studio",
-        description: `20% booking advance for ${selectedPackage.name}`,
+        description: `${paymentChoice === "full" ? "Full package payment" : "20% booking advance"} for ${selectedPackage.name}`,
         image: "images/favicon-transparent.png",
         order_id: orderData.order.id,
         handler: async function (response) {
@@ -1307,7 +1313,9 @@ bookingBtns.forEach((btn) => {
             if (verifyResponse.ok) {
               const verifiedBooking = verifyData?.booking || orderData?.booking || {};
               setBookingFeedback(
-                "Payment verified successfully. Your receipt is ready to view, print, or share.",
+                verifiedBooking?.balanceDue <= 0
+                  ? "Full payment verified successfully. Your receipt is ready to view, print, or share."
+                  : "20% booking advance verified successfully. Your receipt is ready to view, print, or share.",
                 "success",
               );
               showBookingReceipt({

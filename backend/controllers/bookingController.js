@@ -27,14 +27,20 @@ exports.createOrder = catchAsync(async (req, res, next) => {
   const { eventDateKey, eventDate } = normalizeEventDate(req.body.eventDate);
   const eventLocation = normalizeEventLocation(req.body.eventLocation);
   if (req.body.advancePolicyAccepted !== true) {
-    return next(new AppError('Please accept the 20% advance and cancellation policy before continuing.', 400));
+    return next(new AppError('Please accept the payment and cancellation policy before continuing.', 400));
+  }
+
+  const paymentChoice = req.body.paymentChoice || 'advance';
+  if (!['advance', 'full'].includes(paymentChoice)) {
+    return next(new AppError('Please choose either the 20% advance or full package payment.', 400));
   }
 
   await ensureEventDateAvailable(eventDateKey);
 
   const packagePrice = roundMoney(pkg.price);
   const advanceAmount = calculateAdvance(packagePrice);
-  const balanceDue = roundMoney(packagePrice - advanceAmount);
+  const initialPaymentAmount = paymentChoice === 'full' ? packagePrice : advanceAmount;
+  const balanceDue = roundMoney(Math.max(packagePrice - initialPaymentAmount, 0));
   const reservationExpiresAt = new Date(Date.now() + ONLINE_HOLD_MINUTES * 60 * 1000);
 
   let booking;
@@ -47,6 +53,8 @@ exports.createOrder = catchAsync(async (req, res, next) => {
       price: packagePrice,
       advancePercentage: ADVANCE_PERCENTAGE,
       advanceAmount,
+      initialPaymentChoice: paymentChoice,
+      initialPaymentAmount,
       amountPaid: 0,
       balanceDue: packagePrice,
       eventDate,
@@ -65,12 +73,13 @@ exports.createOrder = catchAsync(async (req, res, next) => {
 
   try {
     const order = await razorpay.orders.create({
-      amount: Math.round(advanceAmount * 100),
+      amount: Math.round(initialPaymentAmount * 100),
       currency: 'INR',
       receipt: `rrs_${String(booking._id).slice(-16)}`,
       notes: {
         bookingId: String(booking._id),
         bookingSource: 'online',
+        paymentChoice,
         advancePercentage: String(ADVANCE_PERCENTAGE),
       },
     });
@@ -85,8 +94,10 @@ exports.createOrder = catchAsync(async (req, res, next) => {
       booking,
       payment: {
         packagePrice,
+        paymentChoice,
         advancePercentage: ADVANCE_PERCENTAGE,
         advanceAmount,
+        amountDueNow: initialPaymentAmount,
         balanceDue,
         holdMinutes: ONLINE_HOLD_MINUTES,
       },
@@ -123,9 +134,9 @@ exports.verifyPayment = catchAsync(async (req, res, next) => {
   const booking = await Booking.findOne({ razorpayOrderId: razorpay_order_id, user: req.user.id });
   if (!booking) return next(new AppError('No booking found for this transaction and user.', 404));
 
-  // Make repeated Razorpay callbacks idempotent for the same payment.
-  if (booking.razorpayPaymentId === razorpay_payment_id && booking.paymentStatus === 'partially_paid') {
-    return res.status(200).json({ status: 'success', message: 'Booking advance was already verified.', booking });
+  // Make repeated Razorpay callbacks idempotent for both advance and full payments.
+  if (booking.razorpayPaymentId === razorpay_payment_id && ['partially_paid', 'paid'].includes(booking.paymentStatus)) {
+    return res.status(200).json({ status: 'success', message: 'This booking payment was already verified.', booking });
   }
   if (booking.paymentStatus !== 'pending') {
     return next(new AppError('This booking is no longer awaiting its advance payment. Please contact the studio if money was debited.', 409));
@@ -139,10 +150,14 @@ exports.verifyPayment = catchAsync(async (req, res, next) => {
     return next(new AppError('The temporary date hold expired before payment verification. Please contact Radha Rani Studio immediately with your Razorpay payment ID.', 409));
   }
 
-  // Historical pending orders created before the 20% policy stored a full-price
-  // Razorpay order. Keep those legacy orders verifiable without changing their amount.
-  const isLegacyFullPayment = !Number.isFinite(Number(booking.advanceAmount)) || Number(booking.advanceAmount) <= 0;
-  const amountReceived = isLegacyFullPayment ? roundMoney(booking.price) : roundMoney(booking.advanceAmount);
+  // Use the server-recorded initial amount, never an amount supplied by the browser.
+  // Older 20%-advance orders have advanceAmount but no initialPaymentAmount; still verify them.
+  // Very old full-payment orders have neither field and continue to verify at full price.
+  const hasRecordedInitialAmount = Number.isFinite(Number(booking.initialPaymentAmount)) && Number(booking.initialPaymentAmount) > 0;
+  const isLegacyFullPayment = !hasRecordedInitialAmount && (!Number.isFinite(Number(booking.advanceAmount)) || Number(booking.advanceAmount) <= 0);
+  const amountReceived = hasRecordedInitialAmount
+    ? roundMoney(booking.initialPaymentAmount)
+    : (isLegacyFullPayment ? roundMoney(booking.price) : roundMoney(booking.advanceAmount));
   booking.amountPaid = amountReceived;
   booking.balanceDue = roundMoney(Math.max(booking.price - amountReceived, 0));
   booking.paymentStatus = booking.balanceDue <= 0 ? 'paid' : 'partially_paid';
@@ -151,7 +166,9 @@ exports.verifyPayment = catchAsync(async (req, res, next) => {
     method: 'razorpay',
     referenceId: razorpay_payment_id,
     paidAt: new Date(),
-    note: isLegacyFullPayment ? 'Legacy full package payment received through Razorpay.' : `${ADVANCE_PERCENTAGE}% booking advance received through Razorpay.`,
+    note: booking.initialPaymentChoice === 'full' || isLegacyFullPayment
+      ? 'Full package payment received through Razorpay.'
+      : `${ADVANCE_PERCENTAGE}% booking advance received through Razorpay.`,
   });
   booking.razorpayPaymentId = razorpay_payment_id;
   booking.razorpaySignature = razorpay_signature;
@@ -160,7 +177,9 @@ exports.verifyPayment = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    message: 'Booking advance verified. Your event date is reserved.',
+    message: booking.balanceDue <= 0
+      ? 'Full package payment verified. Your event date is reserved.'
+      : 'Booking advance verified. Your event date is reserved.',
     booking,
   });
 });

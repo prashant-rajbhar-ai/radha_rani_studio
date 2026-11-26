@@ -159,3 +159,45 @@
   accent-color: #76531f;
 }
 .advance-policy-check strong { color: #312418; }
+
+
+/* Customer choice: pay the fixed 20% advance or the full package amount. */
+.payment-choice-panel {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0 10px;
+  padding: 14px;
+  border: 1px solid #eadfce;
+  border-radius: 8px;
+  background: #fffdf9;
+}
+.payment-choice-panel legend {
+  padding: 0 5px;
+  color: #312418;
+  font-size: .9rem;
+  font-weight: 700;
+}
+.payment-choice-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 11px;
+  border: 1px solid #eee5d8;
+  border-radius: 7px;
+  background: #fff;
+  cursor: pointer;
+}
+.payment-choice-option:has(input:checked) {
+  border-color: #b78b43;
+  background: #fbf8f1;
+}
+.payment-choice-option input {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  margin: 2px 0 0;
+  accent-color: #76531f;
+}
+.payment-choice-option span { display: grid; gap: 3px; }
+.payment-choice-option strong { color: #312418; font-size: .82rem; }
+.payment-choice-option small { color: #81776c; font-size: .74rem; line-height: 1.45; }
