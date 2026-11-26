@@ -26,6 +26,61 @@ exports.createOrder = catchAsync(async (req, res, next) => {
     );
   }
 
+  // Event addresses are stored on each booking (not on the customer profile).
+  // This studio currently accepts event locations in India only.
+  const submittedLocation = req.body.eventLocation;
+  if (!submittedLocation || typeof submittedLocation !== 'object' || Array.isArray(submittedLocation)) {
+    return next(new AppError('Please provide the event venue address.', 400));
+  }
+
+  const fieldLimits = {
+    venueName: 120,
+    addressLine: 200,
+    locality: 100,
+    district: 100,
+    state: 100,
+  };
+  const eventLocation = {};
+  for (const [field, maxLength] of Object.entries(fieldLimits)) {
+    const value = String(submittedLocation[field] || '').trim();
+    if (!value) {
+      const labels = {
+        venueName: 'the venue name',
+        addressLine: 'the full event address',
+        locality: 'the village, town or locality',
+        district: 'the district',
+        state: 'the state or union territory',
+      };
+      return next(new AppError(`Please provide ${labels[field]}.`, 400));
+    }
+    if (value.length > maxLength) {
+      return next(new AppError(`The ${field} is too long. Please shorten it and try again.`, 400));
+    }
+    eventLocation[field] = value;
+  }
+
+  const indianStatesAndUnionTerritories = new Set([
+    'andhra pradesh', 'arunachal pradesh', 'assam', 'bihar', 'chhattisgarh',
+    'goa', 'gujarat', 'haryana', 'himachal pradesh', 'jharkhand', 'karnataka',
+    'kerala', 'madhya pradesh', 'maharashtra', 'manipur', 'meghalaya',
+    'mizoram', 'nagaland', 'odisha', 'punjab', 'rajasthan', 'sikkim',
+    'tamil nadu', 'telangana', 'tripura', 'uttar pradesh', 'uttarakhand',
+    'west bengal', 'andaman and nicobar islands', 'chandigarh',
+    'dadra and nagar haveli and daman and diu', 'delhi', 'jammu and kashmir',
+    'ladakh', 'lakshadweep', 'puducherry',
+  ]);
+  if (!indianStatesAndUnionTerritories.has(eventLocation.state.toLowerCase())) {
+    return next(new AppError('Please select a valid Indian state or union territory.', 400));
+  }
+
+  const pinCode = String(submittedLocation.pinCode || '').trim();
+  if (!/^[1-9]\d{5}$/.test(pinCode)) {
+    return next(new AppError('Please provide a valid 6-digit Indian PIN code.', 400));
+  }
+  eventLocation.pinCode = pinCode;
+  eventLocation.landmark = String(submittedLocation.landmark || '').trim().slice(0, 120);
+  eventLocation.country = 'India';
+
   // 3) Define Razorpay order criteria (Amount must be in paise: ₹1 = 100 paise)
   const options = {
     amount: pkg.price * 100,
@@ -41,6 +96,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
     user: req.user.id,
     price: pkg.price,
     eventDate,
+    eventLocation,
     razorpayOrderId: order.id,
     paymentStatus: 'pending',
   });

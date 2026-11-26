@@ -1,0 +1,136 @@
+/* Event venue address form - Radha Rani Studio */
+.event-location-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 4100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(24, 19, 14, .62);
+  backdrop-filter: blur(4px);
+  overflow-y: auto;
+}
+.event-location-overlay.hidden { display: none; }
+.event-location-dialog {
+  width: min(100%, 680px);
+  max-height: min(92vh, 900px);
+  overflow-y: auto;
+  border: 1px solid #eadfce;
+  border-radius: 12px;
+  background: #fff;
+  color: #312418;
+  box-shadow: 0 22px 55px rgba(0,0,0,.28);
+  animation: eventCalendarIn .18s ease-out;
+}
+.event-location-header {
+  padding: 24px 28px 20px;
+  background: #312418;
+  color: #fff;
+}
+.event-location-eyebrow {
+  margin: 0 0 10px;
+  color: #e1a932;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+}
+.event-location-header h2 {
+  margin: 0 0 8px;
+  font-family: var(--heading-font, "Roboto Slab", serif);
+  font-size: clamp(1.25rem, 4vw, 1.7rem);
+  font-weight: 600;
+  line-height: 1.25;
+}
+.event-location-header > p:last-child {
+  margin: 0;
+  color: #e8ded0;
+  font-size: .88rem;
+  line-height: 1.55;
+}
+.event-location-form { padding: 22px 28px 24px; }
+.event-location-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 14px;
+}
+.event-location-field { display: grid; gap: 7px; min-width: 0; }
+.event-location-field-full { grid-column: 1 / -1; }
+.event-location-field > span {
+  color: #463a2d;
+  font-size: .88rem;
+  font-weight: 600;
+}
+.event-location-field b { color: #a43b32; }
+.event-location-field small { color: #82776b; font-weight: 400; }
+.event-location-field input,
+.event-location-field select {
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  border: 1px solid #d9cfc1;
+  border-radius: 6px;
+  padding: 0 12px;
+  background: #fff;
+  color: #312418;
+  font: 400 .9rem "Open Sans", sans-serif;
+  box-sizing: border-box;
+}
+.event-location-field input:focus,
+.event-location-field select:focus {
+  outline: 2px solid rgba(183, 139, 67, .32);
+  border-color: #b78b43;
+}
+.event-location-field input::placeholder { color: #a69d93; }
+.event-location-note {
+  margin: 16px 0 8px;
+  color: #81776c;
+  font-size: .76rem;
+  line-height: 1.5;
+}
+.event-location-feedback {
+  min-height: 0;
+  margin: 0;
+  color: #9b3029;
+  font-size: .82rem;
+}
+.event-location-feedback:not(:empty) { margin-top: 8px; }
+.event-location-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid #eee7dc;
+}
+.event-location-actions button {
+  min-height: 42px;
+  border-radius: 6px;
+  padding: 0 16px;
+  font: 700 .78rem "Open Sans", sans-serif;
+  letter-spacing: .04em;
+  cursor: pointer;
+}
+.event-location-cancel {
+  border: 1px solid #ddd2c2;
+  background: #fff;
+  color: #5f5347;
+}
+.event-location-submit {
+  border: 1px solid #312418;
+  background: #312418;
+  color: #fff;
+}
+.event-location-submit:hover { background: #493724; }
+.event-location-actions button:focus-visible { outline: 2px solid #e1a932; outline-offset: 2px; }
+@media (max-width: 560px) {
+  .event-location-overlay { align-items: flex-start; padding: 10px; }
+  .event-location-dialog { max-height: calc(100vh - 20px); border-radius: 9px; }
+  .event-location-header { padding: 19px 18px 16px; }
+  .event-location-form { padding: 18px; }
+  .event-location-grid { grid-template-columns: 1fr; gap: 13px; }
+  .event-location-field-full { grid-column: auto; }
+  .event-location-actions { display: grid; grid-template-columns: 1fr 1fr; }
+  .event-location-actions button { padding: 0 9px; font-size: .72rem; }
+}

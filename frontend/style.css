@@ -2266,16 +2266,16 @@ textarea {
 }
 @media print {
   @page {
-    size: A4;
-    margin: 12mm;
+    size: A4 portrait;
+    margin: 10mm;
   }
 
-  /* Remove the site's layout from print flow so it cannot push the receipt
-     onto later pages. Keep the receipt as the only printable content. */
   html,
   body {
     display: block !important;
-    width: 100% !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
     height: auto !important;
     min-height: 0 !important;
     margin: 0 !important;
@@ -2284,18 +2284,17 @@ textarea {
     background: #fff !important;
   }
 
+  /* Print only the receipt, not the rest of the website. */
   body > *:not(#booking-receipt-overlay) {
     display: none !important;
   }
 
   #booking-receipt-overlay {
     display: block !important;
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: auto !important;
-    bottom: auto !important;
-    width: 100% !important;
+    position: static !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
     height: auto !important;
     min-height: 0 !important;
     margin: 0 !important;
@@ -2306,12 +2305,15 @@ textarea {
     visibility: visible !important;
   }
 
+  /* Border-box sizing prevents 100% width plus padding from exceeding A4. */
   #booking-receipt-overlay,
   #booking-receipt-overlay * {
+    box-sizing: border-box !important;
+    min-width: 0;
     visibility: visible !important;
   }
 
-  /* Hide interactive controls only; preserve the receipt's normal layout. */
+  /* Hide only interactive controls. */
   #booking-receipt-overlay .receipt-close,
   #booking-receipt-overlay .receipt-actions,
   #booking-receipt-overlay .receipt-share-feedback {
@@ -2322,7 +2324,8 @@ textarea {
     position: static !important;
     display: block !important;
     width: 100% !important;
-    max-width: none !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
     max-height: none !important;
     height: auto !important;
     margin: 0 !important;
@@ -2338,21 +2341,69 @@ textarea {
   #booking-receipt-overlay .receipt-paper {
     display: block !important;
     width: 100% !important;
-    max-width: none !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
     margin: 0 !important;
-    padding: 8mm !important;
+    padding: 7mm !important;
     border: 1px solid #ddd !important;
     border-radius: 0 !important;
     box-shadow: none !important;
     background: #fff !important;
     color: #312418 !important;
+    overflow: visible !important;
     break-inside: auto !important;
     page-break-inside: auto !important;
   }
 
+  #booking-receipt-overlay .receipt-amount-block {
+    display: flex !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    gap: 4mm !important;
+  }
+
+  #booking-receipt-overlay .receipt-amount-block span {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+  }
+
+  #booking-receipt-overlay .receipt-amount-block strong {
+    flex: 0 1 auto !important;
+    min-width: 0 !important;
+    max-width: 65% !important;
+    text-align: right !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  #booking-receipt-overlay .receipt-details {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
   #booking-receipt-overlay .receipt-details > div {
+    display: grid !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    grid-template-columns: minmax(32mm, 38%) minmax(0, 1fr) !important;
+    gap: 4mm !important;
     break-inside: avoid;
     page-break-inside: avoid;
+  }
+
+  #booking-receipt-overlay .receipt-details dt,
+  #booking-receipt-overlay .receipt-details dd {
+    min-width: 0 !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  #booking-receipt-overlay .receipt-details dd {
+    text-align: right !important;
+  }
+
+  #booking-receipt-overlay .receipt-contact,
+  #booking-receipt-overlay .receipt-footer-note {
+    max-width: 100% !important;
+    overflow-wrap: anywhere !important;
   }
 }
 

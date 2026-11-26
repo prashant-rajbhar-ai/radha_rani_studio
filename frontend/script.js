@@ -963,6 +963,89 @@ document.addEventListener("keydown", (event) => {
 
 
 // Booking flow with branded inline feedback. Payment/order API logic is preserved.
+// Event venue address form. The address belongs to this booking, not the customer profile.
+const eventLocationOverlay = document.getElementById("event-location-overlay");
+const eventLocationForm = document.getElementById("event-location-form");
+const eventLocationFeedback = document.getElementById("event-location-feedback");
+let resolveEventLocation = null;
+
+function collectEventLocation() {
+  if (!eventLocationOverlay || !eventLocationForm) return Promise.resolve(null);
+  eventLocationForm.reset();
+  if (eventLocationFeedback) eventLocationFeedback.textContent = "";
+  eventLocationOverlay.classList.remove("hidden");
+  eventLocationOverlay.setAttribute("aria-hidden", "false");
+  document.body.classList.add("no-scroll");
+  document.getElementById("event-venue-name")?.focus();
+
+  return new Promise((resolve) => {
+    resolveEventLocation = resolve;
+  });
+}
+
+function closeEventLocation(value = null) {
+  eventLocationOverlay?.classList.add("hidden");
+  eventLocationOverlay?.setAttribute("aria-hidden", "true");
+  if (eventDateOverlay?.classList.contains("hidden") &&
+      modal?.classList.contains("hidden") && overlay?.classList.contains("hidden") &&
+      (!authSuccessOverlay || authSuccessOverlay.classList.contains("hidden"))) {
+    document.body.classList.remove("no-scroll");
+  }
+  if (resolveEventLocation) {
+    resolveEventLocation(value);
+    resolveEventLocation = null;
+  }
+}
+
+eventLocationForm?.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (!eventLocationForm.reportValidity()) return;
+
+  const formData = new FormData(eventLocationForm);
+  const eventLocation = {
+    venueName: String(formData.get("venueName") || "").trim(),
+    addressLine: String(formData.get("addressLine") || "").trim(),
+    locality: String(formData.get("locality") || "").trim(),
+    district: String(formData.get("district") || "").trim(),
+    state: String(formData.get("state") || "").trim(),
+    pinCode: String(formData.get("pinCode") || "").trim(),
+    landmark: String(formData.get("landmark") || "").trim(),
+    country: "India",
+  };
+
+  if (!/^[1-9][0-9]{5}$/.test(eventLocation.pinCode)) {
+    if (eventLocationFeedback) eventLocationFeedback.textContent = "Please enter a valid 6-digit Indian PIN code.";
+    document.getElementById("event-pincode")?.focus();
+    return;
+  }
+
+  closeEventLocation(eventLocation);
+});
+
+document.getElementById("event-location-cancel")?.addEventListener("click", () => closeEventLocation(null));
+eventLocationOverlay?.addEventListener("click", (event) => {
+  if (event.target === eventLocationOverlay) closeEventLocation(null);
+});
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && eventLocationOverlay && !eventLocationOverlay.classList.contains("hidden")) {
+    closeEventLocation(null);
+  }
+});
+
+function formatEventLocation(location) {
+  if (!location || typeof location !== "object") return "";
+  return [
+    location.venueName,
+    location.addressLine,
+    location.locality,
+    location.district,
+    location.state,
+    location.pinCode ? `PIN ${location.pinCode}` : "",
+    location.landmark ? `Landmark: ${location.landmark}` : "",
+    location.country || "India",
+  ].filter(Boolean).join(", ");
+}
+
 const bookingBtns = document.querySelectorAll(".booking-btn");
 const bookingFeedback = document.getElementById("booking-feedback");
 
@@ -1009,7 +1092,8 @@ function showBookingReceipt({ booking, packageName, eventDate, amountPaise, paym
   setReceiptValue("receipt-email", userEmail);
   setReceiptValue("receipt-package", packageName || booking?.package?.name || "Photography package");
   setReceiptValue("receipt-event-date", formatReceiptDate(booking?.eventDate || eventDate));
-  setReceiptValue("receipt-venue", booking?.venue || "To be confirmed with the studio");
+  const venueDetails = formatEventLocation(booking?.eventLocation) || booking?.venue || "To be confirmed with the studio";
+  setReceiptValue("receipt-venue", venueDetails);
   setReceiptValue("receipt-payment-id", paymentId || booking?.razorpayPaymentId || "—");
   setReceiptValue("receipt-issued-at", issuedAt);
 
@@ -1020,7 +1104,7 @@ function showBookingReceipt({ booking, packageName, eventDate, amountPaise, paym
     `Email: ${userEmail}`,
     `Package: ${packageName || booking?.package?.name || "Photography package"}`,
     `Event date: ${formatReceiptDate(booking?.eventDate || eventDate)}`,
-    `Venue: ${booking?.venue || "To be confirmed with the studio"}`,
+    `Event venue: ${venueDetails}`,
     `Amount paid: ${amount}`,
     `Payment ID: ${paymentId || booking?.razorpayPaymentId || "—"}`,
     "Payment status: PAID",
@@ -1108,6 +1192,9 @@ bookingBtns.forEach((btn) => {
     const eventDate = await selectEventDate();
     if (!eventDate) return;
 
+    const eventLocation = await collectEventLocation();
+    if (!eventLocation) return;
+
     setBookingButtonBusy(btn, true);
     setBookingFeedback("Preparing your booking. Please wait...", "info");
 
@@ -1146,7 +1233,7 @@ bookingBtns.forEach((btn) => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ eventDate }),
+          body: JSON.stringify({ eventDate, eventLocation }),
         },
       );
 

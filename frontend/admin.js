@@ -45,7 +45,7 @@
     if (!bookings.length) {
       const row = document.createElement('tr');
       const cell = addCell(row, 'No bookings match these filters.', 'empty-state');
-      cell.colSpan = 6;
+      cell.colSpan = 7;
       tbody.append(row);
       return;
     }
@@ -61,6 +61,30 @@
       addCell(row, clientBlock);
       addCell(row, pkg.name || 'Package unavailable');
       addCell(row, date(booking.eventDate));
+
+      const eventLocation = booking.eventLocation || {};
+      const locationBlock = document.createElement('div');
+      locationBlock.className = 'event-location-block';
+      const venueName = document.createElement('strong');
+      venueName.className = 'event-location-name';
+      venueName.textContent = eventLocation.venueName || 'Address not recorded';
+      locationBlock.append(venueName);
+      const addressLines = [
+        eventLocation.addressLine,
+        eventLocation.locality,
+        eventLocation.district,
+        eventLocation.state,
+        eventLocation.pinCode ? `PIN ${eventLocation.pinCode}` : '',
+        eventLocation.landmark ? `Landmark: ${eventLocation.landmark}` : '',
+        eventLocation.country || (eventLocation.venueName ? 'India' : ''),
+      ].filter(Boolean);
+      if (addressLines.length) {
+        const addressText = document.createElement('span');
+        addressText.className = 'event-location-address';
+        addressText.textContent = addressLines.join(', ');
+        locationBlock.append(addressText);
+      }
+      addCell(row, locationBlock, 'event-location-cell');
       addCell(row, money(booking.price));
       const badge = document.createElement('span');
       badge.className = `status status-${booking.paymentStatus || 'pending'}`;
@@ -168,7 +192,7 @@
   });
   $('search-input').addEventListener('input', () => {
     const term = $('search-input').value.trim().toLowerCase();
-    const filtered = state.bookings.filter((b) => [b.user?.name, b.user?.email, b.user?.phoneNumber, b.package?.name].some((v) => String(v || '').toLowerCase().includes(term)));
+    const filtered = state.bookings.filter((b) => [b.user?.name, b.user?.email, b.user?.phoneNumber, b.package?.name, b.eventLocation?.venueName, b.eventLocation?.addressLine, b.eventLocation?.locality, b.eventLocation?.district, b.eventLocation?.state, b.eventLocation?.pinCode, b.eventLocation?.landmark].some((v) => String(v || '').toLowerCase().includes(term)));
     renderBookings(filtered);
   });
   $('prev-page').addEventListener('click', () => { if (state.page > 1) { state.page -= 1; refresh(); } });
