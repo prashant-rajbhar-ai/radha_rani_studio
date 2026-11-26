@@ -171,9 +171,35 @@
         paymentButton.textContent = 'Record payment';
         paymentButton.addEventListener('click', () => openPaymentModal(booking));
         actionCell.append(paymentButton);
-      } else {
-        actionCell.textContent = paymentStatus === 'paid' ? 'Complete' : '—';
       }
+      if (client.email && !['pending', 'failed', 'cancelled'].includes(paymentStatus)) {
+        const receiptButton = document.createElement('button');
+        receiptButton.type = 'button';
+        receiptButton.className = 'table-action-btn';
+        receiptButton.textContent = booking.receiptEmailStatus === 'sent' ? 'Resend PDF receipt' : 'Email PDF receipt';
+        receiptButton.addEventListener('click', async () => {
+          receiptButton.disabled = true;
+          receiptButton.textContent = 'Sending PDF…';
+          try {
+            const result = await api(`/bookings/admin/${encodeURIComponent(booking._id)}/email-receipt`, { method: 'POST' });
+            setFeedback(result.message || `PDF receipt emailed to ${client.email}.`);
+            await loadBookings();
+          } catch (error) {
+            setFeedback(error.message);
+            receiptButton.disabled = false;
+            receiptButton.textContent = 'Email PDF receipt';
+          }
+        });
+        actionCell.append(receiptButton);
+        if (booking.receiptEmailStatus === 'sent' && booking.receiptEmailSentAt) {
+          actionCell.append(makeText('small', 'payment-choice-note', `Emailed ${date(booking.receiptEmailSentAt)}`));
+        } else if (booking.receiptEmailStatus === 'failed') {
+          actionCell.append(makeText('small', 'payment-choice-note', 'Email not sent - retry available'));
+        }
+      } else if (!client.email) {
+        actionCell.append(makeText('small', 'payment-choice-note', 'No email recorded'));
+      }
+      if (!actionCell.childElementCount) actionCell.textContent = paymentStatus === 'paid' ? 'Complete' : '—';
       row.append(actionCell);
       tbody.append(row);
     });
@@ -400,7 +426,12 @@
       closeOfflineModal();
       state.page = 1;
       await refresh();
-      setFeedback(response.message || 'Offline booking saved and the selected initial payment has been recorded.')
+      const emailNotice = response.receiptEmail?.sent
+        ? ` A PDF receipt was emailed to ${response.receiptEmail.email}.`
+        : (response.receiptEmail?.reason === 'no_customer_email'
+          ? ' No customer email was supplied, so no email receipt was sent.'
+          : (response.receiptEmail ? ' The booking was saved, but the receipt email could not be sent. Use Resend PDF receipt after checking SMTP settings.' : ''));
+      setFeedback(`${response.message || 'Offline booking saved and the selected initial payment has been recorded.'}${emailNotice}`);
     } catch (error) {
       setFeedback(error.message, 'offline-booking-feedback');
     } finally {
@@ -427,13 +458,18 @@
       note: String(formData.get('note') || '').trim(),
     };
     try {
-      await api(`/bookings/admin/${encodeURIComponent($('payment-booking-id').value)}/payments`, {
+      const response = await api(`/bookings/admin/${encodeURIComponent($('payment-booking-id').value)}/payments`, {
         method: 'POST',
         body: JSON.stringify(payload),
       });
       closePaymentModal();
       await refresh();
-      setFeedback('Payment recorded successfully. The outstanding balance has been updated.');
+      const emailNotice = response.receiptEmail?.sent
+        ? ` Updated PDF receipt emailed to ${response.receiptEmail.email}.`
+        : (response.receiptEmail?.reason === 'no_customer_email'
+          ? ' No customer email is recorded for this booking.'
+          : (response.receiptEmail ? ' Payment was saved, but email delivery failed. You can retry from the booking row.' : ''));
+      setFeedback(`Payment recorded successfully. The outstanding balance has been updated.${emailNotice}`);
     } catch (error) {
       setFeedback(error.message, 'record-payment-feedback');
     } finally {

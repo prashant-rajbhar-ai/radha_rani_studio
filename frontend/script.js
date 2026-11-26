@@ -458,6 +458,7 @@ if (contactForm) {
 // BACKEND AUTHENTICATION INTEGRATION
 
 const API_BASE = "https://radha-rani-studio.onrender.com/api/v1/users";
+const BOOKING_API_BASE = API_BASE.replace(/\/users\/?$/, "/bookings");
 
 const loginForm = document.getElementById("login-form");
 const registerForm = document.getElementById("register-form");
@@ -1062,6 +1063,8 @@ function setBookingFeedback(message, type = "") {
 
 const receiptOverlay = document.getElementById("booking-receipt-overlay");
 let currentReceiptText = "";
+let currentReceiptBookingId = "";
+let currentReceiptPdfPromise = null;
 
 function formatReceiptDate(isoDate) {
   if (!isoDate) return "—";
@@ -1077,7 +1080,45 @@ function setReceiptValue(id, value) {
   if (element) element.textContent = value || "—";
 }
 
-function showBookingReceipt({ booking, packageName, eventDate, amountPaise, paymentId }) {
+async function fetchReceiptPdfBlob(bookingId) {
+  const token = localStorage.getItem("token");
+  if (!token) throw new Error("Please sign in again to download your receipt.");
+  const response = await fetch(`${BOOKING_API_BASE}/${encodeURIComponent(bookingId)}/receipt.pdf`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.message || "Unable to generate the PDF receipt.");
+  }
+  const blob = await response.blob();
+  if (blob.type !== "application/pdf" && blob.size < 100) {
+    throw new Error("The server did not return a valid PDF receipt.");
+  }
+  return blob;
+}
+
+function getCurrentReceiptPdf() {
+  if (!currentReceiptBookingId) throw new Error("The booking reference is not available for this receipt.");
+  if (!currentReceiptPdfPromise) currentReceiptPdfPromise = fetchReceiptPdfBlob(currentReceiptBookingId);
+  return currentReceiptPdfPromise;
+}
+
+function downloadReceiptBlob(blob) {
+  const fileName = `Radha-Rani-Studio-Receipt-${String(currentReceiptBookingId).slice(-12)}.pdf`;
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+function showBookingReceipt({ booking, packageName, eventDate, amountPaise, paymentId, receiptEmail }) {
+  currentReceiptBookingId = booking?._id || booking?.id || "";
+  currentReceiptPdfPromise = currentReceiptBookingId ? fetchReceiptPdfBlob(currentReceiptBookingId) : null;
+  if (currentReceiptPdfPromise) currentReceiptPdfPromise.catch(() => { currentReceiptPdfPromise = null; });
   const userName = localStorage.getItem("userName") || booking?.user?.name || "Customer";
   const userEmail = localStorage.getItem("userEmail") || booking?.user?.email || "Not provided";
   const receiptId = booking?._id || booking?.id || paymentId || `RRS-${Date.now()}`;
@@ -1111,7 +1152,8 @@ function showBookingReceipt({ booking, packageName, eventDate, amountPaise, paym
   setReceiptValue("receipt-issued-at", issuedAt);
 
   currentReceiptText = [
-    "RADHA RANI STUDIO — PAYMENT RECEIPT",
+    "RADHA RANI STUDIO - PAYMENT RECEIPT",
+    `Thank you, ${userName}, for choosing Radha Rani Studio. Your PDF receipt is ready.`,
     `Receipt number: ${receiptId}`,
     `Customer: ${userName}`,
     `Email: ${userEmail}`,
@@ -1126,6 +1168,19 @@ function showBookingReceipt({ booking, packageName, eventDate, amountPaise, paym
     `Receipt issued: ${issuedAt}`,
     "Contact: +91 7458006822 | radharanistudio2026@gmail.com"
   ].join("\n");
+
+  const emailFeedback = document.getElementById("receipt-email-feedback");
+  if (emailFeedback) {
+    if (receiptEmail?.sent) {
+      emailFeedback.textContent = `A PDF receipt has been emailed to ${receiptEmail.email || userEmail}.`;
+    } else if (receiptEmail?.reason === "no_customer_email") {
+      emailFeedback.textContent = "No email address is recorded for this account. You can still download or share the PDF.";
+    } else if (receiptEmail && !receiptEmail.sent) {
+      emailFeedback.textContent = "Payment is confirmed. Email delivery could not be completed; please download or share the PDF, or contact the studio.";
+    } else {
+      emailFeedback.textContent = "A PDF receipt will be emailed to your registered address when email delivery is configured.";
+    }
+  }
 
   if (receiptOverlay) {
     receiptOverlay.classList.remove("hidden");
@@ -1150,18 +1205,53 @@ receiptOverlay?.addEventListener("click", (event) => {
 document.getElementById("booking-receipt-print")?.addEventListener("click", () => window.print());
 document.getElementById("booking-receipt-share")?.addEventListener("click", async () => {
   const feedback = document.getElementById("receipt-share-feedback");
+  const shareButton = document.getElementById("booking-receipt-share");
   try {
-    if (navigator.share) {
-      await navigator.share({ title: "Radha Rani Studio — Payment Receipt", text: currentReceiptText });
-      if (feedback) feedback.textContent = "Receipt shared.";
-    } else if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(currentReceiptText);
-      if (feedback) feedback.textContent = "Receipt details copied. You can paste them into WhatsApp or another app.";
-    } else {
-      if (feedback) feedback.textContent = "Use Print / Save PDF to save a copy of your receipt.";
+    if (feedback) feedback.textContent = "Preparing your PDF receipt…";
+    if (shareButton) shareButton.disabled = true;
+    const blob = await getCurrentReceiptPdf();
+    const fileName = `Radha-Rani-Studio-Receipt-${String(currentReceiptBookingId).slice(-12)}.pdf`;
+
+    if (typeof File !== "undefined") {
+      const file = new File([blob], fileName, { type: "application/pdf" });
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({
+            title: "Radha Rani Studio - Payment Receipt",
+            text: "Thank you for choosing Radha Rani Studio. Please find your payment receipt attached.",
+            files: [file],
+          });
+          if (feedback) feedback.textContent = "Your PDF receipt was shared.";
+          return;
+        } catch (shareError) {
+          if (shareError?.name === "AbortError") return;
+          // Some browsers lose the transient share gesture while the PDF is fetched.
+          // Download the real PDF rather than falling back to text-only sharing.
+        }
+      }
     }
+
+    downloadReceiptBlob(blob);
+    if (feedback) feedback.textContent = "Your PDF receipt has been downloaded. You can now attach it in WhatsApp, Gmail or another app.";
   } catch (error) {
-    if (error?.name !== "AbortError" && feedback) feedback.textContent = "Sharing was unavailable. Use Print / Save PDF to save your receipt.";
+    if (error?.name !== "AbortError" && feedback) feedback.textContent = error.message || "Unable to share the PDF. Please use Print / Save PDF instead.";
+  } finally {
+    if (shareButton) shareButton.disabled = false;
+  }
+});
+
+document.getElementById("booking-receipt-download")?.addEventListener("click", async () => {
+  const feedback = document.getElementById("receipt-share-feedback");
+  const downloadButton = document.getElementById("booking-receipt-download");
+  try {
+    if (downloadButton) downloadButton.disabled = true;
+    const blob = await getCurrentReceiptPdf();
+    downloadReceiptBlob(blob);
+    if (feedback) feedback.textContent = "Your PDF receipt has been downloaded.";
+  } catch (error) {
+    if (feedback) feedback.textContent = error.message || "Unable to download the PDF receipt.";
+  } finally {
+    if (downloadButton) downloadButton.disabled = false;
   }
 });
 document.addEventListener("keydown", (event) => {
@@ -1324,6 +1414,7 @@ bookingBtns.forEach((btn) => {
                 eventDate,
                 amountPaise: orderData?.order?.amount,
                 paymentId: response.razorpay_payment_id,
+                receiptEmail: verifyData?.receiptEmail,
               });
             } else {
               setBookingFeedback(

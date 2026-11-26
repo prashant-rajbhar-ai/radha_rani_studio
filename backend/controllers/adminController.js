@@ -3,6 +3,7 @@ const Booking = require('../models/bookingModel');
 const Package = require('../models/packageModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const sendBookingReceiptEmail = require('../utils/receiptEmailService');
 const {
   ADVANCE_PERCENTAGE,
   roundMoney,
@@ -17,6 +18,24 @@ const {
 
 const OFFLINE_PAYMENT_METHODS = ['cash', 'upi', 'bank_transfer', 'card'];
 const ALL_PAYMENT_METHODS = ['razorpay', ...OFFLINE_PAYMENT_METHODS];
+
+
+async function sendAndTrackReceiptEmail(booking) {
+  try {
+    const result = await sendBookingReceiptEmail(booking);
+    booking.receiptEmailStatus = result.sent ? 'sent' : 'no_email';
+    booking.receiptEmailLastError = '';
+    if (result.sent) booking.receiptEmailSentAt = new Date();
+    await booking.save({ validateBeforeSave: false });
+    return result;
+  } catch (error) {
+    booking.receiptEmailStatus = 'failed';
+    booking.receiptEmailLastError = String(error.message || 'Email delivery failed').slice(0, 300);
+    await booking.save({ validateBeforeSave: false });
+    console.error(`Receipt email failed for booking ${booking._id}:`, error.message);
+    return { sent: false, reason: 'email_failed' };
+  }
+}
 
 exports.getDashboardSummary = catchAsync(async (req, res) => {
   await expireTemporaryHolds();
@@ -196,8 +215,10 @@ exports.createOfflineBooking = catchAsync(async (req, res, next) => {
   }
 
   const populated = await Booking.findById(created._id);
+  const receiptEmail = await sendAndTrackReceiptEmail(populated);
   res.status(201).json({
     status: 'success',
+    receiptEmail,
     message: paymentChoice === 'full'
       ? 'Offline booking saved. Full payment recorded and event date reserved.'
       : 'Offline booking saved. The 20% advance was recorded and the event date reserved.',
@@ -238,9 +259,31 @@ exports.recordPayment = catchAsync(async (req, res, next) => {
   booking.paymentStatus = newBalance <= 0 ? 'paid' : 'partially_paid';
   await booking.save();
 
+  const receiptEmail = await sendAndTrackReceiptEmail(booking);
   res.status(200).json({
     status: 'success',
     message: 'Payment entry recorded.',
+    receiptEmail,
     data: { booking },
+  });
+});
+
+exports.sendReceiptEmailAgain = catchAsync(async (req, res, next) => {
+  const booking = await Booking.findById(req.params.bookingId);
+  if (!booking) return next(new AppError('Booking not found.', 404));
+  const customer = booking.user || booking.clientDetails || {};
+  if (!customer.email) return next(new AppError('No customer email address is recorded for this booking.', 400));
+  if (['pending', 'failed', 'cancelled'].includes(booking.paymentStatus)) {
+    return next(new AppError('A receipt can be emailed only after a payment has been recorded.', 409));
+  }
+
+  const receiptEmail = await sendAndTrackReceiptEmail(booking);
+  if (!receiptEmail.sent) {
+    return next(new AppError('The receipt email could not be sent. Check the SMTP settings in Render and try again.', 502));
+  }
+  res.status(200).json({
+    status: 'success',
+    message: `PDF receipt emailed to ${customer.email}.`,
+    receiptEmail,
   });
 });

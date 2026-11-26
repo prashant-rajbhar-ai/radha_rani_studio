@@ -4,6 +4,8 @@ const Package = require('../models/packageModel');
 const Booking = require('../models/bookingModel');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
+const sendBookingReceiptEmail = require('../utils/receiptEmailService');
+const generateReceiptPdf = require('../utils/receiptPdf');
 const {
   ADVANCE_PERCENTAGE,
   ONLINE_HOLD_MINUTES,
@@ -19,6 +21,24 @@ const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
+
+
+async function sendAndTrackReceiptEmail(booking) {
+  try {
+    const result = await sendBookingReceiptEmail(booking);
+    booking.receiptEmailStatus = result.sent ? 'sent' : 'no_email';
+    booking.receiptEmailLastError = '';
+    if (result.sent) booking.receiptEmailSentAt = new Date();
+    await booking.save({ validateBeforeSave: false });
+    return result;
+  } catch (error) {
+    booking.receiptEmailStatus = 'failed';
+    booking.receiptEmailLastError = String(error.message || 'Email delivery failed').slice(0, 300);
+    await booking.save({ validateBeforeSave: false });
+    console.error(`Receipt email failed for booking ${booking._id}:`, error.message);
+    return { sent: false, reason: 'email_failed' };
+  }
+}
 
 exports.createOrder = catchAsync(async (req, res, next) => {
   const pkg = await Package.findById(req.params.packageId);
@@ -175,13 +195,44 @@ exports.verifyPayment = catchAsync(async (req, res, next) => {
   booking.reservationExpiresAt = undefined;
   await booking.save();
 
+  // Receipt email is best-effort: an SMTP problem must never undo a verified payment.
+  const receiptEmail = await sendAndTrackReceiptEmail(booking);
+
   res.status(200).json({
     status: 'success',
     message: booking.balanceDue <= 0
       ? 'Full package payment verified. Your event date is reserved.'
       : 'Booking advance verified. Your event date is reserved.',
+    receiptEmail,
     booking,
   });
+});
+
+exports.getReceiptPdf = catchAsync(async (req, res, next) => {
+  const booking = await Booking.findById(req.params.bookingId);
+  if (!booking) return next(new AppError('Booking not found.', 404));
+
+  const bookingUserId = booking.user?._id ? String(booking.user._id) : String(booking.user || '');
+  const isOwner = bookingUserId && bookingUserId === String(req.user.id);
+  if (req.user.role !== 'admin' && !isOwner) {
+    return next(new AppError('You do not have permission to access this receipt.', 403));
+  }
+
+  const collected = booking.amountPaid !== undefined && booking.amountPaid !== null
+    ? Number(booking.amountPaid)
+    : (booking.paymentStatus === 'paid' ? Number(booking.price || 0) : 0);
+  if (collected <= 0 || ['pending', 'failed', 'cancelled'].includes(booking.paymentStatus)) {
+    return next(new AppError('A receipt is available after a payment has been recorded.', 409));
+  }
+
+  const pdf = generateReceiptPdf(booking);
+  const receiptId = String(booking._id).slice(-12);
+  res.set({
+    'Content-Type': 'application/pdf',
+    'Content-Disposition': `attachment; filename="Radha-Rani-Studio-Receipt-${receiptId}.pdf"`,
+    'Cache-Control': 'private, no-store',
+  });
+  return res.status(200).send(pdf);
 });
 
 exports.getMyBookings = catchAsync(async (req, res) => {

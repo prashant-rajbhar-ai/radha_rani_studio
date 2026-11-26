@@ -10,6 +10,7 @@ router.use(authController.protect);
 
 router.post('/create-order/:packageId', bookingController.createOrder);
 router.post('/verify', bookingController.verifyPayment);
+router.get('/:bookingId/receipt.pdf', bookingController.getReceiptPdf);
 router.get('/my-bookings', bookingController.getMyBookings);
 
 // Administrator-only booking and payment management.
@@ -17,5 +18,6 @@ router.get('/admin/summary', authController.restrictTo('admin'), adminController
 router.get('/admin/all', authController.restrictTo('admin'), adminController.getAllBookings);
 router.post('/admin/offline', authController.restrictTo('admin'), adminController.createOfflineBooking);
 router.post('/admin/:bookingId/payments', authController.restrictTo('admin'), adminController.recordPayment);
+router.post('/admin/:bookingId/email-receipt', authController.restrictTo('admin'), adminController.sendReceiptEmailAgain);
 
 module.exports = router;
