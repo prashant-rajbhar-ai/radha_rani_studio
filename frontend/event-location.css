@@ -134,3 +134,28 @@
   .event-location-actions { display: grid; grid-template-columns: 1fr 1fr; }
   .event-location-actions button { padding: 0 9px; font-size: .72rem; }
 }
+
+.advance-policy-check {
+  margin: 18px 0 10px;
+  padding: 13px 14px;
+  border: 1px solid #eadfce;
+  border-radius: 8px;
+  background: #fbf8f1;
+}
+.advance-policy-check label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: #5d5042;
+  font-size: .78rem;
+  line-height: 1.55;
+  cursor: pointer;
+}
+.advance-policy-check input {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  margin: 2px 0 0;
+  accent-color: #76531f;
+}
+.advance-policy-check strong { color: #312418; }

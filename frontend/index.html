@@ -1550,7 +1550,13 @@
                 placeholder="Nearby temple, school, road or other landmark" />
             </label>
           </div>
-          <p class="event-location-note">All required fields must be completed. We currently accept bookings for event locations in India only.</p>
+          <div class="advance-policy-check">
+            <label for="advance-policy-accepted">
+              <input id="advance-policy-accepted" name="advancePolicyAccepted" type="checkbox" required />
+              <span>I understand that a <strong>20% booking advance</strong> is required to reserve my date. The advance is non-refundable for customer-initiated cancellations where permitted by applicable law. If the studio cannot provide the service and no alternative is agreed, the advance will be refunded.</span>
+            </label>
+          </div>
+          <p class="event-location-note">All required fields must be completed. We currently accept bookings for event locations in India only. The remaining 80% is payable later as agreed with the studio.</p>
           <p class="event-location-feedback" id="event-location-feedback" role="alert" aria-live="polite"></p>
           <div class="event-location-actions">
             <button type="button" id="event-location-cancel" class="event-location-cancel">Cancel booking</button>
@@ -1574,16 +1580,18 @@
           </div>
           <div class="receipt-status"><span aria-hidden="true">✓</span><div><h2 id="booking-receipt-title">Payment receipt</h2><p id="booking-receipt-status">Payment verified</p></div></div>
           <p class="receipt-note">Thank you for booking with us. Keep this receipt for your records.</p>
-          <div class="receipt-amount-block"><span>Amount paid</span><strong id="receipt-amount">₹0</strong></div>
+          <div class="receipt-amount-block"><span>20% advance paid</span><strong id="receipt-amount">₹0</strong></div>
           <dl class="receipt-details">
             <div><dt>Receipt number</dt><dd id="receipt-number">—</dd></div>
             <div><dt>Customer name</dt><dd id="receipt-customer">—</dd></div>
             <div><dt>Email address</dt><dd id="receipt-email">—</dd></div>
             <div><dt>Photography package</dt><dd id="receipt-package">—</dd></div>
+            <div><dt>Total package price</dt><dd id="receipt-package-total">—</dd></div>
             <div><dt>Event date</dt><dd id="receipt-event-date">—</dd></div>
             <div><dt>Venue</dt><dd id="receipt-venue">To be confirmed with the studio</dd></div>
             <div><dt>Payment ID</dt><dd id="receipt-payment-id">—</dd></div>
-            <div><dt>Payment status</dt><dd><span class="receipt-paid">PAID</span></dd></div>
+            <div><dt>Payment status</dt><dd><span class="receipt-paid" id="receipt-payment-status">20% ADVANCE PAID</span></dd></div>
+            <div><dt>Remaining balance</dt><dd id="receipt-balance-due">—</dd></div>
             <div><dt>Receipt issued</dt><dd id="receipt-issued-at">—</dd></div>
           </dl>
           <p class="receipt-footer-note">Please contact Radha Rani Studio if any detail needs correction. Venue and event logistics should be confirmed directly with the studio.</p>

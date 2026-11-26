@@ -1011,6 +1011,7 @@ eventLocationForm?.addEventListener("submit", (event) => {
     pinCode: String(formData.get("pinCode") || "").trim(),
     landmark: String(formData.get("landmark") || "").trim(),
     country: "India",
+    advancePolicyAccepted: formData.get("advancePolicyAccepted") === "on",
   };
 
   if (!/^[1-9][0-9]{5}$/.test(eventLocation.pinCode)) {
@@ -1091,6 +1092,14 @@ function showBookingReceipt({ booking, packageName, eventDate, amountPaise, paym
   setReceiptValue("receipt-customer", userName);
   setReceiptValue("receipt-email", userEmail);
   setReceiptValue("receipt-package", packageName || booking?.package?.name || "Photography package");
+  const packageTotal = Number(booking?.price || 0);
+  const paidAmount = Number.isFinite(Number(amountPaise)) ? Number(amountPaise) / 100 : Number(booking?.amountPaid || booking?.advanceAmount || 0);
+  const balanceDue = Number(booking?.balanceDue ?? Math.max(packageTotal - paidAmount, 0));
+  const formatMoney = (value) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(Number(value) || 0);
+  setReceiptValue("receipt-package-total", packageTotal ? formatMoney(packageTotal) : "—");
+  setReceiptValue("receipt-balance-due", formatMoney(balanceDue));
+  const receiptPaymentStatus = balanceDue <= 0 ? "FULLY PAID" : "20% ADVANCE PAID";
+  setReceiptValue("receipt-payment-status", receiptPaymentStatus);
   setReceiptValue("receipt-event-date", formatReceiptDate(booking?.eventDate || eventDate));
   const venueDetails = formatEventLocation(booking?.eventLocation) || booking?.venue || "To be confirmed with the studio";
   setReceiptValue("receipt-venue", venueDetails);
@@ -1103,11 +1112,13 @@ function showBookingReceipt({ booking, packageName, eventDate, amountPaise, paym
     `Customer: ${userName}`,
     `Email: ${userEmail}`,
     `Package: ${packageName || booking?.package?.name || "Photography package"}`,
+    `Total package price: ${packageTotal ? formatMoney(packageTotal) : "Amount unavailable"}`,
     `Event date: ${formatReceiptDate(booking?.eventDate || eventDate)}`,
     `Event venue: ${venueDetails}`,
-    `Amount paid: ${amount}`,
+    `20% booking advance paid: ${amount}`,
+    `Remaining balance: ${formatMoney(balanceDue)}`,
     `Payment ID: ${paymentId || booking?.razorpayPaymentId || "—"}`,
-    "Payment status: PAID",
+    `Payment status: ${receiptPaymentStatus}`,
     `Receipt issued: ${issuedAt}`,
     "Contact: +91 7458006822 | radharanistudio2026@gmail.com"
   ].join("\n");
@@ -1192,8 +1203,9 @@ bookingBtns.forEach((btn) => {
     const eventDate = await selectEventDate();
     if (!eventDate) return;
 
-    const eventLocation = await collectEventLocation();
-    if (!eventLocation) return;
+    const eventLocationWithPolicy = await collectEventLocation();
+    if (!eventLocationWithPolicy) return;
+    const { advancePolicyAccepted, ...eventLocation } = eventLocationWithPolicy;
 
     setBookingButtonBusy(btn, true);
     setBookingFeedback("Preparing your booking. Please wait...", "info");
@@ -1233,7 +1245,7 @@ bookingBtns.forEach((btn) => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ eventDate, eventLocation }),
+          body: JSON.stringify({ eventDate, eventLocation, advancePolicyAccepted }),
         },
       );
 
@@ -1260,7 +1272,7 @@ bookingBtns.forEach((btn) => {
       }
 
       setBookingFeedback(
-        "Your booking is ready. Complete the payment window to submit your booking.",
+        `Your 20% advance is ${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(orderData.payment?.advanceAmount || orderData.order.amount / 100)}. Complete payment within ${orderData.payment?.holdMinutes || 30} minutes to reserve this date.`,
         "info",
       );
 
@@ -1269,7 +1281,7 @@ bookingBtns.forEach((btn) => {
         amount: orderData.order.amount,
         currency: orderData.order.currency,
         name: "Radha Rani Studio",
-        description: "Professional Wedding Photography & Videography Booking",
+        description: `20% booking advance for ${selectedPackage.name}`,
         image: "images/favicon-transparent.png",
         order_id: orderData.order.id,
         handler: async function (response) {
@@ -1324,7 +1336,7 @@ bookingBtns.forEach((btn) => {
         modal: {
           ondismiss: function () {
             setBookingFeedback(
-              "The payment window was closed. Your booking is not confirmed. You can select Book Now to try again.",
+              `The payment window was closed. No advance was verified. This temporary date hold will expire automatically within ${orderData.payment?.holdMinutes || 30} minutes.`,
               "info",
             );
             setBookingButtonBusy(btn, false);

@@ -1,189 +1,171 @@
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
-const Package = require('./../models/packageModel');
-const Booking = require('./../models/bookingModel');
-const catchAsync = require('./../utils/catchAsync');
-const AppError = require('./../utils/appError');
+const Package = require('../models/packageModel');
+const Booking = require('../models/bookingModel');
+const catchAsync = require('../utils/catchAsync');
+const AppError = require('../utils/appError');
+const {
+  ADVANCE_PERCENTAGE,
+  ONLINE_HOLD_MINUTES,
+  roundMoney,
+  calculateAdvance,
+  normalizeEventDate,
+  normalizeEventLocation,
+  ensureEventDateAvailable,
+  isDuplicateDateError,
+} = require('../utils/bookingService');
 
-// Initialize Razorpay Instance with credentials from your secure locker
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
 exports.createOrder = catchAsync(async (req, res, next) => {
-  // 1) Find the photography package being booked
   const pkg = await Package.findById(req.params.packageId);
-  if (!pkg) {
-    return next(new AppError('No package found with that ID', 404));
+  if (!pkg) return next(new AppError('No package found with that ID.', 404));
+
+  const { eventDateKey, eventDate } = normalizeEventDate(req.body.eventDate);
+  const eventLocation = normalizeEventLocation(req.body.eventLocation);
+  if (req.body.advancePolicyAccepted !== true) {
+    return next(new AppError('Please accept the 20% advance and cancellation policy before continuing.', 400));
   }
 
-  // 2) Validate the selected event date from body
-  const { eventDate } = req.body;
-  if (!eventDate) {
-    return next(
-      new AppError('Please provide an event date for your booking.', 400),
+  await ensureEventDateAvailable(eventDateKey);
+
+  const packagePrice = roundMoney(pkg.price);
+  const advanceAmount = calculateAdvance(packagePrice);
+  const balanceDue = roundMoney(packagePrice - advanceAmount);
+  const reservationExpiresAt = new Date(Date.now() + ONLINE_HOLD_MINUTES * 60 * 1000);
+
+  let booking;
+  try {
+    booking = await Booking.create({
+      package: pkg._id,
+      user: req.user.id,
+      createdBy: req.user.id,
+      bookingSource: 'online',
+      price: packagePrice,
+      advancePercentage: ADVANCE_PERCENTAGE,
+      advanceAmount,
+      amountPaid: 0,
+      balanceDue: packagePrice,
+      eventDate,
+      eventDateKey,
+      reservationExpiresAt,
+      eventLocation,
+      paymentStatus: 'pending',
+      policyAcceptedAt: new Date(),
+    });
+  } catch (error) {
+    if (isDuplicateDateError(error)) {
+      return next(new AppError('This event date has just been reserved by another customer. Please choose another date.', 409));
+    }
+    throw error;
+  }
+
+  try {
+    const order = await razorpay.orders.create({
+      amount: Math.round(advanceAmount * 100),
+      currency: 'INR',
+      receipt: `rrs_${String(booking._id).slice(-16)}`,
+      notes: {
+        bookingId: String(booking._id),
+        bookingSource: 'online',
+        advancePercentage: String(ADVANCE_PERCENTAGE),
+      },
+    });
+
+    booking.razorpayOrderId = order.id;
+    await booking.save();
+
+    return res.status(201).json({
+      status: 'success',
+      key_id: process.env.RAZORPAY_KEY_ID,
+      order,
+      booking,
+      payment: {
+        packagePrice,
+        advancePercentage: ADVANCE_PERCENTAGE,
+        advanceAmount,
+        balanceDue,
+        holdMinutes: ONLINE_HOLD_MINUTES,
+      },
+    });
+  } catch (error) {
+    await Booking.updateOne(
+      { _id: booking._id, paymentStatus: 'pending' },
+      { $set: { paymentStatus: 'failed' }, $unset: { eventDateKey: '', reservationExpiresAt: '' } },
     );
+    throw error;
   }
-
-  // Event addresses are stored on each booking (not on the customer profile).
-  // This studio currently accepts event locations in India only.
-  const submittedLocation = req.body.eventLocation;
-  if (!submittedLocation || typeof submittedLocation !== 'object' || Array.isArray(submittedLocation)) {
-    return next(new AppError('Please provide the event venue address.', 400));
-  }
-
-  const fieldLimits = {
-    venueName: 120,
-    addressLine: 200,
-    locality: 100,
-    district: 100,
-    state: 100,
-  };
-  const eventLocation = {};
-  for (const [field, maxLength] of Object.entries(fieldLimits)) {
-    const value = String(submittedLocation[field] || '').trim();
-    if (!value) {
-      const labels = {
-        venueName: 'the venue name',
-        addressLine: 'the full event address',
-        locality: 'the village, town or locality',
-        district: 'the district',
-        state: 'the state or union territory',
-      };
-      return next(new AppError(`Please provide ${labels[field]}.`, 400));
-    }
-    if (value.length > maxLength) {
-      return next(new AppError(`The ${field} is too long. Please shorten it and try again.`, 400));
-    }
-    eventLocation[field] = value;
-  }
-
-  const indianStatesAndUnionTerritories = new Set([
-    'andhra pradesh', 'arunachal pradesh', 'assam', 'bihar', 'chhattisgarh',
-    'goa', 'gujarat', 'haryana', 'himachal pradesh', 'jharkhand', 'karnataka',
-    'kerala', 'madhya pradesh', 'maharashtra', 'manipur', 'meghalaya',
-    'mizoram', 'nagaland', 'odisha', 'punjab', 'rajasthan', 'sikkim',
-    'tamil nadu', 'telangana', 'tripura', 'uttar pradesh', 'uttarakhand',
-    'west bengal', 'andaman and nicobar islands', 'chandigarh',
-    'dadra and nagar haveli and daman and diu', 'delhi', 'jammu and kashmir',
-    'ladakh', 'lakshadweep', 'puducherry',
-  ]);
-  if (!indianStatesAndUnionTerritories.has(eventLocation.state.toLowerCase())) {
-    return next(new AppError('Please select a valid Indian state or union territory.', 400));
-  }
-
-  const pinCode = String(submittedLocation.pinCode || '').trim();
-  if (!/^[1-9]\d{5}$/.test(pinCode)) {
-    return next(new AppError('Please provide a valid 6-digit Indian PIN code.', 400));
-  }
-  eventLocation.pinCode = pinCode;
-  eventLocation.landmark = String(submittedLocation.landmark || '').trim().slice(0, 120);
-  eventLocation.country = 'India';
-
-  // 3) Define Razorpay order criteria (Amount must be in paise: ₹1 = 100 paise)
-  const options = {
-    amount: pkg.price * 100,
-    currency: 'INR',
-    receipt: `receipt_order_${Date.now()}`,
-  };
-
-  const order = await razorpay.orders.create(options);
-
-  // 4) Write a pending Booking record into MongoDB Atlas
-  const newBooking = await Booking.create({
-    package: pkg._id,
-    user: req.user.id,
-    price: pkg.price,
-    eventDate,
-    eventLocation,
-    razorpayOrderId: order.id,
-    paymentStatus: 'pending',
-  });
-
-  // 5) Return order tracking metadata and public key safely to frontend
-  res.status(200).json({
-    status: 'success',
-    key_id: process.env.RAZORPAY_KEY_ID,
-    order,
-    booking: newBooking,
-  });
 });
 
 exports.verifyPayment = catchAsync(async (req, res, next) => {
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
-    req.body;
-
-  // 1. Validate that all required payment fields are present
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
   if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-    return next(
-      new AppError('Please provide all required payment details.', 400),
-    );
+    return next(new AppError('Please provide all required payment details.', 400));
+  }
+  if (!/^[a-f0-9]{64}$/i.test(String(razorpay_signature))) {
+    return next(new AppError('Payment verification failed. Invalid transaction signature.', 400));
   }
 
-  // 2. Verify the Razorpay payment signature
-  const text = `${razorpay_order_id}|${razorpay_payment_id}`;
+  const signedPayload = `${razorpay_order_id}|${razorpay_payment_id}`;
   const generatedSignature = crypto
     .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-    .update(text)
+    .update(signedPayload)
     .digest('hex');
-
-  // Use a timing-safe comparison for signatures
   const expected = Buffer.from(generatedSignature, 'hex');
   const received = Buffer.from(razorpay_signature, 'hex');
-
-  if (
-    expected.length !== received.length ||
-    !crypto.timingSafeEqual(expected, received)
-  ) {
-    return next(
-      new AppError(
-        'Payment verification failed! Invalid transaction signature.',
-        400,
-      ),
-    );
+  if (expected.length !== received.length || !crypto.timingSafeEqual(expected, received)) {
+    return next(new AppError('Payment verification failed. Invalid transaction signature.', 400));
   }
 
-  // 3. Find the booking belonging to the authenticated user
-  const booking = await Booking.findOne({
-    razorpayOrderId: razorpay_order_id,
-    user: req.user.id,
+  const booking = await Booking.findOne({ razorpayOrderId: razorpay_order_id, user: req.user.id });
+  if (!booking) return next(new AppError('No booking found for this transaction and user.', 404));
+
+  // Make repeated Razorpay callbacks idempotent for the same payment.
+  if (booking.razorpayPaymentId === razorpay_payment_id && booking.paymentStatus === 'partially_paid') {
+    return res.status(200).json({ status: 'success', message: 'Booking advance was already verified.', booking });
+  }
+  if (booking.paymentStatus !== 'pending') {
+    return next(new AppError('This booking is no longer awaiting its advance payment. Please contact the studio if money was debited.', 409));
+  }
+
+  if (booking.reservationExpiresAt && booking.reservationExpiresAt <= new Date()) {
+    await Booking.updateOne(
+      { _id: booking._id, paymentStatus: 'pending' },
+      { $set: { paymentStatus: 'failed' }, $unset: { eventDateKey: '', reservationExpiresAt: '' } },
+    );
+    return next(new AppError('The temporary date hold expired before payment verification. Please contact Radha Rani Studio immediately with your Razorpay payment ID.', 409));
+  }
+
+  // Historical pending orders created before the 20% policy stored a full-price
+  // Razorpay order. Keep those legacy orders verifiable without changing their amount.
+  const isLegacyFullPayment = !Number.isFinite(Number(booking.advanceAmount)) || Number(booking.advanceAmount) <= 0;
+  const amountReceived = isLegacyFullPayment ? roundMoney(booking.price) : roundMoney(booking.advanceAmount);
+  booking.amountPaid = amountReceived;
+  booking.balanceDue = roundMoney(Math.max(booking.price - amountReceived, 0));
+  booking.paymentStatus = booking.balanceDue <= 0 ? 'paid' : 'partially_paid';
+  booking.paymentEntries.push({
+    amount: amountReceived,
+    method: 'razorpay',
+    referenceId: razorpay_payment_id,
+    paidAt: new Date(),
+    note: isLegacyFullPayment ? 'Legacy full package payment received through Razorpay.' : `${ADVANCE_PERCENTAGE}% booking advance received through Razorpay.`,
   });
-
-  if (!booking) {
-    return next(
-      new AppError('No booking found for this transaction and user.', 404),
-    );
-  }
-
-  // 4. Prevent the same booking from being marked paid twice
-  if (booking.paymentStatus === 'paid') {
-    return next(new AppError('This booking has already been paid.', 409));
-  }
-
-  // 5. Save the verified payment details
-  booking.paymentStatus = 'paid';
   booking.razorpayPaymentId = razorpay_payment_id;
   booking.razorpaySignature = razorpay_signature;
-
+  booking.reservationExpiresAt = undefined;
   await booking.save();
 
   res.status(200).json({
     status: 'success',
-    message: 'Payment verified and booking confirmed!',
+    message: 'Booking advance verified. Your event date is reserved.',
     booking,
   });
 });
 
-
-exports.getMyBookings = catchAsync(async (req, res, next) => {
-  const bookings = await Booking.find({ user: req.user.id });
-
-  res.status(200).json({
-    status: 'success',
-    results: bookings.length,
-    data: {
-      bookings,
-    },
-  });
+exports.getMyBookings = catchAsync(async (req, res) => {
+  const bookings = await Booking.find({ user: req.user.id }).sort({ createdAt: -1 });
+  res.status(200).json({ status: 'success', results: bookings.length, data: { bookings } });
 });
