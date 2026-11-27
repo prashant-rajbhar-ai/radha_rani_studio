@@ -112,16 +112,38 @@
         <a class="nav__link" href="#tariffs">Price</a>
         <a class="nav__link" href="#feedbacks">Feedbacks</a>
         <a class="nav__link" href="#contact">Contact</a>
-        <a class="brown-button admin-login-link" href="./admin.html">Admin Login</a>
+        <a class="brown-button admin-login-link" href="./admin.html"
+          >Admin Login</a
+        >
         <div class="account-control" id="desktop-account-control">
-          <button type="button" class="show-modal brown-button account-login" id="desktop-login-button">Login</button>
-          <button type="button" class="account-trigger hidden" id="desktop-account-trigger" aria-expanded="false" aria-controls="desktop-account-menu">
+          <button
+            type="button"
+            class="show-modal brown-button account-login"
+            id="desktop-login-button"
+          >
+            Login
+          </button>
+          <button
+            type="button"
+            class="account-trigger hidden"
+            id="desktop-account-trigger"
+            aria-expanded="false"
+            aria-controls="desktop-account-menu"
+          >
             <span class="account-name" id="desktop-account-name">Account</span>
             <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
           </button>
           <div class="account-menu hidden" id="desktop-account-menu">
-            <a href="#" class="account-menu-item" data-account-action="gallery">View Gallery</a>
-            <button type="button" class="account-menu-item" data-account-action="logout">Log Out</button>
+            <a href="#" class="account-menu-item" data-account-action="gallery"
+              >View Gallery</a
+            >
+            <button
+              type="button"
+              class="account-menu-item"
+              data-account-action="logout"
+            >
+              Log Out
+            </button>
           </div>
         </div>
 
@@ -240,16 +262,39 @@
       <a class="mobileNavLinks nav__link" href="#tariffs">Price</a>
       <a class="mobileNavLinks nav__link" href="#feedbacks">Feedbacks</a>
       <a class="mobileNavLinks nav__link" href="#contact">Contact</a>
-      <a class="mobileNavLinks admin-mobile-login" href="./admin.html">Admin Login</a>
-      <a class="mobileNavLinks nav__link show-modal" id="mobile-login-link" href="javascript:void(0)">Login</a>
+      <a class="mobileNavLinks admin-mobile-login" href="./admin.html"
+        >Admin Login</a
+      >
+      <a
+        class="mobileNavLinks nav__link show-modal"
+        id="mobile-login-link"
+        href="javascript:void(0)"
+        >Login</a
+      >
       <div class="mobile-account-links hidden" id="mobile-account-links">
-        <button type="button" class="mobile-account-identity" id="mobile-account-trigger" aria-expanded="false" aria-controls="mobile-account-actions">
+        <button
+          type="button"
+          class="mobile-account-identity"
+          id="mobile-account-trigger"
+          aria-expanded="false"
+          aria-controls="mobile-account-actions"
+        >
           <span id="mobile-account-name">Account</span>
           <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
         </button>
         <div class="mobile-account-actions hidden" id="mobile-account-actions">
-          <a class="mobileNavLinks nav__link" href="#" data-account-action="gallery">View Gallery</a>
-          <a class="mobileNavLinks nav__link" href="javascript:void(0)" data-account-action="logout">Log Out</a>
+          <a
+            class="mobileNavLinks nav__link"
+            href="#"
+            data-account-action="gallery"
+            >View Gallery</a
+          >
+          <a
+            class="mobileNavLinks nav__link"
+            href="javascript:void(0)"
+            data-account-action="logout"
+            >Log Out</a
+          >
         </div>
       </div>
       <!--NOTES Prevent hreft default behaviour -->
@@ -265,7 +310,12 @@
         <form id="login-form">
           <h2>Login</h2>
           <p>Welcome back to Radha Rani Studio</p>
-          <p class="auth-feedback" id="login-feedback" role="status" aria-live="polite"></p>
+          <p
+            class="auth-feedback"
+            id="login-feedback"
+            role="status"
+            aria-live="polite"
+          ></p>
 
           <label for="email">Email Address</label>
           <input type="email" name="email" id="email" required />
@@ -310,7 +360,12 @@
         <form id="register-form" class="hidden">
           <h2>Create Account</h2>
           <p>Join Radha Rani Studio</p>
-          <p class="auth-feedback" id="register-feedback" role="status" aria-live="polite"></p>
+          <p
+            class="auth-feedback"
+            id="register-feedback"
+            role="status"
+            aria-live="polite"
+          ></p>
 
           <label for="register-name">Full Name</label>
           <input
@@ -345,7 +400,9 @@
             aria-describedby="register-phone-hint"
             required
           />
-          <small id="register-phone-hint">Enter a 10-digit Indian mobile number. You may include +91.</small>
+          <small id="register-phone-hint"
+            >Enter a 10-digit Indian mobile number. You may include +91.</small
+          >
 
           <label for="register-password">Password</label>
           <div class="password-input-wrapper">
@@ -406,17 +463,32 @@
 
     <!-- Branded confirmation dialog for login and registration -->
     <div class="auth-success-overlay hidden" id="auth-success-overlay">
-      <section class="auth-success-dialog" role="dialog" aria-modal="true"
-        aria-labelledby="auth-success-title" aria-describedby="auth-success-description">
-        <button type="button" class="auth-success-close" id="auth-success-close"
-          aria-label="Close confirmation">&times;</button>
+      <section
+        class="auth-success-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="auth-success-title"
+        aria-describedby="auth-success-description"
+      >
+        <button
+          type="button"
+          class="auth-success-close"
+          id="auth-success-close"
+          aria-label="Close confirmation"
+        >
+          &times;
+        </button>
         <div class="auth-success-icon" aria-hidden="true">
           <i class="fa-solid fa-check"></i>
         </div>
         <p class="auth-success-eyebrow">RADHA RANI STUDIO</p>
         <h2 id="auth-success-title">Welcome back!</h2>
         <p id="auth-success-description">You are signed in successfully.</p>
-        <button type="button" class="auth-success-continue" id="auth-success-continue">
+        <button
+          type="button"
+          class="auth-success-continue"
+          id="auth-success-continue"
+        >
           Continue to website
         </button>
       </section>
@@ -830,7 +902,13 @@
         </div>
       </div>
 
-      <p id="booking-feedback" class="booking-feedback" role="status" aria-live="polite" aria-atomic="true"></p>
+      <p
+        id="booking-feedback"
+        class="booking-feedback"
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      ></p>
       <div class="dots"></div>
     </section>
 
@@ -1452,14 +1530,27 @@
     </footer>
 
     <!-- Custom event-date picker for booking -->
-    <div class="event-date-overlay hidden" id="event-date-overlay" aria-hidden="true">
-      <section class="event-date-dialog" role="dialog" aria-modal="true"
-        aria-labelledby="event-date-title">
+    <div
+      class="event-date-overlay hidden"
+      id="event-date-overlay"
+      aria-hidden="true"
+    >
+      <section
+        class="event-date-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="event-date-title"
+      >
         <div class="event-date-header">
           <p id="event-date-title">SELECT DATE</p>
           <div class="event-date-selected-row">
             <strong id="event-date-selected-label">Select a date</strong>
-            <button type="button" id="event-date-edit" class="event-date-edit" aria-label="Choose month and year">
+            <button
+              type="button"
+              id="event-date-edit"
+              class="event-date-edit"
+              aria-label="Choose month and year"
+            >
               <i class="fa-solid fa-pen" aria-hidden="true"></i>
             </button>
           </div>
@@ -1471,12 +1562,25 @@
               <select id="event-date-year" aria-label="Select year"></select>
             </div>
             <div class="event-date-nav">
-              <button type="button" id="event-date-prev" aria-label="Previous month">&#8249;</button>
-              <button type="button" id="event-date-next" aria-label="Next month">&#8250;</button>
+              <button
+                type="button"
+                id="event-date-prev"
+                aria-label="Previous month"
+              >
+                &#8249;
+              </button>
+              <button
+                type="button"
+                id="event-date-next"
+                aria-label="Next month"
+              >
+                &#8250;
+              </button>
             </div>
           </div>
           <div class="event-date-weekdays" aria-hidden="true">
-            <span>Su</span><span>Mo</span><span>Tu</span><span>We</span><span>Th</span><span>Fr</span><span>Sa</span>
+            <span>Su</span><span>Mo</span><span>Tu</span><span>We</span
+            ><span>Th</span><span>Fr</span><span>Sa</span>
           </div>
           <div class="event-date-days" id="event-date-days"></div>
         </div>
@@ -1487,87 +1591,174 @@
       </section>
     </div>
 
-
     <!-- Required India-only event venue address, collected for each booking -->
-    <div class="event-location-overlay hidden" id="event-location-overlay" aria-hidden="true">
-      <section class="event-location-dialog" role="dialog" aria-modal="true"
-        aria-labelledby="event-location-title" aria-describedby="event-location-description">
+    <!-- Required India-only event venue address, collected for each booking -->
+    <div
+      class="event-location-overlay hidden"
+      id="event-location-overlay"
+      aria-hidden="true"
+    >
+      <section
+        class="event-location-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="event-location-title"
+        aria-describedby="event-location-description"
+      >
         <header class="event-location-header">
           <p class="event-location-eyebrow">EVENT LOCATION</p>
           <h2 id="event-location-title">Where is your event taking place?</h2>
-          <p id="event-location-description">Please provide the venue address in India so our team can verify availability and calculate any applicable travel cost.</p>
+          <p id="event-location-description">
+            Please provide the venue address in India so our team can verify
+            availability and calculate any applicable travel cost.
+          </p>
         </header>
         <form id="event-location-form" class="event-location-form">
           <div class="event-location-grid">
-            <label class="event-location-field event-location-field-full" for="event-venue-name">
-              <span>Venue / Event Location Name <b aria-hidden="true">*</b></span>
-              <input id="event-venue-name" name="venueName" type="text" maxlength="120" autocomplete="organization"
-                placeholder="e.g. Radha Krishna Marriage Hall" required />
+            <label
+              class="event-location-field event-location-field-full"
+              for="event-venue-name"
+            >
+              <span
+                >Venue / Event Location Name <b aria-hidden="true">*</b></span
+              >
+              <input
+                id="event-venue-name"
+                name="venueName"
+                type="text"
+                maxlength="120"
+                autocomplete="organization"
+                placeholder="e.g. Radha Krishna Marriage Hall"
+                required
+              />
             </label>
-            <label class="event-location-field event-location-field-full" for="event-address-line">
+            <label
+              class="event-location-field event-location-field-full"
+              for="event-address-line"
+            >
               <span>Full Address <b aria-hidden="true">*</b></span>
-              <input id="event-address-line" name="addressLine" type="text" maxlength="200" autocomplete="street-address"
-                placeholder="House / plot number, street, road or venue address" required />
+              <input
+                id="event-address-line"
+                name="addressLine"
+                type="text"
+                maxlength="200"
+                autocomplete="street-address"
+                placeholder="House / plot number, street, road or venue address"
+                required
+              />
             </label>
             <label class="event-location-field" for="event-locality">
               <span>Village / Town / Locality <b aria-hidden="true">*</b></span>
-              <input id="event-locality" name="locality" type="text" maxlength="100" autocomplete="address-level3"
-                placeholder="Village, town or locality" required />
+              <input
+                id="event-locality"
+                name="locality"
+                type="text"
+                maxlength="100"
+                autocomplete="address-level3"
+                placeholder="Village, town or locality"
+                required
+              />
             </label>
             <label class="event-location-field" for="event-district">
               <span>District <b aria-hidden="true">*</b></span>
-              <input id="event-district" name="district" type="text" maxlength="100" autocomplete="address-level2"
-                placeholder="District" required />
+              <input
+                id="event-district"
+                name="district"
+                type="text"
+                maxlength="100"
+                autocomplete="address-level2"
+                placeholder="District"
+                required
+              />
             </label>
             <label class="event-location-field" for="event-state">
               <span>State / Union Territory <b aria-hidden="true">*</b></span>
-              <select id="event-state" name="state" autocomplete="address-level1" required>
+              <select
+                id="event-state"
+                name="state"
+                autocomplete="address-level1"
+                required
+              >
                 <option value="">Select state / union territory</option>
-                <option>Andhra Pradesh</option><option>Arunachal Pradesh</option><option>Assam</option>
-                <option>Bihar</option><option>Chhattisgarh</option><option>Goa</option><option>Gujarat</option>
-                <option>Haryana</option><option>Himachal Pradesh</option><option>Jharkhand</option>
-                <option>Karnataka</option><option>Kerala</option><option>Madhya Pradesh</option>
-                <option>Maharashtra</option><option>Manipur</option><option>Meghalaya</option>
-                <option>Mizoram</option><option>Nagaland</option><option>Odisha</option>
-                <option>Punjab</option><option>Rajasthan</option><option>Sikkim</option>
-                <option>Tamil Nadu</option><option>Telangana</option><option>Tripura</option>
-                <option>Uttar Pradesh</option><option>Uttarakhand</option><option>West Bengal</option>
-                <option>Andaman and Nicobar Islands</option><option>Chandigarh</option>
-                <option>Dadra and Nagar Haveli and Daman and Diu</option><option>Delhi</option>
-                <option>Jammu and Kashmir</option><option>Ladakh</option><option>Lakshadweep</option>
+                <option>Andhra Pradesh</option>
+                <option>Arunachal Pradesh</option>
+                <option>Assam</option>
+                <option>Bihar</option>
+                <option>Chhattisgarh</option>
+                <option>Goa</option>
+                <option>Gujarat</option>
+                <option>Haryana</option>
+                <option>Himachal Pradesh</option>
+                <option>Jharkhand</option>
+                <option>Karnataka</option>
+                <option>Kerala</option>
+                <option>Madhya Pradesh</option>
+                <option>Maharashtra</option>
+                <option>Manipur</option>
+                <option>Meghalaya</option>
+                <option>Mizoram</option>
+                <option>Nagaland</option>
+                <option>Odisha</option>
+                <option>Punjab</option>
+                <option>Rajasthan</option>
+                <option>Sikkim</option>
+                <option>Tamil Nadu</option>
+                <option>Telangana</option>
+                <option>Tripura</option>
+                <option>Uttar Pradesh</option>
+                <option>Uttarakhand</option>
+                <option>West Bengal</option>
+                <option>Andaman and Nicobar Islands</option>
+                <option>Chandigarh</option>
+                <option>Dadra and Nagar Haveli and Daman and Diu</option>
+                <option>Delhi</option>
+                <option>Jammu and Kashmir</option>
+                <option>Ladakh</option>
+                <option>Lakshadweep</option>
                 <option>Puducherry</option>
               </select>
             </label>
             <label class="event-location-field" for="event-pincode">
               <span>PIN Code <b aria-hidden="true">*</b></span>
-              <input id="event-pincode" name="pinCode" type="text" inputmode="numeric" autocomplete="postal-code"
-                minlength="6" maxlength="6" pattern="[1-9][0-9]{5}"
-                title="Enter a valid 6-digit Indian PIN code." placeholder="6-digit PIN code" required />
+              <input
+                id="event-pincode"
+                name="pinCode"
+                type="text"
+                inputmode="numeric"
+                autocomplete="postal-code"
+                minlength="6"
+                maxlength="6"
+                pattern="[1-9][0-9]{5}"
+                title="Enter a valid 6-digit Indian PIN code."
+                placeholder="6-digit PIN code"
+                required
+              />
             </label>
-            <label class="event-location-field event-location-field-full" for="event-landmark">
+            <label
+              class="event-location-field event-location-field-full"
+              for="event-landmark"
+            >
               <span>Nearby Landmark <small>(Optional)</small></span>
-              <input id="event-landmark" name="landmark" type="text" maxlength="120"
-                placeholder="Nearby temple, school, road or other landmark" />
+              <input
+                id="event-landmark"
+                name="landmark"
+                type="text"
+                maxlength="120"
+                placeholder="Nearby temple, school, road or other landmark"
+              />
             </label>
           </div>
 
           <div class="travel-pricing-card" id="travel-pricing-card">
-            <div class="travel-status-box" id="travel-status-box" role="status" aria-live="polite">
-              Enter your 6-digit PIN code to check service availability. Travel within 25 km is free; beyond 25 km is ₹12.50/km each way (up to 200 km).
-            </div>
-            <div class="travel-price-breakdown" id="travel-price-breakdown">
-              <div class="travel-price-row">
-                <span>Base package price</span>
-                <strong id="travel-base-price">—</strong>
-              </div>
-              <div class="travel-price-row">
-                <span>Travel cost</span>
-                <strong id="travel-cost-value">Enter PIN code</strong>
-              </div>
-              <div class="travel-price-row travel-price-row-total">
-                <span>Total booking price</span>
-                <strong id="travel-total-price">—</strong>
-              </div>
+            <div
+              class="travel-status-box"
+              id="travel-status-box"
+              role="status"
+              aria-live="polite"
+            >
+              Enter your 6-digit PIN code to check service availability. Travel
+              within 25 km is free; beyond 25 km is ₹12.50/km each way (up to
+              200 km).
             </div>
             <div class="travel-price-breakdown" id="travel-price-breakdown">
               <div class="travel-price-row">
@@ -1585,82 +1776,231 @@
             </div>
             <p class="travel-explanation hidden" id="travel-explanation"></p>
           </div>
-          </div>
 
           <fieldset class="payment-choice-panel">
             <legend>Choose your payment option</legend>
             <label class="payment-choice-option">
-              <input type="radio" name="paymentChoice" value="advance" checked />
-              <span><strong>Pay 20% booking advance</strong><small id="payment-choice-advance-note">Pay 20% now and the remaining 80% later.</small></span>
+              <input
+                type="radio"
+                name="paymentChoice"
+                value="advance"
+                checked
+              />
+              <span
+                ><strong>Pay 20% booking advance</strong
+                ><small id="payment-choice-advance-note"
+                  >Pay 20% now and the remaining 80% later.</small
+                ></span
+              >
             </label>
             <label class="payment-choice-option">
               <input type="radio" name="paymentChoice" value="full" />
-              <span><strong>Pay full booking amount</strong><small id="payment-choice-full-note">Pay 100% now. No balance will remain after successful verification.</small></span>
+              <span
+                ><strong>Pay full booking amount</strong
+                ><small id="payment-choice-full-note"
+                  >Pay 100% now. No balance will remain after successful
+                  verification.</small
+                ></span
+              >
             </label>
           </fieldset>
           <div class="advance-policy-check">
             <label for="advance-policy-accepted">
-              <input id="advance-policy-accepted" name="advancePolicyAccepted" type="checkbox" required />
-              <span>I have reviewed my selected payment option. The 20% booking-advance portion may be retained for customer-initiated cancellations where permitted by applicable law and the disclosed cancellation terms. Any amount paid above 20% will be handled under those cancellation/refund terms and applicable law. If the studio cannot provide the service and no alternative is agreed, applicable refunds will be provided.</span>
+              <input
+                id="advance-policy-accepted"
+                name="advancePolicyAccepted"
+                type="checkbox"
+                required
+              />
+              <span
+                >I have reviewed my selected payment option. The 20%
+                booking-advance portion may be retained for customer-initiated
+                cancellations where permitted by applicable law and the
+                disclosed cancellation terms. Any amount paid above 20% will be
+                handled under those cancellation/refund terms and applicable
+                law. If the studio cannot provide the service and no alternative
+                is agreed, applicable refunds will be provided.</span
+              >
             </label>
           </div>
-          <p class="event-location-note">All required fields must be completed. We accept online bookings within 200 km of our studio in India. Travel within 25 km is free; beyond 25 km is ₹12.50/km each way (₹25/extra km round-trip).</p>
-          <p class="event-location-feedback" id="event-location-feedback" role="alert" aria-live="polite"></p>
+          <p class="event-location-note">
+            All required fields must be completed. We accept online bookings
+            within 200 km of our studio in India. Travel within 25 km is free;
+            beyond 25 km is ₹12.50/km each way (₹25/extra km round-trip).
+          </p>
+          <p
+            class="event-location-feedback"
+            id="event-location-feedback"
+            role="alert"
+            aria-live="polite"
+          ></p>
           <div class="event-location-actions">
-            <button type="button" id="event-location-cancel" class="event-location-cancel">Cancel booking</button>
-            <button type="submit" id="event-location-submit" class="event-location-submit">Continue to payment</button>
+            <button
+              type="button"
+              id="event-location-cancel"
+              class="event-location-cancel"
+            >
+              Cancel booking
+            </button>
+            <button
+              type="submit"
+              id="event-location-submit"
+              class="event-location-submit"
+            >
+              Continue to payment
+            </button>
           </div>
         </form>
       </section>
     </div>
 
-
     <!-- Branded booking receipt, shown only after payment verification succeeds -->
-    <div class="receipt-overlay hidden" id="booking-receipt-overlay" aria-hidden="true">
-      <section class="receipt-dialog" role="dialog" aria-modal="true"
-        aria-labelledby="booking-receipt-title" aria-describedby="booking-receipt-status">
-        <button type="button" class="receipt-close" id="booking-receipt-close" aria-label="Close receipt">&times;</button>
+    <div
+      class="receipt-overlay hidden"
+      id="booking-receipt-overlay"
+      aria-hidden="true"
+    >
+      <section
+        class="receipt-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="booking-receipt-title"
+        aria-describedby="booking-receipt-status"
+      >
+        <button
+          type="button"
+          class="receipt-close"
+          id="booking-receipt-close"
+          aria-label="Close receipt"
+        >
+          &times;
+        </button>
         <div class="receipt-paper" id="booking-receipt-paper">
           <div class="receipt-brand">
             <img src="images/favicon-transparent.png" alt="" />
             <p>RADHA RANI STUDIO</p>
             <span>Wedding Photography &amp; Videography</span>
           </div>
-          <div class="receipt-status"><span aria-hidden="true">✓</span><div><h2 id="booking-receipt-title">Payment receipt</h2><p id="booking-receipt-status">Payment verified</p></div></div>
-          <p class="receipt-note">Thank you for booking with us. Keep this receipt for your records.</p>
-          <div class="receipt-amount-block"><span id="receipt-amount-label">Payment received</span><strong id="receipt-amount">₹0</strong></div>
+          <div class="receipt-status">
+            <span aria-hidden="true">✓</span>
+            <div>
+              <h2 id="booking-receipt-title">Payment receipt</h2>
+              <p id="booking-receipt-status">Payment verified</p>
+            </div>
+          </div>
+          <p class="receipt-note">
+            Thank you for booking with us. Keep this receipt for your records.
+          </p>
+          <div class="receipt-amount-block">
+            <span id="receipt-amount-label">Payment received</span
+            ><strong id="receipt-amount">₹0</strong>
+          </div>
           <dl class="receipt-details">
-            <div><dt>Receipt number</dt><dd id="receipt-number">—</dd></div>
-            <div><dt>Customer name</dt><dd id="receipt-customer">—</dd></div>
-            <div><dt>Email address</dt><dd id="receipt-email">—</dd></div>
-            <div><dt>Photography package</dt><dd id="receipt-package">—</dd></div>
-            <div id="receipt-base-price-row" class="hidden"><dt>Base package price</dt><dd id="receipt-base-price">—</dd></div>
-            <div id="receipt-travel-row" class="hidden"><dt>Travel cost</dt><dd id="receipt-travel-charge">—</dd></div>
-            <div><dt>Total booking price</dt><dd id="receipt-package-total">—</dd></div>
-            <div><dt>Event date</dt><dd id="receipt-event-date">—</dd></div>
-            <div><dt>Venue</dt><dd id="receipt-venue">To be confirmed with the studio</dd></div>
-            <div><dt>Payment ID</dt><dd id="receipt-payment-id">—</dd></div>
-            <div><dt>Payment status</dt><dd><span class="receipt-paid" id="receipt-payment-status">20% ADVANCE PAID</span></dd></div>
-            <div><dt>Remaining balance</dt><dd id="receipt-balance-due">—</dd></div>
-            <div><dt>Receipt issued</dt><dd id="receipt-issued-at">—</dd></div>
+            <div>
+              <dt>Receipt number</dt>
+              <dd id="receipt-number">—</dd>
+            </div>
+            <div>
+              <dt>Customer name</dt>
+              <dd id="receipt-customer">—</dd>
+            </div>
+            <div>
+              <dt>Email address</dt>
+              <dd id="receipt-email">—</dd>
+            </div>
+            <div>
+              <dt>Photography package</dt>
+              <dd id="receipt-package">—</dd>
+            </div>
+            <div id="receipt-base-price-row" class="hidden">
+              <dt>Base package price</dt>
+              <dd id="receipt-base-price">—</dd>
+            </div>
+            <div id="receipt-travel-row" class="hidden">
+              <dt>Travel cost</dt>
+              <dd id="receipt-travel-charge">—</dd>
+            </div>
+            <div>
+              <dt>Total booking price</dt>
+              <dd id="receipt-package-total">—</dd>
+            </div>
+            <div>
+              <dt>Event date</dt>
+              <dd id="receipt-event-date">—</dd>
+            </div>
+            <div>
+              <dt>Venue</dt>
+              <dd id="receipt-venue">To be confirmed with the studio</dd>
+            </div>
+            <div>
+              <dt>Payment ID</dt>
+              <dd id="receipt-payment-id">—</dd>
+            </div>
+            <div>
+              <dt>Payment status</dt>
+              <dd>
+                <span class="receipt-paid" id="receipt-payment-status"
+                  >20% ADVANCE PAID</span
+                >
+              </dd>
+            </div>
+            <div>
+              <dt>Remaining balance</dt>
+              <dd id="receipt-balance-due">—</dd>
+            </div>
+            <div>
+              <dt>Receipt issued</dt>
+              <dd id="receipt-issued-at">—</dd>
+            </div>
           </dl>
-          <p class="receipt-footer-note">Please contact Radha Rani Studio if any detail needs correction. Venue and event logistics should be confirmed directly with the studio.</p>
-          <div class="receipt-contact">+91 7458006822 · radharanistudio2026@gmail.com</div>
+          <p class="receipt-footer-note">
+            Please contact Radha Rani Studio if any detail needs correction.
+            Venue and event logistics should be confirmed directly with the
+            studio.
+          </p>
+          <div class="receipt-contact">
+            +91 7458006822 · radharanistudio2026@gmail.com
+          </div>
         </div>
         <div class="receipt-actions">
-          <button type="button" class="receipt-action secondary" id="booking-receipt-share">Share PDF</button>
-          <button type="button" class="receipt-action secondary" id="booking-receipt-download">Download PDF</button>
-          <button type="button" class="receipt-action primary" id="booking-receipt-print">Print / Save PDF</button>
+          <button
+            type="button"
+            class="receipt-action secondary"
+            id="booking-receipt-share"
+          >
+            Share PDF
+          </button>
+          <button
+            type="button"
+            class="receipt-action secondary"
+            id="booking-receipt-download"
+          >
+            Download PDF
+          </button>
+          <button
+            type="button"
+            class="receipt-action primary"
+            id="booking-receipt-print"
+          >
+            Print / Save PDF
+          </button>
         </div>
-        <p class="receipt-share-feedback" id="receipt-share-feedback" role="status" aria-live="polite"></p>
-        <p class="receipt-share-feedback" id="receipt-email-feedback" role="status" aria-live="polite"></p>
+        <p
+          class="receipt-share-feedback"
+          id="receipt-share-feedback"
+          role="status"
+          aria-live="polite"
+        ></p>
+        <p
+          class="receipt-share-feedback"
+          id="receipt-email-feedback"
+          role="status"
+          aria-live="polite"
+        ></p>
       </section>
     </div>
 
     <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <script src="script.js"></script>
-
-
   </body>
 </html>
-
