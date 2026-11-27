@@ -410,7 +410,9 @@ if (contactForm) {
     setContactFormFeedback("");
 
     const submitButton = contactForm.querySelector('button[type="submit"]');
-    const originalButtonText = submitButton ? submitButton.textContent : "Submit";
+    const originalButtonText = submitButton
+      ? submitButton.textContent
+      : "Submit";
     const formData = new FormData(contactForm);
 
     if (submitButton) {
@@ -469,12 +471,16 @@ const loginFeedback = document.getElementById("login-feedback");
 const registerFeedback = document.getElementById("register-feedback");
 const authSuccessOverlay = document.getElementById("auth-success-overlay");
 const authSuccessTitle = document.getElementById("auth-success-title");
-const authSuccessDescription = document.getElementById("auth-success-description");
+const authSuccessDescription = document.getElementById(
+  "auth-success-description",
+);
 const authSuccessClose = document.getElementById("auth-success-close");
 const authSuccessContinue = document.getElementById("auth-success-continue");
 
 const desktopLoginButton = document.getElementById("desktop-login-button");
-const desktopAccountTrigger = document.getElementById("desktop-account-trigger");
+const desktopAccountTrigger = document.getElementById(
+  "desktop-account-trigger",
+);
 const desktopAccountName = document.getElementById("desktop-account-name");
 const desktopAccountMenu = document.getElementById("desktop-account-menu");
 const mobileLoginLink = document.getElementById("mobile-login-link");
@@ -504,8 +510,6 @@ function closeAccountMenu() {
   mobileAccountTrigger?.setAttribute("aria-expanded", "false");
 }
 
-
-
 renderAccountNavigation();
 
 const switchAuthForm = (showRegister) => {
@@ -525,7 +529,9 @@ function setAuthFeedback(element, message, type = "error") {
 function clearAuthFeedback() {
   setAuthFeedback(loginFeedback, "");
   setAuthFeedback(registerFeedback, "");
-  const duplicateEmailAction = document.getElementById("duplicate-email-login-action");
+  const duplicateEmailAction = document.getElementById(
+    "duplicate-email-login-action",
+  );
   if (duplicateEmailAction) duplicateEmailAction.classList.remove("is-visible");
   const passwordMessage = document.getElementById("password-match-message");
   if (passwordMessage) {
@@ -545,7 +551,10 @@ function showAuthSuccess(title, description) {
 
 function closeAuthSuccess() {
   authSuccessOverlay?.classList.add("hidden");
-  if (modal?.classList.contains("hidden") && overlay?.classList.contains("hidden")) {
+  if (
+    modal?.classList.contains("hidden") &&
+    overlay?.classList.contains("hidden")
+  ) {
     document.body.classList.remove("no-scroll");
   }
 }
@@ -567,7 +576,11 @@ authSuccessOverlay?.addEventListener("click", (e) => {
 });
 
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape" && authSuccessOverlay && !authSuccessOverlay.classList.contains("hidden")) {
+  if (
+    e.key === "Escape" &&
+    authSuccessOverlay &&
+    !authSuccessOverlay.classList.contains("hidden")
+  ) {
     closeAuthSuccess();
   }
 });
@@ -598,7 +611,8 @@ loginForm.addEventListener("submit", async (e) => {
     if (!response.ok) {
       setAuthFeedback(
         loginFeedback,
-        data.message || "We couldn't sign you in. Check your email and password, then try again.",
+        data.message ||
+          "We couldn't sign you in. Check your email and password, then try again.",
       );
       return;
     }
@@ -612,10 +626,16 @@ loginForm.addEventListener("submit", async (e) => {
     loginForm.reset();
     switchAuthForm(false);
     closeModal();
-    showAuthSuccess("Welcome back!", "You have successfully logged in to Radha Rani Studio.");
+    showAuthSuccess(
+      "Welcome back!",
+      "You have successfully logged in to Radha Rani Studio.",
+    );
   } catch (error) {
     console.error("Login error:", error);
-    setAuthFeedback(loginFeedback, "We couldn't connect to the server. Please check your connection and try again.");
+    setAuthFeedback(
+      loginFeedback,
+      "We couldn't connect to the server. Please check your connection and try again.",
+    );
   } finally {
     if (submitButton) {
       submitButton.disabled = false;
@@ -631,14 +651,18 @@ registerForm.addEventListener("submit", async (e) => {
 
   const name = document.getElementById("register-name").value.trim();
   const email = document.getElementById("register-email").value.trim();
-  const submittedPhoneNumber = document.getElementById("register-phone").value.trim();
+  const submittedPhoneNumber = document
+    .getElementById("register-phone")
+    .value.trim();
   const compactPhoneNumber = submittedPhoneNumber.replace(/[\s()-]/g, "");
   const indianMobileNumber = compactPhoneNumber.startsWith("+91")
     ? compactPhoneNumber.slice(3)
     : compactPhoneNumber;
   const phoneNumber = `+91${indianMobileNumber}`;
   const password = document.getElementById("register-password").value;
-  const passwordConfirm = document.getElementById("register-password-confirm").value;
+  const passwordConfirm = document.getElementById(
+    "register-password-confirm",
+  ).value;
   const passwordMessage = document.getElementById("password-match-message");
 
   if (!/^[6-9]\d{9}$/.test(indianMobileNumber)) {
@@ -652,7 +676,8 @@ registerForm.addEventListener("submit", async (e) => {
 
   if (password !== passwordConfirm) {
     if (passwordMessage) {
-      passwordMessage.textContent = "Passwords do not match. Please check both fields.";
+      passwordMessage.textContent =
+        "Passwords do not match. Please check both fields.";
       passwordMessage.classList.add("is-error", "is-visible");
       passwordMessage.classList.remove("is-success");
     }
@@ -675,7 +700,13 @@ registerForm.addEventListener("submit", async (e) => {
     const response = await fetch(`${API_BASE}/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, email, phoneNumber, password, passwordConfirm }),
+      body: JSON.stringify({
+        name,
+        email,
+        phoneNumber,
+        password,
+        passwordConfirm,
+      }),
     });
 
     const data = await response.json().catch(() => ({}));
@@ -685,7 +716,9 @@ registerForm.addEventListener("submit", async (e) => {
       const backendMessage = String(data.message || "");
       const isDuplicateEmail =
         response.status === 409 ||
-        /E11000|duplicate key|email_1 dup key|already exists/i.test(backendMessage);
+        /E11000|duplicate key|email_1 dup key|already exists/i.test(
+          backendMessage,
+        );
 
       if (isDuplicateEmail) {
         setAuthFeedback(
@@ -694,7 +727,9 @@ registerForm.addEventListener("submit", async (e) => {
         );
 
         // Offer a direct path to the login form without showing a browser alert.
-        let loginAction = document.getElementById("duplicate-email-login-action");
+        let loginAction = document.getElementById(
+          "duplicate-email-login-action",
+        );
         if (!loginAction && registerFeedback) {
           loginAction = document.createElement("button");
           loginAction.type = "button";
@@ -726,10 +761,16 @@ registerForm.addEventListener("submit", async (e) => {
     registerForm.reset();
     switchAuthForm(false);
     closeModal();
-    showAuthSuccess("Account created!", "Your Radha Rani Studio account is ready. You are now logged in.");
+    showAuthSuccess(
+      "Account created!",
+      "Your Radha Rani Studio account is ready. You are now logged in.",
+    );
   } catch (error) {
     console.error("Registration error:", error);
-    setAuthFeedback(registerFeedback, "We couldn't connect to the server. Please check your connection and try again.");
+    setAuthFeedback(
+      registerFeedback,
+      "We couldn't connect to the server. Please check your connection and try again.",
+    );
   } finally {
     if (submitButton) {
       submitButton.disabled = false;
@@ -801,7 +842,9 @@ window.addEventListener("storage", (event) => {
 
 // Custom branded event-date calendar. Returns YYYY-MM-DD or null if cancelled.
 const eventDateOverlay = document.getElementById("event-date-overlay");
-const eventDateSelectedLabel = document.getElementById("event-date-selected-label");
+const eventDateSelectedLabel = document.getElementById(
+  "event-date-selected-label",
+);
 const eventDateMonth = document.getElementById("event-date-month");
 const eventDateYear = document.getElementById("event-date-year");
 const eventDateDays = document.getElementById("event-date-days");
@@ -810,8 +853,18 @@ let calendarSelectedDate = null;
 let resolveEventDate = null;
 
 const calendarMonthNames = [
-  "January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 const calendarToday = new Date();
 calendarToday.setHours(0, 0, 0, 0);
@@ -826,16 +879,18 @@ function dateToISO(date) {
 function updateSelectedDateLabel() {
   eventDateSelectedLabel.textContent = calendarSelectedDate
     ? calendarSelectedDate.toLocaleDateString("en-IN", {
-        weekday: "short", month: "short", day: "numeric"
+        weekday: "short",
+        month: "short",
+        day: "numeric",
       })
     : "Select a date";
 }
 
 function renderEventCalendar() {
   if (!eventDateMonth || !eventDateYear || !eventDateDays) return;
-  eventDateMonth.innerHTML = calendarMonthNames.map((name, index) =>
-    `<option value="${index}">${name}</option>`
-  ).join("");
+  eventDateMonth.innerHTML = calendarMonthNames
+    .map((name, index) => `<option value="${index}">${name}</option>`)
+    .join("");
   const currentYear = calendarToday.getFullYear();
   const yearOptions = [];
   for (let year = currentYear; year <= currentYear + 10; year++) {
@@ -847,10 +902,14 @@ function renderEventCalendar() {
 
   eventDateDays.innerHTML = "";
   const firstWeekday = new Date(
-    calendarViewDate.getFullYear(), calendarViewDate.getMonth(), 1
+    calendarViewDate.getFullYear(),
+    calendarViewDate.getMonth(),
+    1,
   ).getDay();
   const daysInMonth = new Date(
-    calendarViewDate.getFullYear(), calendarViewDate.getMonth() + 1, 0
+    calendarViewDate.getFullYear(),
+    calendarViewDate.getMonth() + 1,
+    0,
   ).getDate();
 
   for (let blank = 0; blank < firstWeekday; blank++) {
@@ -862,20 +921,30 @@ function renderEventCalendar() {
 
   for (let day = 1; day <= daysInMonth; day++) {
     const date = new Date(
-      calendarViewDate.getFullYear(), calendarViewDate.getMonth(), day
+      calendarViewDate.getFullYear(),
+      calendarViewDate.getMonth(),
+      day,
     );
     const button = document.createElement("button");
     button.type = "button";
     button.className = "event-date-day";
     button.textContent = String(day);
-    button.setAttribute("aria-label", date.toLocaleDateString("en-IN", {
-      day: "numeric", month: "long", year: "numeric"
-    }));
+    button.setAttribute(
+      "aria-label",
+      date.toLocaleDateString("en-IN", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }),
+    );
     if (date < calendarToday) {
       button.disabled = true;
       button.classList.add("is-past");
     }
-    if (calendarSelectedDate && dateToISO(date) === dateToISO(calendarSelectedDate)) {
+    if (
+      calendarSelectedDate &&
+      dateToISO(date) === dateToISO(calendarSelectedDate)
+    ) {
       button.classList.add("is-selected");
       button.setAttribute("aria-pressed", "true");
     }
@@ -910,11 +979,17 @@ function selectEventDate() {
 function closeEventDatePicker(value = null) {
   eventDateOverlay?.classList.add("hidden");
   eventDateOverlay?.setAttribute("aria-hidden", "true");
-  if (typeof closeAuthSuccess === "function" &&
-      authSuccessOverlay?.classList.contains("hidden") &&
-      modal?.classList.contains("hidden") && overlay?.classList.contains("hidden")) {
+  if (
+    typeof closeAuthSuccess === "function" &&
+    authSuccessOverlay?.classList.contains("hidden") &&
+    modal?.classList.contains("hidden") &&
+    overlay?.classList.contains("hidden")
+  ) {
     document.body.classList.remove("no-scroll");
-  } else if (!authSuccessOverlay || authSuccessOverlay.classList.contains("hidden")) {
+  } else if (
+    !authSuccessOverlay ||
+    authSuccessOverlay.classList.contains("hidden")
+  ) {
     document.body.classList.remove("no-scroll");
   }
   if (resolveEventDate) {
@@ -932,20 +1007,39 @@ eventDateYear?.addEventListener("change", () => {
   renderEventCalendar();
 });
 document.getElementById("event-date-prev")?.addEventListener("click", () => {
-  const previous = new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth() - 1, 1);
-  if (previous.getFullYear() < calendarToday.getFullYear() ||
-      (previous.getFullYear() === calendarToday.getFullYear() && previous.getMonth() < calendarToday.getMonth())) return;
+  const previous = new Date(
+    calendarViewDate.getFullYear(),
+    calendarViewDate.getMonth() - 1,
+    1,
+  );
+  if (
+    previous.getFullYear() < calendarToday.getFullYear() ||
+    (previous.getFullYear() === calendarToday.getFullYear() &&
+      previous.getMonth() < calendarToday.getMonth())
+  )
+    return;
   calendarViewDate = previous;
   renderEventCalendar();
 });
 document.getElementById("event-date-next")?.addEventListener("click", () => {
-  if (calendarViewDate.getFullYear() >= calendarToday.getFullYear() + 10 &&
-      calendarViewDate.getMonth() === 11) return;
-  calendarViewDate = new Date(calendarViewDate.getFullYear(), calendarViewDate.getMonth() + 1, 1);
+  if (
+    calendarViewDate.getFullYear() >= calendarToday.getFullYear() + 10 &&
+    calendarViewDate.getMonth() === 11
+  )
+    return;
+  calendarViewDate = new Date(
+    calendarViewDate.getFullYear(),
+    calendarViewDate.getMonth() + 1,
+    1,
+  );
   renderEventCalendar();
 });
-document.getElementById("event-date-edit")?.addEventListener("click", () => eventDateMonth?.focus());
-document.getElementById("event-date-cancel")?.addEventListener("click", () => closeEventDatePicker(null));
+document
+  .getElementById("event-date-edit")
+  ?.addEventListener("click", () => eventDateMonth?.focus());
+document
+  .getElementById("event-date-cancel")
+  ?.addEventListener("click", () => closeEventDatePicker(null));
 document.getElementById("event-date-confirm")?.addEventListener("click", () => {
   if (!calendarSelectedDate) {
     eventDateSelectedLabel.textContent = "Please select a date";
@@ -957,23 +1051,332 @@ eventDateOverlay?.addEventListener("click", (event) => {
   if (event.target === eventDateOverlay) closeEventDatePicker(null);
 });
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && eventDateOverlay && !eventDateOverlay.classList.contains("hidden")) {
+  if (
+    event.key === "Escape" &&
+    eventDateOverlay &&
+    !eventDateOverlay.classList.contains("hidden")
+  ) {
     closeEventDatePicker(null);
   }
 });
 
-
 // Booking flow with branded inline feedback. Payment/order API logic is preserved.
 // Event venue address form. The address belongs to this booking, not the customer profile.
+const PACKAGE_API_BASE = API_BASE.replace(/\/users\/?$/, "/packages");
 const eventLocationOverlay = document.getElementById("event-location-overlay");
 const eventLocationForm = document.getElementById("event-location-form");
-const eventLocationFeedback = document.getElementById("event-location-feedback");
+const eventLocationFeedback = document.getElementById(
+  "event-location-feedback",
+);
+const eventLocationSubmitBtn = document.getElementById("event-location-submit");
+const travelStatusBox = document.getElementById("travel-status-box");
+const travelBasePriceEl = document.getElementById("travel-base-price");
+const travelCostValueEl = document.getElementById("travel-cost-value");
+const travelTotalPriceEl = document.getElementById("travel-total-price");
+const advanceChoiceNoteEl = document.getElementById(
+  "payment-choice-advance-note",
+);
+const fullChoiceNoteEl = document.getElementById("payment-choice-full-note");
+
+const travelExplanationEl = document.getElementById("travel-explanation");
+
+let cachedPackages = null;
+let activeBookingPackage = null;
+let activeLocationCheck = null;
+let locationCheckDebounceTimer = null;
+let locationCheckSequence = 0;
 let resolveEventLocation = null;
 
-function collectEventLocation() {
+function formatInr(amount) {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 2,
+  }).format(Number(amount) || 0);
+}
+
+async function loadAvailablePackages() {
+  if (Array.isArray(cachedPackages) && cachedPackages.length > 0) {
+    return cachedPackages;
+  }
+  const pkgResponse = await fetch(PACKAGE_API_BASE);
+  if (!pkgResponse.ok) {
+    throw new Error(
+      "We couldn't load the photography packages. Please try again shortly.",
+    );
+  }
+  const pkgData = await pkgResponse.json();
+  const packages = pkgData?.data?.packages;
+  if (!Array.isArray(packages) || packages.length === 0) {
+    throw new Error(
+      "Our packages are temporarily unavailable. Please try again later or contact us for assistance.",
+    );
+  }
+  cachedPackages = packages;
+  return packages;
+}
+
+function setTravelStatusUI(stateType, message) {
+  if (!travelStatusBox) return;
+  travelStatusBox.textContent = message;
+  travelStatusBox.classList.remove(
+    "is-loading",
+    "is-free",
+    "is-chargeable",
+    "is-unavailable",
+  );
+  if (stateType) travelStatusBox.classList.add(`is-${stateType}`);
+}
+
+function updateTravelBreakdownUI(travelResult = null) {
+  const basePrice = Number(activeBookingPackage?.price || 0);
+  if (travelBasePriceEl)
+    travelBasePriceEl.textContent = basePrice ? formatInr(basePrice) : "—";
+
+  if (!travelResult) {
+    if (travelCostValueEl) travelCostValueEl.textContent = "Enter PIN code";
+    if (travelTotalPriceEl)
+      travelTotalPriceEl.textContent = basePrice ? formatInr(basePrice) : "—";
+    if (travelExplanationEl) {
+      travelExplanationEl.textContent = "";
+      travelExplanationEl.classList.add("hidden");
+    }
+    if (advanceChoiceNoteEl) {
+      const baseAdv =
+        Math.round((basePrice * 0.2 + Number.EPSILON) * 100) / 100;
+      advanceChoiceNoteEl.textContent = basePrice
+        ? `Pay ${formatInr(baseAdv)} now (20%) and the remaining 80% later.`
+        : "Pay 20% now and the remaining 80% later.";
+    }
+    if (fullChoiceNoteEl) {
+      fullChoiceNoteEl.textContent = basePrice
+        ? `Pay ${formatInr(basePrice)} now (100%). No balance will remain after verification.`
+        : "Pay 100% now. No balance will remain after successful verification.";
+    }
+    if (eventLocationSubmitBtn) {
+      eventLocationSubmitBtn.disabled = false;
+      eventLocationSubmitBtn.textContent = "Continue to payment";
+    }
+    return;
+  }
+
+  if (!travelResult.available) {
+    if (travelCostValueEl) travelCostValueEl.textContent = "Unavailable";
+    if (travelTotalPriceEl) travelTotalPriceEl.textContent = "—";
+    if (travelExplanationEl) {
+      travelExplanationEl.textContent = "";
+      travelExplanationEl.classList.add("hidden");
+    }
+    if (eventLocationSubmitBtn) {
+      eventLocationSubmitBtn.disabled = true;
+      eventLocationSubmitBtn.textContent = "Location unavailable";
+    }
+    return;
+  }
+
+  const travelCharge = Number(travelResult.travelCharge || 0);
+  const totalPrice = Number(
+    travelResult.pricing?.totalPrice ?? basePrice + travelCharge,
+  );
+  const advanceAmount = Number(
+    travelResult.pricing?.advanceAmount ??
+      Math.round((totalPrice * 0.2 + Number.EPSILON) * 100) / 100,
+  );
+
+  if (travelCostValueEl) {
+    travelCostValueEl.textContent =
+      travelCharge > 0
+        ? `${formatInr(travelCharge)} (${travelResult.distanceKm} km one-way)`
+        : `₹0 (Free · ${travelResult.distanceKm} km)`;
+  }
+  if (travelTotalPriceEl)
+    travelTotalPriceEl.textContent = formatInr(totalPrice);
+
+  if (travelExplanationEl) {
+    if (travelCharge > 0) {
+      const freeKm = travelResult.freeRadiusKm ?? 25;
+      const extraOneWay =
+        travelResult.extraOneWayKm ??
+        Math.round((travelResult.distanceKm - freeKm) * 10) / 10;
+      const extraRoundTrip =
+        travelResult.extraRoundTripKm ?? Math.round(extraOneWay * 2 * 10) / 10;
+      const rateEachWay = travelResult.ratePerKmEachWay ?? 12.5;
+
+      travelExplanationEl.textContent =
+        `Why this extra charge? Travel within ${freeKm} km of our studio is free. ` +
+        `Your venue is ~${travelResult.distanceKm} km away (${extraOneWay} km extra one-way = ${extraRoundTrip} km round-trip). ` +
+        `At ₹${rateEachWay}/km each way, a traveling cost of ${formatInr(travelCharge)} is added to the base package price.`;
+      travelExplanationEl.classList.remove("hidden");
+    } else {
+      travelExplanationEl.textContent = "";
+      travelExplanationEl.classList.add("hidden");
+    }
+  }
+
+  if (advanceChoiceNoteEl) {
+    advanceChoiceNoteEl.textContent =
+      travelCharge > 0
+        ? `Pay ${formatInr(advanceAmount)} now (20% of package + travel) and ${formatInr(Math.max(totalPrice - advanceAmount, 0))} later.`
+        : `Pay ${formatInr(advanceAmount)} now (20% of total) and ${formatInr(Math.max(totalPrice - advanceAmount, 0))} later.`;
+  }
+  if (fullChoiceNoteEl) {
+    fullChoiceNoteEl.textContent =
+      travelCharge > 0
+        ? `Pay ${formatInr(totalPrice)} now (100% including ${formatInr(travelCharge)} travel cost). No balance will remain.`
+        : `Pay ${formatInr(totalPrice)} now (100%). No balance will remain.`;
+  }
+  if (eventLocationSubmitBtn) {
+    eventLocationSubmitBtn.disabled = false;
+    eventLocationSubmitBtn.textContent = "Continue to payment";
+  }
+}
+
+function getLocationFieldsFromForm() {
+  const pinCode = String(
+    document.getElementById("event-pincode")?.value || "",
+  ).trim();
+  const locality = String(
+    document.getElementById("event-locality")?.value || "",
+  ).trim();
+  const district = String(
+    document.getElementById("event-district")?.value || "",
+  ).trim();
+  const state = String(
+    document.getElementById("event-state")?.value || "",
+  ).trim();
+  return { pinCode, locality, district, state };
+}
+
+async function runLocationCheck() {
+  const { pinCode, locality, district, state } = getLocationFieldsFromForm();
+  const hasValidPin = /^[1-9][0-9]{5}$/.test(pinCode);
+
+  if (!hasValidPin) {
+    activeLocationCheck = null;
+    setTravelStatusUI(
+      "",
+      "Enter your 6-digit PIN code to check service availability. Travel within 25 km is free; beyond 25 km is ₹12.50/km each way (up to 200 km).",
+    );
+    updateTravelBreakdownUI(null);
+    return null;
+  }
+
+  const seq = ++locationCheckSequence;
+  setTravelStatusUI(
+    "loading",
+    "Checking service availability and travel distance…",
+  );
+  if (eventLocationSubmitBtn) {
+    eventLocationSubmitBtn.disabled = true;
+    eventLocationSubmitBtn.textContent = "Checking location…";
+  }
+
+  try {
+    const response = await fetch(`${BOOKING_API_BASE}/check-location`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        packageId: activeBookingPackage?._id,
+        pinCode,
+        locality,
+        district,
+        state,
+      }),
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (seq !== locationCheckSequence) return activeLocationCheck;
+
+    if (!response.ok || !payload?.data) {
+      throw new Error(
+        payload?.message || "Unable to verify this location right now.",
+      );
+    }
+
+    const result = payload.data;
+    activeLocationCheck = {
+      ...result,
+      checkedKey: `${pinCode}|${locality}|${district}|${state}`,
+    };
+
+    if (!result.available) {
+      setTravelStatusUI(
+        "unavailable",
+        result.message || "We are not currently available in this location.",
+      );
+    } else if (result.tier === "free") {
+      setTravelStatusUI(
+        "free",
+        result.message ||
+          "Within our 25 km free travel range. No travel cost applies.",
+      );
+    } else {
+      setTravelStatusUI(
+        "chargeable",
+        result.message || "Travel charges apply for this location.",
+      );
+    }
+
+    updateTravelBreakdownUI(result);
+    if (eventLocationFeedback) eventLocationFeedback.textContent = "";
+    return activeLocationCheck;
+  } catch (error) {
+    if (seq !== locationCheckSequence) return activeLocationCheck;
+    activeLocationCheck = null;
+    setTravelStatusUI(
+      "unavailable",
+      error.message || "Unable to check location right now. Please try again.",
+    );
+    if (eventLocationSubmitBtn) {
+      eventLocationSubmitBtn.disabled = false;
+      eventLocationSubmitBtn.textContent = "Continue to payment";
+    }
+    return null;
+  }
+}
+
+function scheduleLocationCheck() {
+  clearTimeout(locationCheckDebounceTimer);
+  const { pinCode } = getLocationFieldsFromForm();
+  if (!/^[1-9][0-9]{5}$/.test(pinCode)) {
+    activeLocationCheck = null;
+    setTravelStatusUI(
+      "",
+      "Enter your 6-digit PIN code to check service availability. Travel within 25 km is free; beyond 25 km is ₹12.50/km each way (up to 200 km).",
+    );
+    updateTravelBreakdownUI(null);
+    return;
+  }
+  locationCheckDebounceTimer = window.setTimeout(() => {
+    runLocationCheck();
+  }, 450);
+}
+
+["event-pincode", "event-locality", "event-district", "event-state"].forEach(
+  (id) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener(
+      id === "event-state" ? "change" : "input",
+      scheduleLocationCheck,
+    );
+  },
+);
+
+function collectEventLocation(selectedPackage = null) {
   if (!eventLocationOverlay || !eventLocationForm) return Promise.resolve(null);
+  activeBookingPackage = selectedPackage;
+  activeLocationCheck = null;
+  clearTimeout(locationCheckDebounceTimer);
+  locationCheckSequence += 1;
+
   eventLocationForm.reset();
   if (eventLocationFeedback) eventLocationFeedback.textContent = "";
+  setTravelStatusUI(
+    "",
+    "Enter your 6-digit PIN code to check service availability. Travel within 25 km is free; beyond 25 km is ₹12.50/km each way (up to 200 km).",
+  );
+  updateTravelBreakdownUI(null);
+
   eventLocationOverlay.classList.remove("hidden");
   eventLocationOverlay.setAttribute("aria-hidden", "false");
   document.body.classList.add("no-scroll");
@@ -985,11 +1388,15 @@ function collectEventLocation() {
 }
 
 function closeEventLocation(value = null) {
+  clearTimeout(locationCheckDebounceTimer);
   eventLocationOverlay?.classList.add("hidden");
   eventLocationOverlay?.setAttribute("aria-hidden", "true");
-  if (eventDateOverlay?.classList.contains("hidden") &&
-      modal?.classList.contains("hidden") && overlay?.classList.contains("hidden") &&
-      (!authSuccessOverlay || authSuccessOverlay.classList.contains("hidden"))) {
+  if (
+    eventDateOverlay?.classList.contains("hidden") &&
+    modal?.classList.contains("hidden") &&
+    overlay?.classList.contains("hidden") &&
+    (!authSuccessOverlay || authSuccessOverlay.classList.contains("hidden"))
+  ) {
     document.body.classList.remove("no-scroll");
   }
   if (resolveEventLocation) {
@@ -998,7 +1405,7 @@ function closeEventLocation(value = null) {
   }
 }
 
-eventLocationForm?.addEventListener("submit", (event) => {
+eventLocationForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!eventLocationForm.reportValidity()) return;
 
@@ -1017,20 +1424,43 @@ eventLocationForm?.addEventListener("submit", (event) => {
   };
 
   if (!/^[1-9][0-9]{5}$/.test(eventLocation.pinCode)) {
-    if (eventLocationFeedback) eventLocationFeedback.textContent = "Please enter a valid 6-digit Indian PIN code.";
+    if (eventLocationFeedback)
+      eventLocationFeedback.textContent =
+        "Please enter a valid 6-digit Indian PIN code.";
     document.getElementById("event-pincode")?.focus();
+    return;
+  }
+
+  const currentKey = `${eventLocation.pinCode}|${eventLocation.locality}|${eventLocation.district}|${eventLocation.state}`;
+  let locationResult = activeLocationCheck;
+  if (!locationResult || locationResult.checkedKey !== currentKey) {
+    locationResult = await runLocationCheck();
+  }
+
+  if (!locationResult || !locationResult.available) {
+    if (eventLocationFeedback) {
+      eventLocationFeedback.textContent =
+        locationResult?.message ||
+        "We are not currently available in this location.";
+    }
     return;
   }
 
   closeEventLocation(eventLocation);
 });
 
-document.getElementById("event-location-cancel")?.addEventListener("click", () => closeEventLocation(null));
+document
+  .getElementById("event-location-cancel")
+  ?.addEventListener("click", () => closeEventLocation(null));
 eventLocationOverlay?.addEventListener("click", (event) => {
   if (event.target === eventLocationOverlay) closeEventLocation(null);
 });
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && eventLocationOverlay && !eventLocationOverlay.classList.contains("hidden")) {
+  if (
+    event.key === "Escape" &&
+    eventLocationOverlay &&
+    !eventLocationOverlay.classList.contains("hidden")
+  ) {
     closeEventLocation(null);
   }
 });
@@ -1046,7 +1476,9 @@ function formatEventLocation(location) {
     location.pinCode ? `PIN ${location.pinCode}` : "",
     location.landmark ? `Landmark: ${location.landmark}` : "",
     location.country || "India",
-  ].filter(Boolean).join(", ");
+  ]
+    .filter(Boolean)
+    .join(", ");
 }
 
 const bookingBtns = document.querySelectorAll(".booking-btn");
@@ -1070,9 +1502,14 @@ function formatReceiptDate(isoDate) {
   if (!isoDate) return "—";
   const parts = String(isoDate).slice(0, 10).split("-").map(Number);
   if (parts.length !== 3 || parts.some(Number.isNaN)) return String(isoDate);
-  return new Date(parts[0], parts[1] - 1, parts[2]).toLocaleDateString("en-IN", {
-    day: "numeric", month: "long", year: "numeric"
-  });
+  return new Date(parts[0], parts[1] - 1, parts[2]).toLocaleDateString(
+    "en-IN",
+    {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    },
+  );
 }
 
 function setReceiptValue(id, value) {
@@ -1083,9 +1520,12 @@ function setReceiptValue(id, value) {
 async function fetchReceiptPdfBlob(bookingId) {
   const token = localStorage.getItem("token");
   if (!token) throw new Error("Please sign in again to download your receipt.");
-  const response = await fetch(`${BOOKING_API_BASE}/${encodeURIComponent(bookingId)}/receipt.pdf`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const response = await fetch(
+    `${BOOKING_API_BASE}/${encodeURIComponent(bookingId)}/receipt.pdf`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
     throw new Error(data.message || "Unable to generate the PDF receipt.");
@@ -1098,8 +1538,10 @@ async function fetchReceiptPdfBlob(bookingId) {
 }
 
 function getCurrentReceiptPdf() {
-  if (!currentReceiptBookingId) throw new Error("The booking reference is not available for this receipt.");
-  if (!currentReceiptPdfPromise) currentReceiptPdfPromise = fetchReceiptPdfBlob(currentReceiptBookingId);
+  if (!currentReceiptBookingId)
+    throw new Error("The booking reference is not available for this receipt.");
+  if (!currentReceiptPdfPromise)
+    currentReceiptPdfPromise = fetchReceiptPdfBlob(currentReceiptBookingId);
   return currentReceiptPdfPromise;
 }
 
@@ -1115,40 +1557,110 @@ function downloadReceiptBlob(blob) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
 
-function showBookingReceipt({ booking, packageName, eventDate, amountPaise, paymentId, receiptEmail }) {
+function showBookingReceipt({
+  booking,
+  packageName,
+  eventDate,
+  amountPaise,
+  paymentId,
+  receiptEmail,
+  receiptWhatsapp,
+}) {
   currentReceiptBookingId = booking?._id || booking?.id || "";
-  currentReceiptPdfPromise = currentReceiptBookingId ? fetchReceiptPdfBlob(currentReceiptBookingId) : null;
-  if (currentReceiptPdfPromise) currentReceiptPdfPromise.catch(() => { currentReceiptPdfPromise = null; });
-  const userName = localStorage.getItem("userName") || booking?.user?.name || "Customer";
-  const userEmail = localStorage.getItem("userEmail") || booking?.user?.email || "Not provided";
-  const receiptId = booking?._id || booking?.id || paymentId || `RRS-${Date.now()}`;
+  currentReceiptPdfPromise = currentReceiptBookingId
+    ? fetchReceiptPdfBlob(currentReceiptBookingId)
+    : null;
+  if (currentReceiptPdfPromise)
+    currentReceiptPdfPromise.catch(() => {
+      currentReceiptPdfPromise = null;
+    });
+  const userName =
+    localStorage.getItem("userName") || booking?.user?.name || "Customer";
+  const userEmail =
+    localStorage.getItem("userEmail") || booking?.user?.email || "Not provided";
+  const receiptId =
+    booking?._id || booking?.id || paymentId || `RRS-${Date.now()}`;
   const amount = Number.isFinite(Number(amountPaise))
-    ? new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(Number(amountPaise) / 100)
+    ? formatInr(Number(amountPaise) / 100)
     : "Amount unavailable";
   const issuedAt = new Date().toLocaleString("en-IN", {
-    day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit"
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
   });
 
   setReceiptValue("receipt-amount", amount);
   setReceiptValue("receipt-number", String(receiptId));
   setReceiptValue("receipt-customer", userName);
   setReceiptValue("receipt-email", userEmail);
-  setReceiptValue("receipt-package", packageName || booking?.package?.name || "Photography package");
+  setReceiptValue(
+    "receipt-package",
+    packageName || booking?.package?.name || "Photography package",
+  );
+
   const packageTotal = Number(booking?.price || 0);
-  const paidAmount = Number.isFinite(Number(amountPaise)) ? Number(amountPaise) / 100 : Number(booking?.amountPaid || booking?.advanceAmount || 0);
-  const balanceDue = Number(booking?.balanceDue ?? Math.max(packageTotal - paidAmount, 0));
-  const formatMoney = (value) => new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(Number(value) || 0);
-  setReceiptValue("receipt-package-total", packageTotal ? formatMoney(packageTotal) : "—");
-  setReceiptValue("receipt-balance-due", formatMoney(balanceDue));
-  const paymentChoice = booking?.initialPaymentChoice || (balanceDue <= 0 ? "full" : "advance");
-  const receiptPaymentLabel = paymentChoice === "full" ? "Full package payment received" : "20% booking advance received";
-  const receiptPaymentStatus = balanceDue <= 0 ? "FULLY PAID" : "20% ADVANCE PAID";
+  const travelCharge = Number(booking?.travelCharge || 0);
+  const hasTravelDistance =
+    booking?.travelDistanceKm !== undefined &&
+    booking?.travelDistanceKm !== null &&
+    Number.isFinite(Number(booking.travelDistanceKm));
+  const basePackagePrice =
+    booking?.basePackagePrice !== undefined &&
+    booking?.basePackagePrice !== null
+      ? Number(booking.basePackagePrice)
+      : Math.max(packageTotal - travelCharge, 0);
+
+  const baseRow = document.getElementById("receipt-base-price-row");
+  const travelRow = document.getElementById("receipt-travel-row");
+  const showBreakdown = travelCharge > 0 || hasTravelDistance;
+  baseRow?.classList.toggle("hidden", !showBreakdown);
+  travelRow?.classList.toggle("hidden", !showBreakdown);
+  if (showBreakdown) {
+    setReceiptValue("receipt-base-price", formatInr(basePackagePrice));
+    setReceiptValue(
+      "receipt-travel-charge",
+      travelCharge > 0
+        ? `${formatInr(travelCharge)}${hasTravelDistance ? ` (${booking.travelDistanceKm} km one-way)` : ""}`
+        : `₹0 (Free within 25 km${hasTravelDistance ? ` · ${booking.travelDistanceKm} km` : ""})`,
+    );
+  }
+
+  const paidAmount = Number.isFinite(Number(amountPaise))
+    ? Number(amountPaise) / 100
+    : Number(booking?.amountPaid || booking?.advanceAmount || 0);
+  const balanceDue = Number(
+    booking?.balanceDue ?? Math.max(packageTotal - paidAmount, 0),
+  );
+  setReceiptValue(
+    "receipt-package-total",
+    packageTotal ? formatInr(packageTotal) : "—",
+  );
+  setReceiptValue("receipt-balance-due", formatInr(balanceDue));
+  const paymentChoice =
+    booking?.initialPaymentChoice || (balanceDue <= 0 ? "full" : "advance");
+  const receiptPaymentLabel =
+    paymentChoice === "full"
+      ? "Full booking payment received"
+      : "20% booking advance received";
+  const receiptPaymentStatus =
+    balanceDue <= 0 ? "FULLY PAID" : "20% ADVANCE PAID";
   setReceiptValue("receipt-amount-label", receiptPaymentLabel);
   setReceiptValue("receipt-payment-status", receiptPaymentStatus);
-  setReceiptValue("receipt-event-date", formatReceiptDate(booking?.eventDate || eventDate));
-  const venueDetails = formatEventLocation(booking?.eventLocation) || booking?.venue || "To be confirmed with the studio";
+  setReceiptValue(
+    "receipt-event-date",
+    formatReceiptDate(booking?.eventDate || eventDate),
+  );
+  const venueDetails =
+    formatEventLocation(booking?.eventLocation) ||
+    booking?.venue ||
+    "To be confirmed with the studio";
   setReceiptValue("receipt-venue", venueDetails);
-  setReceiptValue("receipt-payment-id", paymentId || booking?.razorpayPaymentId || "—");
+  setReceiptValue(
+    "receipt-payment-id",
+    paymentId || booking?.razorpayPaymentId || "—",
+  );
   setReceiptValue("receipt-issued-at", issuedAt);
 
   currentReceiptText = [
@@ -1158,28 +1670,42 @@ function showBookingReceipt({ booking, packageName, eventDate, amountPaise, paym
     `Customer: ${userName}`,
     `Email: ${userEmail}`,
     `Package: ${packageName || booking?.package?.name || "Photography package"}`,
-    `Total package price: ${packageTotal ? formatMoney(packageTotal) : "Amount unavailable"}`,
+    ...(showBreakdown
+      ? [
+          `Base package price: ${formatInr(basePackagePrice)}`,
+          `Travel cost: ${formatInr(travelCharge)}`,
+        ]
+      : []),
+    `Total booking price: ${packageTotal ? formatInr(packageTotal) : "Amount unavailable"}`,
     `Event date: ${formatReceiptDate(booking?.eventDate || eventDate)}`,
     `Event venue: ${venueDetails}`,
     `${receiptPaymentLabel}: ${amount}`,
-    `Remaining balance: ${formatMoney(balanceDue)}`,
+    `Remaining balance: ${formatInr(balanceDue)}`,
     `Payment ID: ${paymentId || booking?.razorpayPaymentId || "—"}`,
     `Payment status: ${receiptPaymentStatus}`,
     `Receipt issued: ${issuedAt}`,
-    "Contact: +91 7458006822 | radharanistudio2026@gmail.com"
+    "Contact: +91 7458006822 | radharanistudio2026@gmail.com",
   ].join("\n");
 
   const emailFeedback = document.getElementById("receipt-email-feedback");
   if (emailFeedback) {
+    let deliveryMessage = "";
     if (receiptEmail?.sent) {
-      emailFeedback.textContent = `A PDF receipt has been emailed to ${receiptEmail.email || userEmail}.`;
+      deliveryMessage = `A PDF receipt has been emailed to ${receiptEmail.email || userEmail}.`;
     } else if (receiptEmail?.reason === "no_customer_email") {
-      emailFeedback.textContent = "No email address is recorded for this account. You can still download or share the PDF.";
+      deliveryMessage =
+        "No email address is recorded for this account. You can still download or share the PDF.";
     } else if (receiptEmail && !receiptEmail.sent) {
-      emailFeedback.textContent = "Payment is confirmed. Email delivery could not be completed; please download or share the PDF, or contact the studio.";
+      deliveryMessage =
+        "Payment is confirmed. Email delivery could not be completed; please download or share the PDF, or contact the studio.";
     } else {
-      emailFeedback.textContent = "A PDF receipt will be emailed to your registered address when email delivery is configured.";
+      deliveryMessage =
+        "A PDF receipt will be emailed to your registered address when email delivery is configured.";
     }
+    if (receiptWhatsapp?.sent) {
+      deliveryMessage += " A copy has also been sent to your WhatsApp.";
+    }
+    emailFeedback.textContent = deliveryMessage;
   }
 
   if (receiptOverlay) {
@@ -1193,69 +1719,93 @@ function showBookingReceipt({ booking, packageName, eventDate, amountPaise, paym
 function closeBookingReceipt() {
   receiptOverlay?.classList.add("hidden");
   receiptOverlay?.setAttribute("aria-hidden", "true");
-  if (eventDateOverlay?.classList.contains("hidden") && modal?.classList.contains("hidden") && overlay?.classList.contains("hidden") && authSuccessOverlay?.classList.contains("hidden")) {
+  if (
+    eventDateOverlay?.classList.contains("hidden") &&
+    modal?.classList.contains("hidden") &&
+    overlay?.classList.contains("hidden") &&
+    authSuccessOverlay?.classList.contains("hidden")
+  ) {
     document.body.classList.remove("no-scroll");
   }
 }
 
-document.getElementById("booking-receipt-close")?.addEventListener("click", closeBookingReceipt);
+document
+  .getElementById("booking-receipt-close")
+  ?.addEventListener("click", closeBookingReceipt);
 receiptOverlay?.addEventListener("click", (event) => {
   if (event.target === receiptOverlay) closeBookingReceipt();
 });
-document.getElementById("booking-receipt-print")?.addEventListener("click", () => window.print());
-document.getElementById("booking-receipt-share")?.addEventListener("click", async () => {
-  const feedback = document.getElementById("receipt-share-feedback");
-  const shareButton = document.getElementById("booking-receipt-share");
-  try {
-    if (feedback) feedback.textContent = "Preparing your PDF receipt…";
-    if (shareButton) shareButton.disabled = true;
-    const blob = await getCurrentReceiptPdf();
-    const fileName = `Radha-Rani-Studio-Receipt-${String(currentReceiptBookingId).slice(-12)}.pdf`;
+document
+  .getElementById("booking-receipt-print")
+  ?.addEventListener("click", () => window.print());
+document
+  .getElementById("booking-receipt-share")
+  ?.addEventListener("click", async () => {
+    const feedback = document.getElementById("receipt-share-feedback");
+    const shareButton = document.getElementById("booking-receipt-share");
+    try {
+      if (feedback) feedback.textContent = "Preparing your PDF receipt…";
+      if (shareButton) shareButton.disabled = true;
+      const blob = await getCurrentReceiptPdf();
+      const fileName = `Radha-Rani-Studio-Receipt-${String(currentReceiptBookingId).slice(-12)}.pdf`;
 
-    if (typeof File !== "undefined") {
-      const file = new File([blob], fileName, { type: "application/pdf" });
-      if (navigator.share && navigator.canShare?.({ files: [file] })) {
-        try {
-          await navigator.share({
-            title: "Radha Rani Studio - Payment Receipt",
-            text: "Thank you for choosing Radha Rani Studio. Please find your payment receipt attached.",
-            files: [file],
-          });
-          if (feedback) feedback.textContent = "Your PDF receipt was shared.";
-          return;
-        } catch (shareError) {
-          if (shareError?.name === "AbortError") return;
-          // Some browsers lose the transient share gesture while the PDF is fetched.
-          // Download the real PDF rather than falling back to text-only sharing.
+      if (typeof File !== "undefined") {
+        const file = new File([blob], fileName, { type: "application/pdf" });
+        if (navigator.share && navigator.canShare?.({ files: [file] })) {
+          try {
+            await navigator.share({
+              title: "Radha Rani Studio - Payment Receipt",
+              text: "Thank you for choosing Radha Rani Studio. Please find your payment receipt attached.",
+              files: [file],
+            });
+            if (feedback) feedback.textContent = "Your PDF receipt was shared.";
+            return;
+          } catch (shareError) {
+            if (shareError?.name === "AbortError") return;
+          }
         }
       }
+
+      downloadReceiptBlob(blob);
+      if (feedback)
+        feedback.textContent =
+          "Your PDF receipt has been downloaded. You can now attach it in WhatsApp, Gmail or another app.";
+    } catch (error) {
+      if (error?.name !== "AbortError" && feedback)
+        feedback.textContent =
+          error.message ||
+          "Unable to share the PDF. Please use Print / Save PDF instead.";
+    } finally {
+      if (shareButton) shareButton.disabled = false;
     }
+  });
 
-    downloadReceiptBlob(blob);
-    if (feedback) feedback.textContent = "Your PDF receipt has been downloaded. You can now attach it in WhatsApp, Gmail or another app.";
-  } catch (error) {
-    if (error?.name !== "AbortError" && feedback) feedback.textContent = error.message || "Unable to share the PDF. Please use Print / Save PDF instead.";
-  } finally {
-    if (shareButton) shareButton.disabled = false;
-  }
-});
-
-document.getElementById("booking-receipt-download")?.addEventListener("click", async () => {
-  const feedback = document.getElementById("receipt-share-feedback");
-  const downloadButton = document.getElementById("booking-receipt-download");
-  try {
-    if (downloadButton) downloadButton.disabled = true;
-    const blob = await getCurrentReceiptPdf();
-    downloadReceiptBlob(blob);
-    if (feedback) feedback.textContent = "Your PDF receipt has been downloaded.";
-  } catch (error) {
-    if (feedback) feedback.textContent = error.message || "Unable to download the PDF receipt.";
-  } finally {
-    if (downloadButton) downloadButton.disabled = false;
-  }
-});
+document
+  .getElementById("booking-receipt-download")
+  ?.addEventListener("click", async () => {
+    const feedback = document.getElementById("receipt-share-feedback");
+    const downloadButton = document.getElementById("booking-receipt-download");
+    try {
+      if (downloadButton) downloadButton.disabled = true;
+      const blob = await getCurrentReceiptPdf();
+      downloadReceiptBlob(blob);
+      if (feedback)
+        feedback.textContent = "Your PDF receipt has been downloaded.";
+    } catch (error) {
+      if (feedback)
+        feedback.textContent =
+          error.message || "Unable to download the PDF receipt.";
+    } finally {
+      if (downloadButton) downloadButton.disabled = false;
+    }
+  });
 document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && receiptOverlay && !receiptOverlay.classList.contains("hidden")) closeBookingReceipt();
+  if (
+    event.key === "Escape" &&
+    receiptOverlay &&
+    !receiptOverlay.classList.contains("hidden")
+  )
+    closeBookingReceipt();
 });
 
 function setBookingButtonBusy(button, busy) {
@@ -1297,49 +1847,50 @@ bookingBtns.forEach((btn) => {
     const eventDate = await selectEventDate();
     if (!eventDate) return;
 
-    const eventLocationWithPolicy = await collectEventLocation();
+    let selectedPackage;
+    setBookingButtonBusy(btn, true);
+    try {
+      const packages = await loadAvailablePackages();
+      selectedPackage = packages.find(
+        (pkg) => pkg.name === btn.dataset.packageName,
+      );
+      if (!selectedPackage) {
+        throw new Error(
+          "We couldn't find the selected package. Please refresh the page and try again.",
+        );
+      }
+    } catch (err) {
+      setBookingFeedback(err.message, "error");
+      setBookingButtonBusy(btn, false);
+      return;
+    }
+    setBookingButtonBusy(btn, false);
+
+    const eventLocationWithPolicy = await collectEventLocation(selectedPackage);
     if (!eventLocationWithPolicy) return;
-    const { advancePolicyAccepted, paymentChoice, ...eventLocation } = eventLocationWithPolicy;
+    const { advancePolicyAccepted, paymentChoice, ...eventLocation } =
+      eventLocationWithPolicy;
 
     setBookingButtonBusy(btn, true);
     setBookingFeedback("Preparing your booking. Please wait...", "info");
+    let razorpayOpened = false;
 
     try {
-      const pkgResponse = await fetch(
-        "https://radha-rani-studio.onrender.com/api/v1/packages",
-      );
-      if (!pkgResponse.ok) {
-        throw new Error("We couldn't load the photography packages. Please try again shortly.");
-      }
-      const pkgData = await pkgResponse.json();
-      const packages = pkgData?.data?.packages;
-
-      if (!Array.isArray(packages) || packages.length === 0) {
-        setBookingFeedback(
-          "Our packages are temporarily unavailable. Please try again later or contact us for assistance.",
-          "error",
-        );
-        return;
-      }
-
-      const selectedPackage = packages.find(
-        (pkg) => pkg.name === btn.dataset.packageName,
-      );
-
-      if (!selectedPackage) {
-        throw new Error("We couldn't find the selected package. Please refresh the page and try again.");
-      }
-
       const activePackageId = selectedPackage._id;
       const orderResponse = await fetch(
-        `https://radha-rani-studio.onrender.com/api/v1/bookings/create-order/${activePackageId}`,
+        `${BOOKING_API_BASE}/create-order/${activePackageId}`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ eventDate, eventLocation, advancePolicyAccepted, paymentChoice }),
+          body: JSON.stringify({
+            eventDate,
+            eventLocation,
+            advancePolicyAccepted,
+            paymentChoice,
+          }),
         },
       );
 
@@ -1361,14 +1912,24 @@ bookingBtns.forEach((btn) => {
           return;
         }
         throw new Error(
-          orderData.message || "We couldn't start your booking. Please try again.",
+          orderData.message ||
+            "We couldn't start your booking. Please try again.",
         );
       }
 
-      const amountDueNow = Number(orderData.payment?.amountDueNow ?? orderData.order.amount / 100);
-      const paymentChoiceLabel = paymentChoice === "full" ? "Full package payment" : "20% booking advance";
+      const amountDueNow = Number(
+        orderData.payment?.amountDueNow ?? orderData.order.amount / 100,
+      );
+      const travelSummary =
+        Number(orderData.payment?.travelCharge || 0) > 0
+          ? ` (includes ${formatInr(orderData.payment.travelCharge)} travel cost)`
+          : "";
+      const paymentChoiceLabel =
+        paymentChoice === "full"
+          ? "Full booking payment"
+          : "20% booking advance";
       setBookingFeedback(
-        `${paymentChoiceLabel}: ${new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 2 }).format(amountDueNow)}. Complete payment within ${orderData.payment?.holdMinutes || 30} minutes to reserve this date.`,
+        `${paymentChoiceLabel}: ${formatInr(amountDueNow)}${travelSummary}. Complete payment within ${orderData.payment?.holdMinutes || 30} minutes to reserve this date.`,
         "info",
       );
 
@@ -1377,31 +1938,32 @@ bookingBtns.forEach((btn) => {
         amount: orderData.order.amount,
         currency: orderData.order.currency,
         name: "Radha Rani Studio",
-        description: `${paymentChoice === "full" ? "Full package payment" : "20% booking advance"} for ${selectedPackage.name}`,
+        description: `${paymentChoice === "full" ? "Full booking payment" : "20% booking advance"} for ${selectedPackage.name}`,
         image: "images/favicon-transparent.png",
         order_id: orderData.order.id,
         handler: async function (response) {
-          setBookingFeedback("Payment received. Verifying your payment securely...", "info");
+          setBookingFeedback(
+            "Payment received. Verifying your payment securely...",
+            "info",
+          );
           try {
-            const verifyResponse = await fetch(
-              "https://radha-rani-studio.onrender.com/api/v1/bookings/verify",
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_signature: response.razorpay_signature,
-                }),
+            const verifyResponse = await fetch(`${BOOKING_API_BASE}/verify`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
               },
-            );
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            });
 
             const verifyData = await verifyResponse.json().catch(() => ({}));
             if (verifyResponse.ok) {
-              const verifiedBooking = verifyData?.booking || orderData?.booking || {};
+              const verifiedBooking =
+                verifyData?.booking || orderData?.booking || {};
               setBookingFeedback(
                 verifiedBooking?.balanceDue <= 0
                   ? "Full payment verified successfully. Your receipt is ready to view, print, or share."
@@ -1415,10 +1977,12 @@ bookingBtns.forEach((btn) => {
                 amountPaise: orderData?.order?.amount,
                 paymentId: response.razorpay_payment_id,
                 receiptEmail: verifyData?.receiptEmail,
+                receiptWhatsapp: verifyData?.receiptWhatsapp,
               });
             } else {
               setBookingFeedback(
-                verifyData.message || "We received your payment response but couldn't verify it yet. Please contact us before trying to pay again.",
+                verifyData.message ||
+                  "We received your payment response but couldn't verify it yet. Please contact us before trying to pay again.",
                 "error",
               );
             }
@@ -1451,16 +2015,17 @@ bookingBtns.forEach((btn) => {
       };
 
       const rzpWindow = new Razorpay(options);
+      razorpayOpened = true;
       rzpWindow.open();
     } catch (err) {
       console.error("Checkout error flow capture:", err);
       setBookingFeedback(
-        err.message || "We couldn't start your booking. Please check your connection and try again.",
+        err.message ||
+          "We couldn't start your booking. Please check your connection and try again.",
         "error",
       );
     } finally {
-      // Razorpay can remain open after order creation; its callbacks re-enable the button.
-      if (!window.Razorpay) setBookingButtonBusy(btn, false);
+      if (!razorpayOpened) setBookingButtonBusy(btn, false);
     }
   });
 });

@@ -3,7 +3,16 @@
   const $ = (id) => document.getElementById(id);
   const loginPanel = $("login-panel");
   const dashboard = $("dashboard");
-  const state = { page: 1, pages: 1, bookings: [], packages: [] };
+  const state = {
+    page: 1,
+    pages: 1,
+    bookings: [],
+    packages: [],
+    offlineTravel: null,
+  };
+  let offlineTravelTimer = null;
+  let offlineTravelSeq = 0;
+
   const money = (value) =>
     new Intl.NumberFormat("en-IN", {
       style: "currency",
@@ -184,7 +193,25 @@
         );
       addCell(row, locationBlock, "event-location-cell");
 
-      addCell(row, money(booking.price));
+      const priceBlock = document.createElement("div");
+      priceBlock.append(makeText("span", "", money(booking.price)));
+      const travelCharge = Number(booking.travelCharge || 0);
+      if (travelCharge > 0) {
+        const basePrice =
+          booking.basePackagePrice !== undefined &&
+          booking.basePackagePrice !== null
+            ? Number(booking.basePackagePrice)
+            : Math.max((Number(booking.price) || 0) - travelCharge, 0);
+        priceBlock.append(
+          makeText(
+            "small",
+            "payment-choice-note",
+            `Pkg ${money(basePrice)} + Travel ${money(travelCharge)}`,
+          ),
+        );
+      }
+      addCell(row, priceBlock);
+
       addCell(row, money(collectedAmount(booking)));
       addCell(row, money(outstandingBalance(booking)));
 
@@ -449,21 +476,54 @@
     });
   }
 
+  function setOfflineTravelStatus(type, message) {
+    const el = $("offline-travel-status");
+    if (!el) return;
+    el.textContent = message;
+    el.classList.remove("is-free", "is-chargeable", "is-unavailable");
+    if (type) el.classList.add(`is-${type}`);
+  }
+
+  function getEffectiveOfflineTravel() {
+    const rawManual = String($("offline-travel-charge")?.value ?? "").trim();
+    if (rawManual !== "") {
+      const parsed = Number(rawManual);
+      if (Number.isFinite(parsed) && parsed >= 0) {
+        return { amount: parsed, isManual: true };
+      }
+    }
+    if (state.offlineTravel?.available) {
+      return { amount: Number(state.offlineTravel.travelCharge || 0), isManual: false };
+    }
+    return { amount: 0, isManual: false };
+  }
+
   function updateOfflinePricePreview() {
     const pkg = state.packages.find(
       (item) => item._id === $("offline-package").value,
     );
+    const { amount: travelCharge, isManual } = getEffectiveOfflineTravel();
+    const travelPreviewEl = $("offline-travel-preview");
+    if (travelPreviewEl) {
+      if (!isManual && state.offlineTravel && !state.offlineTravel.available) {
+        travelPreviewEl.textContent = "Outside range";
+      } else {
+        travelPreviewEl.textContent = money(travelCharge);
+      }
+    }
+
     if (!pkg) {
       $("offline-package-price").textContent = "—";
       $("offline-initial-payment-amount").textContent = "—";
       $("offline-balance-due").textContent = "—";
       return;
     }
-    const price = Number(pkg.price) || 0;
-    const advance = Math.round((price * 0.2 + Number.EPSILON) * 100) / 100;
+    const basePrice = Number(pkg.price) || 0;
+    const totalPrice = basePrice + travelCharge;
+    const advance = Math.round((totalPrice * 0.2 + Number.EPSILON) * 100) / 100;
     const paymentChoice = $("offline-payment-choice").value || "advance";
-    const initialPaymentAmount = paymentChoice === "full" ? price : advance;
-    $("offline-package-price").textContent = money(price);
+    const initialPaymentAmount = paymentChoice === "full" ? totalPrice : advance;
+    $("offline-package-price").textContent = money(basePrice);
     $("offline-initial-payment-label").textContent =
       paymentChoice === "full"
         ? "Full payment received now"
@@ -471,22 +531,87 @@
     $("offline-initial-payment-amount").textContent =
       money(initialPaymentAmount);
     $("offline-balance-due").textContent = money(
-      Math.max(price - initialPaymentAmount, 0),
+      Math.max(totalPrice - initialPaymentAmount, 0),
     );
   }
 
+  function scheduleOfflineLocationCheck() {
+    clearTimeout(offlineTravelTimer);
+    const pinCode = String($("offline-pincode")?.value || "").trim();
+    if (!/^[1-9][0-9]{5}$/.test(pinCode)) {
+      state.offlineTravel = null;
+      setOfflineTravelStatus(
+        "",
+        "Enter a 6-digit PIN code to auto-calculate travel cost (free up to 25 km, ₹12.50/km each way beyond 25 km).",
+      );
+      updateOfflinePricePreview();
+      return;
+    }
+
+    offlineTravelTimer = window.setTimeout(async () => {
+      const seq = ++offlineTravelSeq;
+      setOfflineTravelStatus("", "Checking travel distance for this location…");
+      try {
+        const response = await fetch(`${API}/bookings/check-location`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            pinCode,
+            locality: String($("offline-locality")?.value || "").trim(),
+            district: String($("offline-district")?.value || "").trim(),
+            state: String($("offline-state")?.value || "").trim(),
+          }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (seq !== offlineTravelSeq) return;
+        if (!response.ok || !payload?.data) {
+          throw new Error(payload?.message || "Unable to verify location.");
+        }
+        state.offlineTravel = payload.data;
+        if (!payload.data.available) {
+          setOfflineTravelStatus(
+            "unavailable",
+            `${payload.data.message} Enter a manual travel cost below if you want to override for an offline booking.`,
+          );
+        } else if (payload.data.tier === "free") {
+          setOfflineTravelStatus("free", payload.data.message);
+        } else {
+          setOfflineTravelStatus("chargeable", payload.data.message);
+        }
+      } catch (error) {
+        if (seq !== offlineTravelSeq) return;
+        state.offlineTravel = null;
+        setOfflineTravelStatus("unavailable", error.message);
+      } finally {
+        updateOfflinePricePreview();
+      }
+    }, 450);
+  }
+
   function closeOfflineModal() {
+    clearTimeout(offlineTravelTimer);
+    state.offlineTravel = null;
     $("offline-booking-modal").hidden = true;
     $("offline-booking-form").reset();
     setFeedback("", "offline-booking-feedback");
+    setOfflineTravelStatus(
+      "",
+      "Enter a 6-digit PIN code to auto-calculate travel cost (free up to 25 km, ₹12.50/km each way beyond 25 km).",
+    );
     updateOfflinePricePreview();
   }
 
   async function openOfflineModal() {
+    clearTimeout(offlineTravelTimer);
+    state.offlineTravel = null;
     setFeedback("", "offline-booking-feedback");
     $("offline-booking-form").reset();
     $("offline-event-date").min = todayIndia();
     $("offline-payment-choice").value = "advance";
+    setOfflineTravelStatus(
+      "",
+      "Enter a 6-digit PIN code to auto-calculate travel cost (free up to 25 km, ₹12.50/km each way beyond 25 km).",
+    );
     $("offline-booking-modal").hidden = false;
     try {
       await loadPackagesForOfflineForm();
@@ -619,10 +744,12 @@
     if (event.target === $("offline-booking-modal")) closeOfflineModal();
   });
   $("offline-package").addEventListener("change", updateOfflinePricePreview);
-  $("offline-payment-choice").addEventListener(
-    "change",
-    updateOfflinePricePreview,
-  );
+  $("offline-payment-choice").addEventListener("change", updateOfflinePricePreview);
+  $("offline-travel-charge")?.addEventListener("input", updateOfflinePricePreview);
+  ["offline-pincode", "offline-locality", "offline-district", "offline-state"].forEach((id) => {
+    $(id)?.addEventListener(id === "offline-state" ? "change" : "input", scheduleOfflineLocationCheck);
+  });
+
   $("offline-booking-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!event.currentTarget.reportValidity()) return;
@@ -656,6 +783,11 @@
       adminNotes: String(formData.get("adminNotes") || "").trim(),
       advancePolicyAccepted: formData.get("advancePolicyAccepted") === "on",
     };
+    const rawTravelOverride = String(formData.get("travelCharge") ?? "").trim();
+    if (rawTravelOverride !== "") {
+      payload.travelCharge = Number(rawTravelOverride);
+    }
+
     try {
       const response = await api("/bookings/admin/offline", {
         method: "POST",

@@ -781,3 +781,37 @@ footer {
 .receipt-note-error {
   color: var(--red);
 }
+
+.payment-preview-4 {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.offline-travel-status {
+  margin: 0;
+  padding: 9px 11px;
+  border-radius: 7px;
+  border: 1px solid var(--line);
+  background: #faf8f4;
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.45;
+}
+.offline-travel-status.is-free {
+  border-color: #bfe0cb;
+  background: #eef8f1;
+  color: var(--green);
+}
+.offline-travel-status.is-chargeable {
+  border-color: #e2c58a;
+  background: #fff8e8;
+  color: #76531f;
+}
+.offline-travel-status.is-unavailable {
+  border-color: #eabcb7;
+  background: #fff1ef;
+  color: var(--red);
+}
+@media (max-width: 720px) {
+  .payment-preview-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
