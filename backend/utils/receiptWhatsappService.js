@@ -26,6 +26,31 @@ function formatInrAmount(amount) {
 }
 
 /**
+ * Formats event dates cleanly (e.g., 15 Dec 2026) for template variable {{3}}.
+ */
+function formatEventDate(booking) {
+  const rawDate =
+    booking.eventDate ||
+    booking.date ||
+    booking.event?.date ||
+    booking.clientDetails?.eventDate;
+
+  if (!rawDate) return 'TBD';
+
+  const parsed = new Date(rawDate);
+  if (Number.isNaN(parsed.getTime())) {
+    return String(rawDate).trim() || 'TBD';
+  }
+
+  return parsed.toLocaleDateString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'Asia/Kolkata',
+  });
+}
+
+/**
  * Uploads the receipt PDF Buffer to Meta's Media API and returns the temporary media ID.
  */
 async function uploadPdfToMeta({ baseUrl, accessToken, pdfBuffer, filename }) {
@@ -63,8 +88,13 @@ async function sendBookingReceiptWhatsapp(booking) {
   const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
   const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
   const templateName =
-    process.env.WHATSAPP_RECEIPT_TEMPLATE || 'booking_receipt_pdf';
-  const templateLang = process.env.WHATSAPP_RECEIPT_TEMPLATE_LANG || 'en';
+    process.env.WHATSAPP_RECEIPT_TEMPLATE ||
+    process.env.WHATSAPP_RECEIPT_TEMPLATE_NAME ||
+    'booking_receipt_pdf';
+  const templateLang =
+    process.env.WHATSAPP_RECEIPT_TEMPLATE_LANG ||
+    process.env.WHATSAPP_RECEIPT_TEMPLATE_LANGUAGE ||
+    'en';
 
   if (!enabled || !phoneNumberId || !accessToken) {
     return { sent: false, reason: 'disabled' };
@@ -84,11 +114,11 @@ async function sendBookingReceiptWhatsapp(booking) {
 
   const receiptId = String(booking._id).slice(-12);
   const filename = `Radha-Rani-Studio-Receipt-${receiptId}.pdf`;
-  const packageName = String(booking.package?.name || 'Wedding Package').trim();
-  const amountPaid = formatInrAmount(
-    booking.amountPaid !== undefined && booking.amountPaid !== null
-      ? booking.amountPaid
-      : booking.price,
+  const eventDate = formatEventDate(booking);
+  const totalAmount = formatInrAmount(
+    booking.price !== undefined && booking.price !== null
+      ? booking.price
+      : booking.amountPaid,
   );
 
   // Supports both sync Buffer and Promise<Buffer> from receiptPdf.js
@@ -129,8 +159,8 @@ async function sendBookingReceiptWhatsapp(booking) {
           parameters: [
             { type: 'text', text: customerName },
             { type: 'text', text: receiptId.toUpperCase() },
-            { type: 'text', text: packageName },
-            { type: 'text', text: amountPaid },
+            { type: 'text', text: eventDate },
+            { type: 'text', text: totalAmount },
           ],
         },
       ],
