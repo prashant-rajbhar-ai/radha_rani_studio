@@ -2604,6 +2604,29 @@ textarea {
   font-size: 0.85rem;
   text-align: center;
 }
+
+.receipt-signature-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  margin: 18px 0 12px;
+}
+
+.receipt-signature-img {
+  width: 140px;
+  max-width: 100%;
+  height: auto;
+  max-height: 52px;
+  object-fit: contain;
+}
+
+.receipt-signature-caption {
+  color: #776b5d;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
 @media (max-width: 520px) {
   .receipt-overlay {
     padding: 8px;

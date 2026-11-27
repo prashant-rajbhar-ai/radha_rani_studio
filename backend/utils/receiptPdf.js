@@ -323,6 +323,19 @@ function buildPdf(booking) {
   y += 7;
   addLine(LEFT, y, RIGHT, y, [0.74, 0.49, 0.16], 0.8);
   y += 15;
+  ensureSpace(82);
+  y += 7;
+  addText(
+    'Authorized Signatory: Prashant (Radha Rani Studio)',
+    RIGHT - 235,
+    y,
+    8,
+    true,
+    [0.28, 0.24, 0.2],
+  );
+  y += 14;
+  addLine(LEFT, y, RIGHT, y, [0.74, 0.49, 0.16], 0.8);
+  y += 15;
   addParagraph(
     'Please contact Radha Rani Studio if any detail needs correction. Venue and event logistics should be confirmed directly with the studio.',
     LEFT,
