@@ -2648,10 +2648,11 @@ textarea {
     flex-direction: column;
   }
 }
+
 @media print {
   @page {
     size: A4 portrait;
-    margin: 10mm;
+    margin: 8mm;
   }
 
   html,
@@ -2660,15 +2661,14 @@ textarea {
     width: 100% !important;
     min-width: 0 !important;
     max-width: none !important;
-    height: 100% !important;
+    height: auto !important;
     min-height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
-    overflow: hidden !important;
+    overflow: visible !important;
     background: #fff !important;
   }
 
-  /* Print only the receipt, not the rest of the website. */
   body > *:not(#booking-receipt-overlay) {
     display: none !important;
   }
@@ -2677,11 +2677,11 @@ textarea {
     display: block !important;
     position: static !important;
     width: 100% !important;
-    height: 100% !important;
+    height: auto !important;
     min-height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
-    overflow: hidden !important;
+    overflow: visible !important;
     background: #fff !important;
     backdrop-filter: none !important;
     visibility: visible !important;
@@ -2694,7 +2694,6 @@ textarea {
     visibility: visible !important;
   }
 
-  /* Hide interactive buttons and feedback text when printing. */
   #booking-receipt-overlay .receipt-close,
   #booking-receipt-overlay .receipt-actions,
   #booking-receipt-overlay .receipt-share-feedback {
@@ -2707,10 +2706,10 @@ textarea {
     width: 100% !important;
     max-width: none !important;
     max-height: none !important;
-    height: 100% !important;
+    height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
-    overflow: hidden !important;
+    overflow: visible !important;
     transform: none !important;
     box-shadow: none !important;
     border: 0 !important;
@@ -2718,17 +2717,16 @@ textarea {
     background: #fff !important;
   }
 
-  /* Stretch the receipt sheet cleanly to fill the full A4 printable page. */
   #booking-receipt-overlay .receipt-paper {
     display: flex !important;
     flex-direction: column !important;
     justify-content: space-between !important;
     width: 100% !important;
-    min-height: 275mm !important;
+    min-height: 276mm !important;
     max-width: none !important;
     margin: 0 !important;
-    padding: 9mm 11mm !important;
-    border: 1.5px solid #e2d3b5 !important;
+    padding: 8mm 10mm !important;
+    border: 1.5px solid #d8c298 !important;
     border-radius: 6px !important;
     box-shadow: none !important;
     background: #fff !important;
@@ -2736,36 +2734,34 @@ textarea {
     overflow: hidden !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
-    break-after: avoid !important;
-    page-break-after: avoid !important;
   }
 
   #booking-receipt-overlay .receipt-brand {
-    padding-bottom: 12px !important;
+    padding-bottom: 10px !important;
   }
 
   #booking-receipt-overlay .receipt-status {
-    margin: 14px 0 6px !important;
+    margin: 12px 0 6px !important;
   }
 
   #booking-receipt-overlay .receipt-note {
-    margin: 6px 0 12px !important;
+    margin: 6px 0 10px !important;
   }
 
   #booking-receipt-overlay .receipt-amount-block {
     display: flex !important;
     width: 100% !important;
     gap: 4mm !important;
-    padding: 14px 16px !important;
+    padding: 12px 14px !important;
   }
 
   #booking-receipt-overlay .receipt-details {
     flex: 1 1 auto !important;
     display: flex !important;
     flex-direction: column !important;
-    justify-content: space-evenly !important;
+    justify-content: space-between !important;
     width: 100% !important;
-    margin: 12px 0 !important;
+    margin: 10px 0 !important;
   }
 
   #booking-receipt-overlay .receipt-details > div {
@@ -2773,7 +2769,7 @@ textarea {
     width: 100% !important;
     grid-template-columns: minmax(32mm, 38%) minmax(0, 1fr) !important;
     gap: 4mm !important;
-    padding: 8px 0 !important;
+    padding: 7px 0 !important;
     break-inside: avoid;
     page-break-inside: avoid;
   }
@@ -2783,21 +2779,56 @@ textarea {
     overflow-wrap: anywhere !important;
   }
 
-  #booking-receipt-overlay .receipt-signature-block {
+  #booking-receipt-overlay .receipt-signoff-row {
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: space-between !important;
+    gap: 16px !important;
     margin: 12px 0 8px !important;
   }
 
+  #booking-receipt-overlay .receipt-seal {
+    display: inline-flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 112px !important;
+    height: 112px !important;
+    border: 2px dashed #9b6b23 !important;
+    border-radius: 50% !important;
+    padding: 8px !important;
+    text-align: center !important;
+    color: #76531f !important;
+    transform: rotate(-8deg) !important;
+  }
+
+  #booking-receipt-overlay .receipt-seal strong {
+    font-size: 0.68rem !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+  }
+
+  #booking-receipt-overlay .receipt-seal span {
+    font-size: 0.62rem !important;
+    line-height: 1.25 !important;
+    margin-top: 2px !important;
+  }
+
+  #booking-receipt-overlay .receipt-signature-block {
+    margin: 0 !important;
+    align-items: flex-end !important;
+  }
+
   #booking-receipt-overlay .receipt-footer-note {
-    margin: 10px 0 6px !important;
+    margin: 8px 0 6px !important;
   }
 
   #booking-receipt-overlay .receipt-contact {
-    padding-top: 10px !important;
+    padding-top: 8px !important;
     max-width: 100% !important;
     overflow-wrap: anywhere !important;
   }
 }
-
 /* Logged-in account control */
 .account-control {
   position: relative;

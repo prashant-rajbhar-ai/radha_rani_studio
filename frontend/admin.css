@@ -538,6 +538,16 @@ footer {
 .table-action-btn-whatsapp:hover {
   background: #e4f5eb;
 }
+
+.table-action-btn-print {
+  border-color: #c8b58e;
+  background: #f7f4ee;
+  color: var(--ink);
+}
+.table-action-btn-print:hover {
+  background: #ece5d8;
+}
+
 .admin-modal-overlay {
   position: fixed;
   inset: 0;

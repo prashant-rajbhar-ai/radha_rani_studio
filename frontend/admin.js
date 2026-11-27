@@ -98,6 +98,138 @@
     return " WhatsApp receipt delivery failed. You can retry from the booking row.";
   }
 
+  function openAdminPrintReceipt(booking) {
+    const client = booking.user || booking.clientDetails || {};
+    const pkg = booking.package || {};
+    const total = Number(booking.price || 0);
+    const travelCharge = Number(booking.travelCharge || 0);
+    const basePrice =
+      booking.basePackagePrice !== undefined &&
+      booking.basePackagePrice !== null
+        ? Number(booking.basePackagePrice)
+        : Math.max(total - travelCharge, 0);
+    const paid = collectedAmount(booking);
+    const balance = outstandingBalance(booking);
+    const statusText =
+      balance <= 0 ? "FULLY PAID" : paid > 0 ? "PARTIALLY PAID" : "PENDING";
+    const loc = booking.eventLocation || {};
+    const venue =
+      [
+        loc.venueName,
+        loc.addressLine,
+        loc.locality,
+        loc.district,
+        loc.state,
+        loc.pinCode ? `PIN ${loc.pinCode}` : "",
+        loc.landmark ? `Landmark: ${loc.landmark}` : "",
+        loc.country || (loc.venueName ? "India" : ""),
+      ]
+        .filter(Boolean)
+        .join(", ") || "To be confirmed with the studio";
+
+    const printWin = window.open("", "_blank", "width=820,height=1050");
+    if (!printWin) {
+      setFeedback(
+        "Please allow pop-ups in your browser to print the A4 receipt.",
+      );
+      return;
+    }
+
+    const esc = (v) =>
+      String(v ?? "—")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+
+    printWin.document.write(`<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Receipt - ${esc(booking._id)}</title>
+  <style>
+    @page { size: A4 portrait; margin: 10mm; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Open Sans", Arial, sans-serif; color: #312418; background: #fff; }
+    .sheet {
+      height: 277mm;
+      border: 1.5px solid #d8c298;
+      border-radius: 6px;
+      padding: 9mm 11mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+    .brand { text-align: center; border-bottom: 2px solid #e1a932; padding-bottom: 10px; }
+    .brand h1 { margin: 4px 0 2px; font-family: "Roboto Slab", Georgia, serif; letter-spacing: 2px; font-size: 19px; }
+    .brand p { margin: 0; color: #776b5d; font-size: 11.5px; }
+    .top-row { display: flex; justify-content: space-between; align-items: center; margin: 12px 0 8px; }
+    .top-row h2 { margin: 0; font-family: "Roboto Slab", Georgia, serif; font-size: 20px; }
+    .badge { background: #eaf5ed; color: #24603c; padding: 4px 10px; border-radius: 999px; font-size: 10.5px; font-weight: 700; }
+    .amt-box { background: #f8f3e8; border-radius: 8px; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .amt-box span { font-size: 13px; color: #5f5347; }
+    .amt-box strong { font-size: 22px; }
+    dl { margin: 0; flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; }
+    dl > div { display: grid; grid-template-columns: 36% 64%; gap: 10px; padding: 7px 0; border-bottom: 1px solid #eee7dd; font-size: 12.5px; }
+    dt { color: #776b5d; }
+    dd { margin: 0; text-align: right; font-weight: 600; word-break: break-word; }
+    .signoff { display: flex; justify-content: flex-end; align-items: flex-end; margin-top: 12px; }
+    .sig-box { text-align: right; }
+    .sig-box img { max-height: 76px; max-width: 220px; object-fit: contain; display: block; margin-left: auto; }
+    .sig-box small { display: block; color: #776b5d; font-weight: 600; margin-top: 3px; font-size: 11px; }
+    .foot { margin-top: 10px; border-top: 1px solid #eadfce; padding-top: 8px; text-align: center; font-size: 11px; color: #5f5347; }
+  </style>
+</head>
+<body>
+  <div class="sheet">
+    <div>
+      <div class="brand">
+        <img src="https://radharanistudio.in/images/favicon-transparent.png" alt="" width="36" height="36" onerror="this.style.display='none'" />
+        <h1>RADHA RANI STUDIO</h1>
+        <p>Wedding Photography &amp; Videography</p>
+      </div>
+      <div class="top-row">
+        <h2>Payment Receipt</h2>
+        <span class="badge">${esc(statusText)}</span>
+      </div>
+      <div class="amt-box">
+        <span>Amount received to date</span>
+        <strong>${esc(money(paid))}</strong>
+      </div>
+    </div>
+    <dl>
+      <div><dt>Receipt number</dt><dd>${esc(booking._id)}</dd></div>
+      <div><dt>Customer name</dt><dd>${esc(client.name || "Customer")}</dd></div>
+      <div><dt>Email / Mobile</dt><dd>${esc(`${client.email || "Not provided"} · ${client.phoneNumber || "Not provided"}`)}</dd></div>
+      <div><dt>Package</dt><dd>${esc(pkg.name || "Photography package")}</dd></div>
+      ${travelCharge > 0 ? `<div><dt>Base package / Travel</dt><dd>${esc(`${money(basePrice)} + ${money(travelCharge)}`)}</dd></div>` : ""}
+      <div><dt>Total booking value</dt><dd>${esc(money(total))}</dd></div>
+      <div><dt>Remaining balance</dt><dd>${esc(money(balance))}</dd></div>
+      <div><dt>Event date</dt><dd>${esc(date(booking.eventDate))}</dd></div>
+      <div><dt>Event venue</dt><dd>${esc(venue)}</dd></div>
+      <div><dt>Issued on</dt><dd>${esc(date(new Date()))}</dd></div>
+    </dl>
+    <div>
+      <div class="signoff">
+        <div class="sig-box">
+          <img src="https://radharanistudio.in/images/signature%20-%20Edited.png" alt="Authorized Signature" onerror="this.style.display='none'" />
+          <small>Authorized Signatory · Prashant, Radha Rani Studio</small>
+        </div>
+      </div>
+      <div class="foot">+91 7458006822 · radharanistudio2026@gmail.com · 37A, Vishukiya, Ratanpura, Mau, 221706, UP</div>
+    </div>
+  </div>
+  <script>
+    window.onload = function () {
+      setTimeout(function () { window.print(); }, 250);
+    };
+  </script>
+</body>
+</html>`);
+    printWin.document.close();
+  }
+
   async function loadSummary() {
     const response = await api("/bookings/admin/summary");
     const d = response.data || {};
@@ -413,6 +545,17 @@
         );
       }
 
+      if (isReceiptEligible) {
+        const printButton = document.createElement("button");
+        printButton.type = "button";
+        printButton.className = "table-action-btn table-action-btn-print";
+        printButton.textContent = "Print receipt";
+        printButton.addEventListener("click", () =>
+          openAdminPrintReceipt(booking),
+        );
+        actionStack.append(printButton);
+      }
+
       if (actionStack.childElementCount) actionCell.append(actionStack);
       else actionCell.textContent = paymentStatus === "paid" ? "Complete" : "—";
       row.append(actionCell);
@@ -493,7 +636,10 @@
       }
     }
     if (state.offlineTravel?.available) {
-      return { amount: Number(state.offlineTravel.travelCharge || 0), isManual: false };
+      return {
+        amount: Number(state.offlineTravel.travelCharge || 0),
+        isManual: false,
+      };
     }
     return { amount: 0, isManual: false };
   }
@@ -522,7 +668,8 @@
     const totalPrice = basePrice + travelCharge;
     const advance = Math.round((totalPrice * 0.2 + Number.EPSILON) * 100) / 100;
     const paymentChoice = $("offline-payment-choice").value || "advance";
-    const initialPaymentAmount = paymentChoice === "full" ? totalPrice : advance;
+    const initialPaymentAmount =
+      paymentChoice === "full" ? totalPrice : advance;
     $("offline-package-price").textContent = money(basePrice);
     $("offline-initial-payment-label").textContent =
       paymentChoice === "full"
@@ -744,10 +891,24 @@
     if (event.target === $("offline-booking-modal")) closeOfflineModal();
   });
   $("offline-package").addEventListener("change", updateOfflinePricePreview);
-  $("offline-payment-choice").addEventListener("change", updateOfflinePricePreview);
-  $("offline-travel-charge")?.addEventListener("input", updateOfflinePricePreview);
-  ["offline-pincode", "offline-locality", "offline-district", "offline-state"].forEach((id) => {
-    $(id)?.addEventListener(id === "offline-state" ? "change" : "input", scheduleOfflineLocationCheck);
+  $("offline-payment-choice").addEventListener(
+    "change",
+    updateOfflinePricePreview,
+  );
+  $("offline-travel-charge")?.addEventListener(
+    "input",
+    updateOfflinePricePreview,
+  );
+  [
+    "offline-pincode",
+    "offline-locality",
+    "offline-district",
+    "offline-state",
+  ].forEach((id) => {
+    $(id)?.addEventListener(
+      id === "offline-state" ? "change" : "input",
+      scheduleOfflineLocationCheck,
+    );
   });
 
   $("offline-booking-form").addEventListener("submit", async (event) => {
