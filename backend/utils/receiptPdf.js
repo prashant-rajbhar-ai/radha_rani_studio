@@ -4,11 +4,11 @@ const zlib = require('zlib');
 
 const PAGE_WIDTH = 595;
 const PAGE_HEIGHT = 842;
-const LEFT = 48;
-const RIGHT = 547;
+const LEFT = 44;
+const RIGHT = 551;
 const CONTENT_WIDTH = RIGHT - LEFT;
 
-let cachedSignatureXObject = null;
+const imageCache = new Map();
 
 function ascii(value) {
   return String(value ?? '')
@@ -129,9 +129,6 @@ function unfilterPngScanlines(raw, width, height, channels, bitDepth) {
   return out;
 }
 
-/**
- * Parses a non-interlaced 8-bit RGB or RGBA PNG into raw RGB + alpha buffers for PDF embedding.
- */
 function parsePngForPdf(buf) {
   const pngSig = '89504e470d0a1a0a';
   if (
@@ -149,6 +146,7 @@ function parsePngForPdf(buf) {
   let colorType = 0;
   let interlace = 0;
   const idatChunks = [];
+  let palette = null;
 
   while (offset + 12 <= buf.length) {
     const length = buf.readUInt32BE(offset);
@@ -163,6 +161,8 @@ function parsePngForPdf(buf) {
       bitDepth = buf[dataStart + 8];
       colorType = buf[dataStart + 9];
       interlace = buf[dataStart + 12];
+    } else if (type === 'PLTE') {
+      palette = buf.subarray(dataStart, dataEnd);
     } else if (type === 'IDAT') {
       idatChunks.push(buf.subarray(dataStart, dataEnd));
     } else if (type === 'IEND') {
@@ -172,18 +172,15 @@ function parsePngForPdf(buf) {
     offset = dataEnd + 4;
   }
 
-  // Only embed standard 8-bit RGB (2) or RGBA (6), non-interlaced (0)
-  if (
-    !width ||
-    !height ||
-    bitDepth !== 8 ||
-    interlace !== 0 ||
-    ![2, 6].includes(colorType)
-  ) {
+  if (!width || !height || bitDepth !== 8 || interlace !== 0) {
     return null;
   }
 
-  const channels = colorType === 6 ? 4 : 3;
+  // Supported 8-bit non-interlaced types: 2 (RGB), 3 (indexed palette), 6 (RGBA)
+  if (![2, 3, 6].includes(colorType)) return null;
+  if (colorType === 3 && (!palette || palette.length < 3)) return null;
+
+  const channels = colorType === 6 ? 4 : colorType === 2 ? 3 : 1;
   const inflated = zlib.inflateSync(Buffer.concat(idatChunks));
   const pixels = unfilterPngScanlines(
     inflated,
@@ -196,95 +193,116 @@ function parsePngForPdf(buf) {
   const rgb = Buffer.alloc(width * height * 3);
   const alpha = colorType === 6 ? Buffer.alloc(width * height) : null;
 
-  for (
-    let i = 0, p = 0, r = 0, a = 0;
-    i < width * height;
-    i += 1, p += channels, r += 3
-  ) {
-    rgb[r] = pixels[p];
-    rgb[r + 1] = pixels[p + 1];
-    rgb[r + 2] = pixels[p + 2];
-    if (alpha) {
-      alpha[a++] = pixels[p + 3];
+  if (colorType === 3) {
+    for (let i = 0, r = 0; i < width * height; i += 1, r += 3) {
+      const idx = Math.min(pixels[i] * 3, palette.length - 3);
+      rgb[r] = palette[idx];
+      rgb[r + 1] = palette[idx + 1];
+      rgb[r + 2] = palette[idx + 2];
+    }
+  } else {
+    for (
+      let i = 0, p = 0, r = 0, a = 0;
+      i < width * height;
+      i += 1, p += channels, r += 3
+    ) {
+      rgb[r] = pixels[p];
+      rgb[r + 1] = pixels[p + 1];
+      rgb[r + 2] = pixels[p + 2];
+      if (alpha) {
+        alpha[a++] = pixels[p + 3];
+      }
     }
   }
 
   return { width, height, rgb, alpha };
 }
 
-function getSignatureXObject() {
-  if (cachedSignatureXObject !== null) return cachedSignatureXObject;
+function loadPngXObject(cacheKey, fileNames) {
+  if (imageCache.has(cacheKey)) return imageCache.get(cacheKey);
 
-  const candidatePaths = [
-    path.resolve(__dirname, '../../frontend/images/signature - Edited.png'),
-    path.resolve(__dirname, '../public/images/signature - Edited.png'),
-    path.resolve(process.cwd(), 'frontend/images/signature - Edited.png'),
-    path.resolve(process.cwd(), 'images/signature - Edited.png'),
+  const roots = [
+    path.resolve(__dirname, '../../frontend/images'),
+    path.resolve(__dirname, '../public/images'),
+    path.resolve(process.cwd(), 'frontend/images'),
+    path.resolve(process.cwd(), 'images'),
   ];
 
-  for (const imgPath of candidatePaths) {
-    try {
-      if (!fs.existsSync(imgPath)) continue;
-      const parsed = parsePngForPdf(fs.readFileSync(imgPath));
-      if (!parsed) continue;
-
-      const rgbCompressed = zlib.deflateSync(parsed.rgb);
-      const smaskCompressed = parsed.alpha
-        ? zlib.deflateSync(parsed.alpha)
-        : null;
-
-      cachedSignatureXObject = {
-        width: parsed.width,
-        height: parsed.height,
-        rgbCompressed,
-        smaskCompressed,
-      };
-      return cachedSignatureXObject;
-    } catch (err) {
-      // Try next candidate path or fall back to text signatory.
+  for (const root of roots) {
+    for (const name of fileNames) {
+      const fullPath = path.join(root, name);
+      try {
+        if (!fs.existsSync(fullPath)) continue;
+        const parsed = parsePngForPdf(fs.readFileSync(fullPath));
+        if (!parsed) continue;
+        const xobj = {
+          width: parsed.width,
+          height: parsed.height,
+          rgbCompressed: zlib.deflateSync(parsed.rgb),
+          smaskCompressed: parsed.alpha ? zlib.deflateSync(parsed.alpha) : null,
+        };
+        imageCache.set(cacheKey, xobj);
+        return xobj;
+      } catch (err) {
+        // Continue checking candidate paths.
+      }
     }
   }
 
-  cachedSignatureXObject = false;
+  imageCache.set(cacheKey, false);
   return false;
 }
 
 function buildPdf(booking) {
   const pages = [];
   let commands = [];
-  let y = 48;
-  const sigXObject = getSignatureXObject();
-  let hasSignatureOnCurrentPage = false;
+  let y = 32;
+
+  const logoXObject = loadPngXObject('logo', [
+    'favicon-transparent.png',
+    'whatsapp-preview.png',
+  ]);
+  const sigXObject = loadPngXObject('signature', ['signature - Edited.png']);
 
   const startPage = () => {
     commands = [];
     pages.push(commands);
-    y = 48;
-    hasSignatureOnCurrentPage = false;
-    addText('RADHA RANI STUDIO', LEFT, y, 20, true, [0.17, 0.13, 0.1]);
-    y += 25;
+    y = 32;
+
+    const hasLogo = Boolean(logoXObject);
+    const logoSize = 34;
+    const textX = hasLogo ? LEFT + logoSize + 10 : LEFT;
+
+    if (hasLogo) {
+      const logoBottom = PAGE_HEIGHT - y - logoSize;
+      commands.push(
+        `q ${logoSize} 0 0 ${logoSize} ${LEFT} ${logoBottom.toFixed(2)} cm /ImLogo Do Q`,
+      );
+    }
+
+    addText('RADHA RANI STUDIO', textX, y, 17, true, [0.17, 0.13, 0.1]);
     addText(
       'Wedding Photography & Videography',
-      LEFT,
-      y,
-      9,
+      textX,
+      y + 20,
+      8.5,
       false,
       [0.43, 0.38, 0.33],
     );
-    y += 15;
-    addLine(LEFT, y, RIGHT, y, [0.74, 0.49, 0.16], 1.2);
-    y += 24;
+    y += 40;
+    addLine(LEFT, y, RIGHT, y, [0.74, 0.49, 0.16], 1.1);
+    y += 14;
   };
 
   function ensureSpace(height) {
-    if (y + height > PAGE_HEIGHT - 62) startPage();
+    if (y + height > PAGE_HEIGHT - 44) startPage();
   }
 
   function addText(
     value,
     x,
     top,
-    size = 10,
+    size = 9,
     bold = false,
     color = [0.16, 0.14, 0.12],
   ) {
@@ -316,9 +334,9 @@ function buildPdf(booking) {
     );
   }
 
-  function addSignatureImage(rightX, top, maxWidth, maxHeight) {
-    if (!sigXObject) return false;
-    const aspect = sigXObject.width / sigXObject.height;
+  function drawImageFit(alias, imgObj, rightX, top, maxWidth, maxHeight) {
+    if (!imgObj) return 0;
+    const aspect = imgObj.width / imgObj.height;
     let drawW = maxWidth;
     let drawH = drawW / aspect;
     if (drawH > maxHeight) {
@@ -328,19 +346,18 @@ function buildPdf(booking) {
     const drawX = rightX - drawW;
     const bottomY = PAGE_HEIGHT - top - drawH;
     commands.push(
-      `q ${drawW.toFixed(2)} 0 0 ${drawH.toFixed(2)} ${drawX.toFixed(2)} ${bottomY.toFixed(2)} cm /ImSig Do Q`,
+      `q ${drawW.toFixed(2)} 0 0 ${drawH.toFixed(2)} ${drawX.toFixed(2)} ${bottomY.toFixed(2)} cm /${alias} Do Q`,
     );
-    hasSignatureOnCurrentPage = true;
-    return true;
+    return drawH;
   }
 
   function addParagraph(
     value,
     x = LEFT,
     maxWidth = CONTENT_WIDTH,
-    size = 9,
+    size = 8.5,
     color = [0.34, 0.31, 0.28],
-    lineHeight = 13,
+    lineHeight = 11.5,
   ) {
     const maxChars = Math.max(18, Math.floor(maxWidth / (size * 0.53)));
     const lines = wrapText(value, maxChars);
@@ -352,24 +369,25 @@ function buildPdf(booking) {
   }
 
   function addSectionTitle(title) {
-    ensureSpace(28);
-    addText(title.toUpperCase(), LEFT, y, 9, true, [0.66, 0.43, 0.15]);
-    y += 17;
+    ensureSpace(20);
+    y += 4;
+    addText(title.toUpperCase(), LEFT, y, 8, true, [0.66, 0.43, 0.15]);
+    y += 13;
   }
 
   function addDetail(label, value) {
     const safeValue = ascii(value || '-');
-    const maxValueWidth = 310;
-    const maxChars = Math.max(20, Math.floor(maxValueWidth / 5.6));
+    const maxValueWidth = 315;
+    const maxChars = Math.max(20, Math.floor(maxValueWidth / 5.4));
     const valueLines = wrapText(safeValue, maxChars);
-    const rowHeight = Math.max(23, valueLines.length * 12 + 9);
+    const rowHeight = Math.max(17, valueLines.length * 10.5 + 6);
     ensureSpace(rowHeight);
-    addText(label, LEFT, y, 9, false, [0.43, 0.39, 0.35]);
+    addText(label, LEFT, y, 8.5, false, [0.43, 0.39, 0.35]);
     valueLines.forEach((line, index) =>
-      addText(line, 222, y + index * 12, 9, true),
+      addText(line, 215, y + index * 10.5, 8.5, true),
     );
     y += rowHeight;
-    addLine(LEFT, y - 4, RIGHT, y - 4);
+    addLine(LEFT, y - 3, RIGHT, y - 3);
   }
 
   const client = booking.user || booking.clientDetails || {};
@@ -422,44 +440,44 @@ function buildPdf(booking) {
     venueLines.join(', ') || booking.venue || 'To be confirmed with the studio';
 
   startPage();
-  addText('PAYMENT RECEIPT', LEFT, y, 17, true);
-  addText(paymentStatus, RIGHT - 115, y + 3, 9, true, [0.1, 0.48, 0.3]);
-  y += 27;
+  addText('PAYMENT RECEIPT', LEFT, y, 14, true);
+  addText(paymentStatus, RIGHT - 95, y + 2, 8.5, true, [0.1, 0.48, 0.3]);
+  y += 20;
   addParagraph(
-    'Thank you for choosing Radha Rani Studio. We appreciate your trust and look forward to capturing your special moments.',
+    'Thank you for choosing Radha Rani Studio. Keep this receipt for your booking records.',
     LEFT,
     CONTENT_WIDTH,
-    9,
+    8.5,
   );
-  y += 7;
+  y += 5;
 
-  addRect(LEFT, y, CONTENT_WIDTH, 54, [0.97, 0.95, 0.9]);
+  addRect(LEFT, y, CONTENT_WIDTH, 42, [0.97, 0.95, 0.9]);
   addText(
     'TOTAL AMOUNT RECEIVED',
-    LEFT + 14,
-    y + 12,
-    8,
+    LEFT + 12,
+    y + 8,
+    7.5,
     true,
     [0.43, 0.39, 0.35],
   );
   addText(
     formatMoney(amountPaid),
-    LEFT + 14,
-    y + 27,
-    16,
+    LEFT + 12,
+    y + 20,
+    14,
     true,
     [0.17, 0.13, 0.1],
   );
-  y += 72;
+  y += 50;
 
-  addSectionTitle('Receipt details');
+  addSectionTitle('Receipt & customer');
   addDetail('Receipt number', receiptNumber);
   addDetail('Receipt issued', issuedAt);
-
-  addSectionTitle('Customer details');
   addDetail('Customer name', client.name || 'Customer');
-  addDetail('Email address', client.email || 'Not provided');
-  addDetail('Mobile number', client.phoneNumber || 'Not provided');
+  addDetail(
+    'Email / Mobile',
+    `${client.email || 'Not provided'}  |  ${client.phoneNumber || 'Not provided'}`,
+  );
 
   addSectionTitle('Booking details');
   addDetail(
@@ -468,7 +486,6 @@ function buildPdf(booking) {
   );
   addDetail('Event date', formatDate(booking.eventDate));
   addDetail('Event venue', venue);
-  addDetail('Booking source', booking.bookingSource || 'online');
 
   addSectionTitle('Payment summary');
   if (travelCharge > 0) {
@@ -488,7 +505,7 @@ function buildPdf(booking) {
   } else {
     addDetail('Total package price', formatMoney(total));
   }
-  addDetail('Amount received to date', formatMoney(amountPaid));
+  addDetail('Amount received', formatMoney(amountPaid));
   addDetail('Remaining balance', formatMoney(balance));
   addDetail('Payment status', paymentStatus);
 
@@ -503,73 +520,85 @@ function buildPdf(booking) {
         .toUpperCase();
       const reference = entry.referenceId ? ` | Ref: ${entry.referenceId}` : '';
       const description = `${index + 1}. ${formatDate(entry.paidAt)} | ${method} | ${formatMoney(entry.amount)}${reference}`;
-      addParagraph(description, LEFT, CONTENT_WIDTH, 8, [0.28, 0.25, 0.22], 11);
-      y += 2;
+      addParagraph(
+        description,
+        LEFT,
+        CONTENT_WIDTH,
+        7.5,
+        [0.28, 0.25, 0.22],
+        10,
+      );
     });
   }
 
-  ensureSpace(125);
+  // Doubled signature area (up to 240x88) + signatory label
+  const sigMaxW = 240;
+  const sigMaxH = 88;
+  ensureSpace(sigMaxH + 44);
   y += 6;
-  const drewImg = addSignatureImage(RIGHT, y, 120, 44);
-  if (drewImg) {
-    y += 48;
+  if (sigXObject) {
+    const drawnH = drawImageFit(
+      'ImSig',
+      sigXObject,
+      RIGHT,
+      y,
+      sigMaxW,
+      sigMaxH,
+    );
+    y += drawnH + 3;
   } else {
-    addText('Prashant', RIGHT - 110, y + 10, 13, true, [0.22, 0.18, 0.14]);
-    y += 28;
+    addText('Prashant', RIGHT - 110, y + 18, 16, true, [0.22, 0.18, 0.14]);
+    y += 42;
   }
   addText(
     'Authorized Signatory - Prashant, Radha Rani Studio',
-    RIGHT - 235,
+    RIGHT - 240,
     y,
     8,
     true,
     [0.43, 0.39, 0.35],
   );
-  y += 16;
+  y += 12;
 
   addLine(LEFT, y, RIGHT, y, [0.74, 0.49, 0.16], 0.8);
-  y += 15;
+  y += 9;
   addParagraph(
     'Please contact Radha Rani Studio if any detail needs correction. Venue and event logistics should be confirmed directly with the studio.',
     LEFT,
     CONTENT_WIDTH,
-    8,
+    7.5,
     [0.43, 0.39, 0.35],
-    11,
+    10,
   );
-  y += 5;
   addText(
     '+91 7458006822  |  radharanistudio2026@gmail.com',
     LEFT,
-    y,
+    y + 2,
     8,
-    false,
+    true,
     [0.3, 0.26, 0.22],
   );
 
-  pages.forEach((pageCommands, index) => {
-    const footer = `Page ${index + 1} of ${pages.length}  |  Radha Rani Studio`;
-    const resources = ['<< /Font << /F1 3 0 R /F2 4 0 R >>'];
-    if (sigXObject && pageCommands.some(cmd => cmd.includes('/ImSig Do'))) {
-      resources.push('/XObject << /ImSig 5 0 R >>');
-    }
-    pageCommands._hasImSig = pageCommands.some(cmd =>
-      cmd.includes('/ImSig Do'),
-    );
-    pageCommands.push(
-      `BT /F1 8 Tf 0.48 0.45 0.41 rg 1 0 0 1 ${LEFT} 28 Tm (${escapePdf(footer)}) Tj ET`,
-    );
-  });
-
-  const anyPageUsesSig = Boolean(
-    sigXObject && pages.some(cmds => cmds._hasImSig),
-  );
-  const sigRgbId = anyPageUsesSig ? 5 : null;
-  const sigMaskId = anyPageUsesSig && sigXObject.smaskCompressed ? 6 : null;
-  const firstPageObjId = anyPageUsesSig ? (sigMaskId ? 7 : 6) : 5;
-
-  const pageObjectIds = pages.map((_, index) => firstPageObjId + index * 2);
+  // Build PDF objects with per-page XObject resources
   const objects = [];
+  let nextObjId = 5;
+
+  let logoObj = null;
+  if (logoXObject) {
+    const rgbId = nextObjId++;
+    const maskId = logoXObject.smaskCompressed ? nextObjId++ : null;
+    logoObj = { rgbId, maskId, xobj: logoXObject };
+  }
+
+  let sigObj = null;
+  if (sigXObject) {
+    const rgbId = nextObjId++;
+    const maskId = sigXObject.smaskCompressed ? nextObjId++ : null;
+    sigObj = { rgbId, maskId, xobj: sigXObject };
+  }
+
+  const pageObjectIds = pages.map((_, index) => nextObjId + index * 2);
+
   objects[1] = '<< /Type /Catalog /Pages 2 0 R >>';
   objects[2] = `<< /Type /Pages /Kids [${pageObjectIds.map(id => `${id} 0 R`).join(' ')}] /Count ${pages.length} >>`;
   objects[3] =
@@ -577,42 +606,52 @@ function buildPdf(booking) {
   objects[4] =
     '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>';
 
-  if (anyPageUsesSig) {
-    const maskDict = sigMaskId ? ` /SMask ${sigMaskId} 0 R` : '';
+  const streamEnd = Buffer.from('\nendstream', 'ascii');
+  [logoObj, sigObj].filter(Boolean).forEach(imgEntry => {
+    const maskPart = imgEntry.maskId ? ` /SMask ${imgEntry.maskId} 0 R` : '';
     const rgbHeader = Buffer.from(
-      `<< /Type /XObject /Subtype /Image /Width ${sigXObject.width} /Height ${sigXObject.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode${maskDict} /Length ${sigXObject.rgbCompressed.length} >>\nstream\n`,
+      `<< /Type /XObject /Subtype /Image /Width ${imgEntry.xobj.width} /Height ${imgEntry.xobj.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode${maskPart} /Length ${imgEntry.xobj.rgbCompressed.length} >>\nstream\n`,
       'ascii',
     );
-    const streamEnd = Buffer.from('\nendstream', 'ascii');
-    objects[sigRgbId] = Buffer.concat([
+    objects[imgEntry.rgbId] = Buffer.concat([
       rgbHeader,
-      sigXObject.rgbCompressed,
+      imgEntry.xobj.rgbCompressed,
       streamEnd,
     ]);
 
-    if (sigMaskId) {
+    if (imgEntry.maskId) {
       const maskHeader = Buffer.from(
-        `<< /Type /XObject /Subtype /Image /Width ${sigXObject.width} /Height ${sigXObject.height} /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode /Length ${sigXObject.smaskCompressed.length} >>\nstream\n`,
+        `<< /Type /XObject /Subtype /Image /Width ${imgEntry.xobj.width} /Height ${imgEntry.xobj.height} /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode /Length ${imgEntry.xobj.smaskCompressed.length} >>\nstream\n`,
         'ascii',
       );
-      objects[sigMaskId] = Buffer.concat([
+      objects[imgEntry.maskId] = Buffer.concat([
         maskHeader,
-        sigXObject.smaskCompressed,
+        imgEntry.xobj.smaskCompressed,
         streamEnd,
       ]);
     }
-  }
+  });
 
   pages.forEach((pageCommands, index) => {
-    const pageId = firstPageObjId + index * 2;
-    const streamId = pageId + 1;
+    const footer = `Page ${index + 1} of ${pages.length}  |  Radha Rani Studio`;
+    pageCommands.push(
+      `BT /F1 7.5 Tf 0.48 0.45 0.41 rg 1 0 0 1 ${LEFT} 22 Tm (${escapePdf(footer)}) Tj ET`,
+    );
+
     const stream = `${pageCommands.join('\n')}\n`;
     const length = Buffer.byteLength(stream, 'ascii');
-    const xobjPart = pageCommands._hasImSig
-      ? ` /XObject << /ImSig ${sigRgbId} 0 R >>`
-      : '';
+    const pageId = pageObjectIds[index];
+    const streamId = pageId + 1;
+
+    const xobjs = [];
+    if (logoObj && stream.includes('/ImLogo Do'))
+      xobjs.push(`/ImLogo ${logoObj.rgbId} 0 R`);
+    if (sigObj && stream.includes('/ImSig Do'))
+      xobjs.push(`/ImSig ${sigObj.rgbId} 0 R`);
+    const xobjDict = xobjs.length ? ` /XObject << ${xobjs.join(' ')} >>` : '';
+
     objects[pageId] =
-      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PAGE_WIDTH} ${PAGE_HEIGHT}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >>${xobjPart} >> /Contents ${streamId} 0 R >>`;
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PAGE_WIDTH} ${PAGE_HEIGHT}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >>${xobjDict} >> /Contents ${streamId} 0 R >>`;
     objects[streamId] = `<< /Length ${length} >>\nstream\n${stream}endstream`;
   });
 
