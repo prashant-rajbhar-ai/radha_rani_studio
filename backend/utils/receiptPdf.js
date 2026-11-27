@@ -176,7 +176,6 @@ function parsePngForPdf(buf) {
     return null;
   }
 
-  // Supported 8-bit non-interlaced types: 2 (RGB), 3 (indexed palette), 6 (RGBA)
   if (![2, 3, 6].includes(colorType)) return null;
   if (colorType === 3 && (!palette || palette.length < 3)) return null;
 
@@ -524,7 +523,6 @@ function buildPdf(booking) {
     });
   }
 
-  // Push signature and footer toward the bottom of the single A4 page without spilling
   const sigMaxW = 260;
   const sigMaxH = 96;
   const bottomBlockHeight = sigMaxH + 62;
@@ -577,7 +575,6 @@ function buildPdf(booking) {
     [0.3, 0.26, 0.22],
   );
 
-  // Build PDF objects with per-page XObject resources
   const objects = [];
   let nextObjId = 5;
 
@@ -606,7 +603,9 @@ function buildPdf(booking) {
 
   const streamEnd = Buffer.from('\nendstream', 'ascii');
   [logoObj, sigObj].filter(Boolean).forEach(imgEntry => {
-    const maskPart = imgEntry.maskId ? ` /SMask ${imgEntry.maskId} 0 R` : '';
+    const smaskBuf = imgEntry.xobj.smaskCompressed;
+    const maskPart =
+      imgEntry.maskId && smaskBuf ? ` /SMask ${imgEntry.maskId} 0 R` : '';
     const rgbHeader = Buffer.from(
       `<< /Type /XObject /Subtype /Image /Width ${imgEntry.xobj.width} /Height ${imgEntry.xobj.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode${maskPart} /Length ${imgEntry.xobj.rgbCompressed.length} >>\nstream\n`,
       'ascii',
@@ -617,14 +616,14 @@ function buildPdf(booking) {
       streamEnd,
     ]);
 
-    if (imgEntry.maskId) {
+    if (imgEntry.maskId && smaskBuf) {
       const maskHeader = Buffer.from(
-        `<< /Type /XObject /Subtype /Image /Width ${imgEntry.xobj.width} /Height ${imgEntry.xobj.height} /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode /Length ${imgEntry.smaskCompressed.length} >>\nstream\n`,
+        `<< /Type /XObject /Subtype /Image /Width ${imgEntry.xobj.width} /Height ${imgEntry.xobj.height} /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode /Length ${smaskBuf.length} >>\nstream\n`,
         'ascii',
       );
       objects[imgEntry.maskId] = Buffer.concat([
         maskHeader,
-        imgEntry.xobj.smaskCompressed,
+        smaskBuf,
         streamEnd,
       ]);
     }
