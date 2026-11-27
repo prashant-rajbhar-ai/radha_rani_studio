@@ -256,7 +256,7 @@ function loadPngXObject(cacheKey, fileNames) {
 function buildPdf(booking) {
   const pages = [];
   let commands = [];
-  let y = 32;
+  let y = 38;
 
   const logoXObject = loadPngXObject('logo', [
     'favicon-transparent.png',
@@ -267,11 +267,11 @@ function buildPdf(booking) {
   const startPage = () => {
     commands = [];
     pages.push(commands);
-    y = 32;
+    y = 38;
 
     const hasLogo = Boolean(logoXObject);
-    const logoSize = 34;
-    const textX = hasLogo ? LEFT + logoSize + 10 : LEFT;
+    const logoSize = 38;
+    const textX = hasLogo ? LEFT + logoSize + 12 : LEFT;
 
     if (hasLogo) {
       const logoBottom = PAGE_HEIGHT - y - logoSize;
@@ -280,18 +280,18 @@ function buildPdf(booking) {
       );
     }
 
-    addText('RADHA RANI STUDIO', textX, y, 17, true, [0.17, 0.13, 0.1]);
+    addText('RADHA RANI STUDIO', textX, y, 18, true, [0.17, 0.13, 0.1]);
     addText(
       'Wedding Photography & Videography',
       textX,
-      y + 20,
-      8.5,
+      y + 22,
+      9,
       false,
       [0.43, 0.38, 0.33],
     );
-    y += 40;
-    addLine(LEFT, y, RIGHT, y, [0.74, 0.49, 0.16], 1.1);
-    y += 14;
+    y += 46;
+    addLine(LEFT, y, RIGHT, y, [0.74, 0.49, 0.16], 1.2);
+    y += 18;
   };
 
   function ensureSpace(height) {
@@ -355,9 +355,9 @@ function buildPdf(booking) {
     value,
     x = LEFT,
     maxWidth = CONTENT_WIDTH,
-    size = 8.5,
+    size = 9,
     color = [0.34, 0.31, 0.28],
-    lineHeight = 11.5,
+    lineHeight = 13,
   ) {
     const maxChars = Math.max(18, Math.floor(maxWidth / (size * 0.53)));
     const lines = wrapText(value, maxChars);
@@ -369,10 +369,10 @@ function buildPdf(booking) {
   }
 
   function addSectionTitle(title) {
-    ensureSpace(20);
-    y += 4;
-    addText(title.toUpperCase(), LEFT, y, 8, true, [0.66, 0.43, 0.15]);
-    y += 13;
+    ensureSpace(26);
+    y += 10;
+    addText(title.toUpperCase(), LEFT, y, 8.5, true, [0.66, 0.43, 0.15]);
+    y += 16;
   }
 
   function addDetail(label, value) {
@@ -380,14 +380,14 @@ function buildPdf(booking) {
     const maxValueWidth = 315;
     const maxChars = Math.max(20, Math.floor(maxValueWidth / 5.4));
     const valueLines = wrapText(safeValue, maxChars);
-    const rowHeight = Math.max(17, valueLines.length * 10.5 + 6);
+    const rowHeight = Math.max(24, valueLines.length * 12 + 8);
     ensureSpace(rowHeight);
-    addText(label, LEFT, y, 8.5, false, [0.43, 0.39, 0.35]);
+    addText(label, LEFT, y, 9, false, [0.43, 0.39, 0.35]);
     valueLines.forEach((line, index) =>
-      addText(line, 215, y + index * 10.5, 8.5, true),
+      addText(line, 215, y + index * 12, 9, true),
     );
     y += rowHeight;
-    addLine(LEFT, y - 3, RIGHT, y - 3);
+    addLine(LEFT, y - 4, RIGHT, y - 4);
   }
 
   const client = booking.user || booking.clientDetails || {};
@@ -440,35 +440,35 @@ function buildPdf(booking) {
     venueLines.join(', ') || booking.venue || 'To be confirmed with the studio';
 
   startPage();
-  addText('PAYMENT RECEIPT', LEFT, y, 14, true);
-  addText(paymentStatus, RIGHT - 95, y + 2, 8.5, true, [0.1, 0.48, 0.3]);
-  y += 20;
+  addText('PAYMENT RECEIPT', LEFT, y, 15, true);
+  addText(paymentStatus, RIGHT - 95, y + 2, 9, true, [0.1, 0.48, 0.3]);
+  y += 24;
   addParagraph(
     'Thank you for choosing Radha Rani Studio. Keep this receipt for your booking records.',
     LEFT,
     CONTENT_WIDTH,
-    8.5,
+    9,
   );
-  y += 5;
+  y += 8;
 
-  addRect(LEFT, y, CONTENT_WIDTH, 42, [0.97, 0.95, 0.9]);
+  addRect(LEFT, y, CONTENT_WIDTH, 50, [0.97, 0.95, 0.9]);
   addText(
     'TOTAL AMOUNT RECEIVED',
-    LEFT + 12,
-    y + 8,
-    7.5,
+    LEFT + 14,
+    y + 10,
+    8,
     true,
     [0.43, 0.39, 0.35],
   );
   addText(
     formatMoney(amountPaid),
-    LEFT + 12,
-    y + 20,
-    14,
+    LEFT + 14,
+    y + 24,
+    15,
     true,
     [0.17, 0.13, 0.1],
   );
-  y += 50;
+  y += 62;
 
   addSectionTitle('Receipt & customer');
   addDetail('Receipt number', receiptNumber);
@@ -520,22 +520,20 @@ function buildPdf(booking) {
         .toUpperCase();
       const reference = entry.referenceId ? ` | Ref: ${entry.referenceId}` : '';
       const description = `${index + 1}. ${formatDate(entry.paidAt)} | ${method} | ${formatMoney(entry.amount)}${reference}`;
-      addParagraph(
-        description,
-        LEFT,
-        CONTENT_WIDTH,
-        7.5,
-        [0.28, 0.25, 0.22],
-        10,
-      );
+      addParagraph(description, LEFT, CONTENT_WIDTH, 8, [0.28, 0.25, 0.22], 12);
     });
   }
 
-  // Doubled signature area (up to 240x88) + signatory label
-  const sigMaxW = 240;
-  const sigMaxH = 88;
-  ensureSpace(sigMaxH + 44);
-  y += 6;
+  // Push signature and footer toward the bottom of the single A4 page without spilling
+  const sigMaxW = 260;
+  const sigMaxH = 96;
+  const bottomBlockHeight = sigMaxH + 62;
+  const targetBottomStart = PAGE_HEIGHT - 44 - bottomBlockHeight;
+  if (y < targetBottomStart) {
+    y = Math.min(targetBottomStart, y + 48);
+  }
+  ensureSpace(bottomBlockHeight);
+
   if (sigXObject) {
     const drawnH = drawImageFit(
       'ImSig',
@@ -545,36 +543,36 @@ function buildPdf(booking) {
       sigMaxW,
       sigMaxH,
     );
-    y += drawnH + 3;
+    y += drawnH + 4;
   } else {
-    addText('Prashant', RIGHT - 110, y + 18, 16, true, [0.22, 0.18, 0.14]);
-    y += 42;
+    addText('Prashant', RIGHT - 110, y + 20, 16, true, [0.22, 0.18, 0.14]);
+    y += 44;
   }
   addText(
     'Authorized Signatory - Prashant, Radha Rani Studio',
-    RIGHT - 240,
+    RIGHT - 250,
     y,
-    8,
+    8.5,
     true,
     [0.43, 0.39, 0.35],
   );
-  y += 12;
+  y += 14;
 
   addLine(LEFT, y, RIGHT, y, [0.74, 0.49, 0.16], 0.8);
-  y += 9;
+  y += 10;
   addParagraph(
     'Please contact Radha Rani Studio if any detail needs correction. Venue and event logistics should be confirmed directly with the studio.',
     LEFT,
     CONTENT_WIDTH,
-    7.5,
+    8,
     [0.43, 0.39, 0.35],
-    10,
+    11,
   );
   addText(
     '+91 7458006822  |  radharanistudio2026@gmail.com',
     LEFT,
     y + 2,
-    8,
+    8.5,
     true,
     [0.3, 0.26, 0.22],
   );
@@ -621,7 +619,7 @@ function buildPdf(booking) {
 
     if (imgEntry.maskId) {
       const maskHeader = Buffer.from(
-        `<< /Type /XObject /Subtype /Image /Width ${imgEntry.xobj.width} /Height ${imgEntry.xobj.height} /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode /Length ${imgEntry.xobj.smaskCompressed.length} >>\nstream\n`,
+        `<< /Type /XObject /Subtype /Image /Width ${imgEntry.xobj.width} /Height ${imgEntry.xobj.height} /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode /Length ${imgEntry.smaskCompressed.length} >>\nstream\n`,
         'ascii',
       );
       objects[imgEntry.maskId] = Buffer.concat([
@@ -633,6 +631,8 @@ function buildPdf(booking) {
   });
 
   pages.forEach((pageCommands, index) => {
+    const pageId = pageObjectIds[index];
+    const streamId = pageId + 1;
     const footer = `Page ${index + 1} of ${pages.length}  |  Radha Rani Studio`;
     pageCommands.push(
       `BT /F1 7.5 Tf 0.48 0.45 0.41 rg 1 0 0 1 ${LEFT} 22 Tm (${escapePdf(footer)}) Tj ET`,
@@ -640,8 +640,6 @@ function buildPdf(booking) {
 
     const stream = `${pageCommands.join('\n')}\n`;
     const length = Buffer.byteLength(stream, 'ascii');
-    const pageId = pageObjectIds[index];
-    const streamId = pageId + 1;
 
     const xobjs = [];
     if (logoObj && stream.includes('/ImLogo Do'))
