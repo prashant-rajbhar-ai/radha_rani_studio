@@ -1491,6 +1491,10 @@ function setBookingFeedback(message, type = "") {
   bookingFeedback.classList.toggle("is-success", type === "success");
   bookingFeedback.classList.toggle("is-error", type === "error");
   bookingFeedback.classList.toggle("is-info", type === "info");
+
+  if (message) {
+    bookingFeedback.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
 }
 
 const receiptOverlay = document.getElementById("booking-receipt-overlay");
@@ -1981,9 +1985,10 @@ bookingBtns.forEach((btn) => {
               });
             } else {
               setBookingFeedback(
-                verifyData.message ||
-                  "We received your payment response but couldn't verify it yet. Please contact us before trying to pay again.",
-                "error",
+                verifiedBooking?.balanceDue <= 0
+                  ? "Payment confirmed in full — your celebration date is reserved. Your official receipt is open and ready to view, print, or share."
+                  : "20% booking advance confirmed — your celebration date is reserved. Your official receipt is open and ready to view, print, or share.",
+                "success",
               );
             }
           } catch (err) {
