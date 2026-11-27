@@ -1,8 +1,14 @@
+const fs = require('fs');
+const path = require('path');
+const zlib = require('zlib');
+
 const PAGE_WIDTH = 595;
 const PAGE_HEIGHT = 842;
 const LEFT = 48;
 const RIGHT = 547;
 const CONTENT_WIDTH = RIGHT - LEFT;
+
+let cachedSignatureXObject = null;
 
 function ascii(value) {
   return String(value ?? '')
@@ -81,15 +87,180 @@ function wrapText(value, maxChars) {
   return lines.length ? lines : ['-'];
 }
 
+function paethPredictor(a, b, c) {
+  const p = a + b - c;
+  const pa = Math.abs(p - a);
+  const pb = Math.abs(p - b);
+  const pc = Math.abs(p - c);
+  if (pa <= pb && pa <= pc) return a;
+  if (pb <= pc) return b;
+  return c;
+}
+
+function unfilterPngScanlines(raw, width, height, channels, bitDepth) {
+  const bytesPerPixel = Math.max(1, Math.ceil((bitDepth * channels) / 8));
+  const stride = Math.ceil((width * bitDepth * channels) / 8);
+  const out = Buffer.alloc(height * stride);
+  let srcOffset = 0;
+
+  for (let row = 0; row < height; row += 1) {
+    const filterType = raw[srcOffset++];
+    const rowStart = row * stride;
+    const prevStart = (row - 1) * stride;
+
+    for (let i = 0; i < stride; i += 1) {
+      const x = raw[srcOffset + i];
+      const a = i >= bytesPerPixel ? out[rowStart + i - bytesPerPixel] : 0;
+      const b = row > 0 ? out[prevStart + i] : 0;
+      const c =
+        row > 0 && i >= bytesPerPixel ? out[prevStart + i - bytesPerPixel] : 0;
+
+      let val = x;
+      if (filterType === 1) val = (x + a) & 0xff;
+      else if (filterType === 2) val = (x + b) & 0xff;
+      else if (filterType === 3) val = (x + Math.floor((a + b) / 2)) & 0xff;
+      else if (filterType === 4) val = (x + paethPredictor(a, b, c)) & 0xff;
+
+      out[rowStart + i] = val;
+    }
+    srcOffset += stride;
+  }
+
+  return out;
+}
+
+/**
+ * Parses a non-interlaced 8-bit RGB or RGBA PNG into raw RGB + alpha buffers for PDF embedding.
+ */
+function parsePngForPdf(buf) {
+  const pngSig = '89504e470d0a1a0a';
+  if (
+    !Buffer.isBuffer(buf) ||
+    buf.length < 24 ||
+    buf.subarray(0, 8).toString('hex') !== pngSig
+  ) {
+    return null;
+  }
+
+  let offset = 8;
+  let width = 0;
+  let height = 0;
+  let bitDepth = 0;
+  let colorType = 0;
+  let interlace = 0;
+  const idatChunks = [];
+
+  while (offset + 12 <= buf.length) {
+    const length = buf.readUInt32BE(offset);
+    const type = buf.subarray(offset + 4, offset + 8).toString('ascii');
+    const dataStart = offset + 8;
+    const dataEnd = dataStart + length;
+    if (dataEnd + 4 > buf.length) break;
+
+    if (type === 'IHDR') {
+      width = buf.readUInt32BE(dataStart);
+      height = buf.readUInt32BE(dataStart + 4);
+      bitDepth = buf[dataStart + 8];
+      colorType = buf[dataStart + 9];
+      interlace = buf[dataStart + 12];
+    } else if (type === 'IDAT') {
+      idatChunks.push(buf.subarray(dataStart, dataEnd));
+    } else if (type === 'IEND') {
+      break;
+    }
+
+    offset = dataEnd + 4;
+  }
+
+  // Only embed standard 8-bit RGB (2) or RGBA (6), non-interlaced (0)
+  if (
+    !width ||
+    !height ||
+    bitDepth !== 8 ||
+    interlace !== 0 ||
+    ![2, 6].includes(colorType)
+  ) {
+    return null;
+  }
+
+  const channels = colorType === 6 ? 4 : 3;
+  const inflated = zlib.inflateSync(Buffer.concat(idatChunks));
+  const pixels = unfilterPngScanlines(
+    inflated,
+    width,
+    height,
+    channels,
+    bitDepth,
+  );
+
+  const rgb = Buffer.alloc(width * height * 3);
+  const alpha = colorType === 6 ? Buffer.alloc(width * height) : null;
+
+  for (
+    let i = 0, p = 0, r = 0, a = 0;
+    i < width * height;
+    i += 1, p += channels, r += 3
+  ) {
+    rgb[r] = pixels[p];
+    rgb[r + 1] = pixels[p + 1];
+    rgb[r + 2] = pixels[p + 2];
+    if (alpha) {
+      alpha[a++] = pixels[p + 3];
+    }
+  }
+
+  return { width, height, rgb, alpha };
+}
+
+function getSignatureXObject() {
+  if (cachedSignatureXObject !== null) return cachedSignatureXObject;
+
+  const candidatePaths = [
+    path.resolve(__dirname, '../../frontend/images/signature - Edited.png'),
+    path.resolve(__dirname, '../public/images/signature - Edited.png'),
+    path.resolve(process.cwd(), 'frontend/images/signature - Edited.png'),
+    path.resolve(process.cwd(), 'images/signature - Edited.png'),
+  ];
+
+  for (const imgPath of candidatePaths) {
+    try {
+      if (!fs.existsSync(imgPath)) continue;
+      const parsed = parsePngForPdf(fs.readFileSync(imgPath));
+      if (!parsed) continue;
+
+      const rgbCompressed = zlib.deflateSync(parsed.rgb);
+      const smaskCompressed = parsed.alpha
+        ? zlib.deflateSync(parsed.alpha)
+        : null;
+
+      cachedSignatureXObject = {
+        width: parsed.width,
+        height: parsed.height,
+        rgbCompressed,
+        smaskCompressed,
+      };
+      return cachedSignatureXObject;
+    } catch (err) {
+      // Try next candidate path or fall back to text signatory.
+    }
+  }
+
+  cachedSignatureXObject = false;
+  return false;
+}
+
 function buildPdf(booking) {
   const pages = [];
   let commands = [];
   let y = 48;
+  const sigXObject = getSignatureXObject();
+  let hasSignatureOnCurrentPage = false;
 
   const startPage = () => {
     commands = [];
     pages.push(commands);
     y = 48;
+    hasSignatureOnCurrentPage = false;
     addText('RADHA RANI STUDIO', LEFT, y, 20, true, [0.17, 0.13, 0.1]);
     y += 25;
     addText(
@@ -143,6 +314,24 @@ function buildPdf(booking) {
     commands.push(
       `q ${color[0]} ${color[1]} ${color[2]} rg ${x} ${bottom} ${width} ${height} re f Q`,
     );
+  }
+
+  function addSignatureImage(rightX, top, maxWidth, maxHeight) {
+    if (!sigXObject) return false;
+    const aspect = sigXObject.width / sigXObject.height;
+    let drawW = maxWidth;
+    let drawH = drawW / aspect;
+    if (drawH > maxHeight) {
+      drawH = maxHeight;
+      drawW = drawH * aspect;
+    }
+    const drawX = rightX - drawW;
+    const bottomY = PAGE_HEIGHT - top - drawH;
+    commands.push(
+      `q ${drawW.toFixed(2)} 0 0 ${drawH.toFixed(2)} ${drawX.toFixed(2)} ${bottomY.toFixed(2)} cm /ImSig Do Q`,
+    );
+    hasSignatureOnCurrentPage = true;
+    return true;
   }
 
   function addParagraph(
@@ -319,21 +508,25 @@ function buildPdf(booking) {
     });
   }
 
-  ensureSpace(64);
-  y += 7;
-  addLine(LEFT, y, RIGHT, y, [0.74, 0.49, 0.16], 0.8);
-  y += 15;
-  ensureSpace(82);
-  y += 7;
+  ensureSpace(125);
+  y += 6;
+  const drewImg = addSignatureImage(RIGHT, y, 120, 44);
+  if (drewImg) {
+    y += 48;
+  } else {
+    addText('Prashant', RIGHT - 110, y + 10, 13, true, [0.22, 0.18, 0.14]);
+    y += 28;
+  }
   addText(
-    'Authorized Signatory: Prashant (Radha Rani Studio)',
+    'Authorized Signatory - Prashant, Radha Rani Studio',
     RIGHT - 235,
     y,
     8,
     true,
-    [0.28, 0.24, 0.2],
+    [0.43, 0.39, 0.35],
   );
-  y += 14;
+  y += 16;
+
   addLine(LEFT, y, RIGHT, y, [0.74, 0.49, 0.16], 0.8);
   y += 15;
   addParagraph(
@@ -356,12 +549,26 @@ function buildPdf(booking) {
 
   pages.forEach((pageCommands, index) => {
     const footer = `Page ${index + 1} of ${pages.length}  |  Radha Rani Studio`;
+    const resources = ['<< /Font << /F1 3 0 R /F2 4 0 R >>'];
+    if (sigXObject && pageCommands.some(cmd => cmd.includes('/ImSig Do'))) {
+      resources.push('/XObject << /ImSig 5 0 R >>');
+    }
+    pageCommands._hasImSig = pageCommands.some(cmd =>
+      cmd.includes('/ImSig Do'),
+    );
     pageCommands.push(
       `BT /F1 8 Tf 0.48 0.45 0.41 rg 1 0 0 1 ${LEFT} 28 Tm (${escapePdf(footer)}) Tj ET`,
     );
   });
 
-  const pageObjectIds = pages.map((_, index) => 5 + index * 2);
+  const anyPageUsesSig = Boolean(
+    sigXObject && pages.some(cmds => cmds._hasImSig),
+  );
+  const sigRgbId = anyPageUsesSig ? 5 : null;
+  const sigMaskId = anyPageUsesSig && sigXObject.smaskCompressed ? 6 : null;
+  const firstPageObjId = anyPageUsesSig ? (sigMaskId ? 7 : 6) : 5;
+
+  const pageObjectIds = pages.map((_, index) => firstPageObjId + index * 2);
   const objects = [];
   objects[1] = '<< /Type /Catalog /Pages 2 0 R >>';
   objects[2] = `<< /Type /Pages /Kids [${pageObjectIds.map(id => `${id} 0 R`).join(' ')}] /Count ${pages.length} >>`;
@@ -370,29 +577,72 @@ function buildPdf(booking) {
   objects[4] =
     '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>';
 
+  if (anyPageUsesSig) {
+    const maskDict = sigMaskId ? ` /SMask ${sigMaskId} 0 R` : '';
+    const rgbHeader = Buffer.from(
+      `<< /Type /XObject /Subtype /Image /Width ${sigXObject.width} /Height ${sigXObject.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode${maskDict} /Length ${sigXObject.rgbCompressed.length} >>\nstream\n`,
+      'ascii',
+    );
+    const streamEnd = Buffer.from('\nendstream', 'ascii');
+    objects[sigRgbId] = Buffer.concat([
+      rgbHeader,
+      sigXObject.rgbCompressed,
+      streamEnd,
+    ]);
+
+    if (sigMaskId) {
+      const maskHeader = Buffer.from(
+        `<< /Type /XObject /Subtype /Image /Width ${sigXObject.width} /Height ${sigXObject.height} /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode /Length ${sigXObject.smaskCompressed.length} >>\nstream\n`,
+        'ascii',
+      );
+      objects[sigMaskId] = Buffer.concat([
+        maskHeader,
+        sigXObject.smaskCompressed,
+        streamEnd,
+      ]);
+    }
+  }
+
   pages.forEach((pageCommands, index) => {
-    const pageId = 5 + index * 2;
+    const pageId = firstPageObjId + index * 2;
     const streamId = pageId + 1;
     const stream = `${pageCommands.join('\n')}\n`;
     const length = Buffer.byteLength(stream, 'ascii');
+    const xobjPart = pageCommands._hasImSig
+      ? ` /XObject << /ImSig ${sigRgbId} 0 R >>`
+      : '';
     objects[pageId] =
-      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PAGE_WIDTH} ${PAGE_HEIGHT}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${streamId} 0 R >>`;
+      `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${PAGE_WIDTH} ${PAGE_HEIGHT}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >>${xobjPart} >> /Contents ${streamId} 0 R >>`;
     objects[streamId] = `<< /Length ${length} >>\nstream\n${stream}endstream`;
   });
 
-  let pdf = '%PDF-1.4\n%RRS\n';
+  const parts = [Buffer.from('%PDF-1.4\n%RRS\n', 'ascii')];
   const offsets = [0];
+  let byteLength = parts[0].length;
+
   for (let id = 1; id < objects.length; id += 1) {
-    offsets[id] = Buffer.byteLength(pdf, 'ascii');
-    pdf += `${id} 0 obj\n${objects[id]}\nendobj\n`;
+    offsets[id] = byteLength;
+    const objBody = Buffer.isBuffer(objects[id])
+      ? objects[id]
+      : Buffer.from(objects[id], 'ascii');
+    const chunk = Buffer.concat([
+      Buffer.from(`${id} 0 obj\n`, 'ascii'),
+      objBody,
+      Buffer.from('\nendobj\n', 'ascii'),
+    ]);
+    parts.push(chunk);
+    byteLength += chunk.length;
   }
-  const xrefOffset = Buffer.byteLength(pdf, 'ascii');
-  pdf += `xref\n0 ${objects.length}\n0000000000 65535 f \n`;
+
+  const xrefOffset = byteLength;
+  let xref = `xref\n0 ${objects.length}\n0000000000 65535 f \n`;
   for (let id = 1; id < objects.length; id += 1) {
-    pdf += `${String(offsets[id]).padStart(10, '0')} 00000 n \n`;
+    xref += `${String(offsets[id]).padStart(10, '0')} 00000 n \n`;
   }
-  pdf += `trailer\n<< /Size ${objects.length} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
-  return Buffer.from(pdf, 'ascii');
+  const trailer = `${xref}trailer\n<< /Size ${objects.length} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF`;
+  parts.push(Buffer.from(trailer, 'ascii'));
+
+  return Buffer.concat(parts);
 }
 
 module.exports = buildPdf;
