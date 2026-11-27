@@ -7,6 +7,7 @@ const AppError = require('../utils/appError');
 const sendBookingReceiptEmail = require('../utils/receiptEmailService');
 const sendBookingReceiptWhatsapp = require('../utils/receiptWhatsappService');
 const generateReceiptPdf = require('../utils/receiptPdf');
+const { evaluateTravelForLocation } = require('../utils/travelPricingService');
 const {
   ADVANCE_PERCENTAGE,
   ONLINE_HOLD_MINUTES,
@@ -89,6 +90,58 @@ async function sendAndTrackReceiptWhatsapp(booking) {
   }
 }
 
+exports.checkLocation = catchAsync(async (req, res, next) => {
+  const locationInput = req.body.eventLocation || req.body || {};
+  const pinCode = String(locationInput.pinCode || '').trim();
+  const locality = String(locationInput.locality || '').trim();
+  const district = String(locationInput.district || '').trim();
+  const state = String(locationInput.state || '').trim();
+
+  if (!/^[1-9]\d{5}$/.test(pinCode) && !district) {
+    return next(
+      new AppError(
+        'Please provide a valid 6-digit Indian PIN code or district.',
+        400,
+      ),
+    );
+  }
+
+  const travel = await evaluateTravelForLocation({
+    pinCode,
+    locality,
+    district,
+    state,
+  });
+
+  let pricing = null;
+  if (req.body.packageId) {
+    const pkg = await Package.findById(req.body.packageId);
+    if (pkg) {
+      const basePackagePrice = roundMoney(pkg.price);
+      const travelCharge = travel.available
+        ? roundMoney(travel.travelCharge || 0)
+        : 0;
+      const totalPrice = roundMoney(basePackagePrice + travelCharge);
+      const advanceAmount = calculateAdvance(totalPrice);
+      pricing = {
+        basePackagePrice,
+        travelCharge,
+        totalPrice,
+        advancePercentage: ADVANCE_PERCENTAGE,
+        advanceAmount,
+      };
+    }
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      ...travel,
+      pricing,
+    },
+  });
+});
+
 exports.createOrder = catchAsync(async (req, res, next) => {
   const pkg = await Package.findById(req.params.packageId);
   if (!pkg) return next(new AppError('No package found with that ID.', 404));
@@ -114,14 +167,22 @@ exports.createOrder = catchAsync(async (req, res, next) => {
     );
   }
 
+  // Enforce serviceability radius and compute travel cost on the server.
+  const travel = await evaluateTravelForLocation(eventLocation);
+  if (!travel.available) {
+    return next(new AppError(travel.message, 400));
+  }
+
   await ensureEventDateAvailable(eventDateKey);
 
-  const packagePrice = roundMoney(pkg.price);
-  const advanceAmount = calculateAdvance(packagePrice);
+  const basePackagePrice = roundMoney(pkg.price);
+  const travelCharge = roundMoney(travel.travelCharge || 0);
+  const totalBookingPrice = roundMoney(basePackagePrice + travelCharge);
+  const advanceAmount = calculateAdvance(totalBookingPrice);
   const initialPaymentAmount =
-    paymentChoice === 'full' ? packagePrice : advanceAmount;
+    paymentChoice === 'full' ? totalBookingPrice : advanceAmount;
   const balanceDue = roundMoney(
-    Math.max(packagePrice - initialPaymentAmount, 0),
+    Math.max(totalBookingPrice - initialPaymentAmount, 0),
   );
   const reservationExpiresAt = new Date(
     Date.now() + ONLINE_HOLD_MINUTES * 60 * 1000,
@@ -134,13 +195,16 @@ exports.createOrder = catchAsync(async (req, res, next) => {
       user: req.user.id,
       createdBy: req.user.id,
       bookingSource: 'online',
-      price: packagePrice,
+      price: totalBookingPrice,
+      basePackagePrice,
+      travelCharge,
+      travelDistanceKm: travel.distanceKm,
       advancePercentage: ADVANCE_PERCENTAGE,
       advanceAmount,
       initialPaymentChoice: paymentChoice,
       initialPaymentAmount,
       amountPaid: 0,
-      balanceDue: packagePrice,
+      balanceDue: totalBookingPrice,
       eventDate,
       eventDateKey,
       reservationExpiresAt,
@@ -170,6 +234,9 @@ exports.createOrder = catchAsync(async (req, res, next) => {
         bookingSource: 'online',
         paymentChoice,
         advancePercentage: String(ADVANCE_PERCENTAGE),
+        basePackagePrice: String(basePackagePrice),
+        travelCharge: String(travelCharge),
+        travelDistanceKm: String(travel.distanceKm ?? ''),
       },
     });
 
@@ -182,7 +249,11 @@ exports.createOrder = catchAsync(async (req, res, next) => {
       order,
       booking,
       payment: {
-        packagePrice,
+        basePackagePrice,
+        travelCharge,
+        travelDistanceKm: travel.distanceKm,
+        packagePrice: totalBookingPrice,
+        totalPrice: totalBookingPrice,
         paymentChoice,
         advancePercentage: ADVANCE_PERCENTAGE,
         advanceAmount,

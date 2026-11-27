@@ -5,7 +5,10 @@ const adminController = require('../controllers/adminController');
 
 const router = express.Router();
 
-// Every booking endpoint requires an authenticated session.
+// Public location serviceability and live travel cost preview.
+router.post('/check-location', bookingController.checkLocation);
+
+// Every booking endpoint below requires an authenticated session.
 router.use(authController.protect);
 
 router.post('/create-order/:packageId', bookingController.createOrder);

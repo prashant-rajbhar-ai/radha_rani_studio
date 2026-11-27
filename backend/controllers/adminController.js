@@ -5,6 +5,7 @@ const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/appError');
 const sendBookingReceiptEmail = require('../utils/receiptEmailService');
 const sendBookingReceiptWhatsapp = require('../utils/receiptWhatsappService');
+const { evaluateTravelForLocation } = require('../utils/travelPricingService');
 const {
   ADVANCE_PERCENTAGE,
   roundMoney,
@@ -276,18 +277,51 @@ exports.createOfflineBooking = catchAsync(async (req, res, next) => {
 
   const { eventDateKey, eventDate } = normalizeEventDate(req.body.eventDate);
   const eventLocation = normalizeEventLocation(req.body.eventLocation);
+
+  // Admin can pass an explicit travelCharge (e.g., 0 to waive or a custom outstation quote);
+  // otherwise compute travel automatically from the venue location.
+  const hasManualTravel =
+    req.body.travelCharge !== undefined &&
+    req.body.travelCharge !== null &&
+    String(req.body.travelCharge).trim() !== '';
+
+  let travelCharge = 0;
+  let travelDistanceKm = null;
+
+  if (hasManualTravel) {
+    const parsedTravel = roundMoney(req.body.travelCharge);
+    if (!Number.isFinite(parsedTravel) || parsedTravel < 0) {
+      return next(
+        new AppError('Travel charge must be zero or a positive amount.', 400),
+      );
+    }
+    travelCharge = parsedTravel;
+  } else {
+    const travel = await evaluateTravelForLocation(eventLocation);
+    if (!travel.available) {
+      return next(new AppError(travel.message, 400));
+    }
+    travelCharge = roundMoney(travel.travelCharge || 0);
+    travelDistanceKm = travel.distanceKm;
+  }
+
   await ensureEventDateAvailable(eventDateKey);
 
-  const price = roundMoney(pkg.price);
+  const basePackagePrice = roundMoney(pkg.price);
+  const price = roundMoney(basePackagePrice + travelCharge);
   const advanceAmount = calculateAdvance(price);
   const initialPaymentAmount = paymentChoice === 'full' ? price : advanceAmount;
   const balanceDue = roundMoney(Math.max(price - initialPaymentAmount, 0));
+
   const booking = {
     package: pkg._id,
     clientDetails: { name: customerName, email, phoneNumber },
     createdBy: req.user.id,
     bookingSource: 'offline',
     price,
+    basePackagePrice,
+    travelCharge,
+    travelDistanceKm,
     advancePercentage: ADVANCE_PERCENTAGE,
     advanceAmount,
     initialPaymentChoice: paymentChoice,
