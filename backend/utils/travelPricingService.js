@@ -10,7 +10,7 @@ function readEnvNumber(name, fallback) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-// All distance limits are one-way road km from your studio pin on Google Maps.
+// All distance limits are one-way road km from your studio pin.
 // Rate is ₹12.50 per km each way (effectively ₹25 per extra one-way km for the round trip).
 const FREE_RADIUS_KM = readEnvNumber('TRAVEL_FREE_KM', 25);
 const MAX_SERVICE_KM = readEnvNumber('TRAVEL_MAX_KM', 200);
@@ -77,8 +77,40 @@ async function queryNominatim(params) {
   return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
 }
 
+async function lookupPostalPinInfo(pinCode) {
+  if (!/^[1-9]\d{5}$/.test(pinCode)) return null;
+  try {
+    const response = await fetch(
+      `https://api.postalpincode.in/pincode/${encodeURIComponent(pinCode)}`,
+      {
+        headers: {
+          'User-Agent': 'RadhaRaniStudio/1.0 (https://radharanistudio.in)',
+        },
+        signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+      },
+    );
+    if (!response.ok) return null;
+    const data = await response.json().catch(() => []);
+    const entry = Array.isArray(data) ? data[0] : null;
+    const postOffice =
+      entry?.Status === 'Success' && Array.isArray(entry.PostOffice)
+        ? entry.PostOffice[0]
+        : null;
+    if (!postOffice) return null;
+
+    return {
+      officeName: String(postOffice.Name || '').trim(),
+      district: String(postOffice.District || '').trim(),
+      state: String(postOffice.State || '').trim(),
+    };
+  } catch (error) {
+    return null;
+  }
+}
+
 /**
- * Resolves Indian venue location using PIN code first, then locality/district/state.
+ * Resolves Indian venue location using specific locality/district/PIN first,
+ * with India Post PIN lookup and PIN fallback.
  */
 async function geocodeEventLocation({ pinCode, locality, district, state }) {
   const cleanPin = String(pinCode || '').trim();
@@ -99,9 +131,16 @@ async function geocodeEventLocation({ pinCode, locality, district, state }) {
 
   let coords = null;
 
-  if (/^[1-9]\d{5}$/.test(cleanPin)) {
-    coords = await queryNominatim({ postalcode: cleanPin });
+  // 1. Most specific query: locality + district + state + PIN
+  if ((cleanLocality || cleanDistrict) && /^[1-9]\d{5}$/.test(cleanPin)) {
+    coords = await queryNominatim({
+      q: [cleanLocality, cleanDistrict, cleanState, cleanPin, 'India']
+        .filter(Boolean)
+        .join(', '),
+    });
   }
+
+  // 2. Locality + district + state
   if (!coords && cleanLocality && cleanDistrict) {
     coords = await queryNominatim({
       q: [cleanLocality, cleanDistrict, cleanState, 'India']
@@ -109,6 +148,31 @@ async function geocodeEventLocation({ pinCode, locality, district, state }) {
         .join(', '),
     });
   }
+
+  // 3. India Post office/district lookup for the PIN code (helps when PIN-only is entered)
+  if (!coords && /^[1-9]\d{5}$/.test(cleanPin)) {
+    const pinInfo = await lookupPostalPinInfo(cleanPin);
+    if (pinInfo) {
+      coords = await queryNominatim({
+        q: [
+          cleanLocality || pinInfo.officeName,
+          cleanDistrict || pinInfo.district,
+          cleanState || pinInfo.state,
+          cleanPin,
+          'India',
+        ]
+          .filter(Boolean)
+          .join(', '),
+      });
+    }
+  }
+
+  // 4. Direct PIN code lookup
+  if (!coords && /^[1-9]\d{5}$/.test(cleanPin)) {
+    coords = await queryNominatim({ postalcode: cleanPin });
+  }
+
+  // 5. District + state fallback
   if (!coords && cleanDistrict) {
     coords = await queryNominatim({
       q: [cleanDistrict, cleanState, 'India'].filter(Boolean).join(', '),
