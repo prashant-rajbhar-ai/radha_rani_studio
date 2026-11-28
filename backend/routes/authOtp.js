@@ -28,10 +28,7 @@ function hashOtp(code) {
   if (!secret) {
     throw new Error('Missing OTP_SECRET in environment variables');
   }
-  return crypto
-    .createHmac('sha256', secret)
-    .update(String(code))
-    .digest('hex');
+  return crypto.createHmac('sha256', secret).update(String(code)).digest('hex');
 }
 
 function normalizeEmail(raw = '') {
@@ -62,14 +59,15 @@ async function sendWhatsAppAuthOtp(toPhone, otpCode) {
         language: { code: OTP_TEMPLATE_LANG },
         components: [
           {
-            type: 'body',
-            parameters: [{ type: 'text', text: otpCode }],
-          },
-          {
             type: 'button',
             sub_type: 'copy_code',
             index: '0',
-            parameters: [{ type: 'text', text: otpCode }],
+            parameters: [
+              {
+                type: 'coupon_code',
+                coupon_code: otpCode,
+              },
+            ],
           },
         ],
       },
@@ -163,7 +161,10 @@ router.post('/send-whatsapp-otp', async (req, res) => {
 
     await sendWhatsAppAuthOtp(phone, code);
 
-    return res.json({ ok: true, message: 'Verification code sent on WhatsApp.' });
+    return res.json({
+      ok: true,
+      message: 'Verification code sent on WhatsApp.',
+    });
   } catch (err) {
     console.error('Send WhatsApp OTP error:', err.message);
     return res
@@ -245,7 +246,7 @@ router.post('/verify-dual-otp', async (req, res) => {
       token = jwt.sign(
         { email, phone, verified: true },
         process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
       );
     }
 
