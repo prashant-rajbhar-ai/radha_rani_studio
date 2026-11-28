@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const express = require('express');
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
-const OtpVerification = require('../models/OtpVerification');
+const OtpVerification = require('../models/otpVerification');
 
 const router = express.Router();
 
