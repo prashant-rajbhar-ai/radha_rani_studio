@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const express = require('express');
-const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
+const { MailtrapClient } = require('mailtrap');
 const OtpVerification = require('../models/otpVerification');
 
 const router = express.Router();
@@ -14,13 +14,9 @@ const OTP_TEMPLATE_NAME =
   process.env.WHATSAPP_OTP_TEMPLATE || 'radha_rani_login_otp';
 const OTP_TEMPLATE_LANG = process.env.WHATSAPP_OTP_TEMPLATE_LANG || 'en';
 
-const mailTransport = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || 'sandbox.smtp.mailtrap.io',
-  port: Number(process.env.EMAIL_PORT || 2525),
-  auth: {
-    user: process.env.EMAIL_USERNAME,
-    pass: process.env.EMAIL_PASSWORD,
-  },
+const mailtrapClient = new MailtrapClient({
+  token: process.env.MAILTRAP_API_KEY,
+  sandbox: process.env.MAILTRAP_SANDBOX === 'true',
 });
 
 function generateOtp() {
@@ -32,7 +28,10 @@ function hashOtp(code) {
   if (!secret) {
     throw new Error('Missing OTP_SECRET in environment variables');
   }
-  return crypto.createHmac('sha256', secret).update(String(code)).digest('hex');
+  return crypto
+    .createHmac('sha256', secret)
+    .update(String(code))
+    .digest('hex');
 }
 
 function normalizeEmail(raw = '') {
@@ -84,7 +83,7 @@ async function sendWhatsAppAuthOtp(toPhone, otpCode) {
   return data;
 }
 
-// POST /api/auth/send-email-otp
+// POST /api/v1/auth/send-email-otp
 router.post('/send-email-otp', async (req, res) => {
   try {
     const email = normalizeEmail(req.body.email);
@@ -109,12 +108,12 @@ router.post('/send-email-otp', async (req, res) => {
       expiresAt,
     });
 
-    await mailTransport.sendMail({
-      from:
-        process.env.EMAIL_FROM ||
-        'Radha Rani Studio <hello@radharanistudio.in>',
-      replyTo: process.env.EMAIL_REPLY_TO || 'radharanistudio2026@gmail.com',
-      to: email,
+    await mailtrapClient.send({
+      from: {
+        email: 'hello@radharanistudio.in',
+        name: 'Radha Rani Studio',
+      },
+      to: [{ email }],
       subject: `${code} is your Radha Rani Studio verification code`,
       text: `Your Radha Rani Studio verification code is ${code}. It expires in 10 minutes. Do not share this code with anyone.`,
       html: `
@@ -127,6 +126,7 @@ router.post('/send-email-otp', async (req, res) => {
           <p style="color: #666; font-size: 13px;">This code is valid for 10 minutes. If you did not request it, you can ignore this email.</p>
         </div>
       `,
+      category: 'OTP Verification',
     });
 
     return res.json({ ok: true, message: 'Verification code sent to email.' });
@@ -136,7 +136,7 @@ router.post('/send-email-otp', async (req, res) => {
   }
 });
 
-// POST /api/auth/send-whatsapp-otp
+// POST /api/v1/auth/send-whatsapp-otp
 router.post('/send-whatsapp-otp', async (req, res) => {
   try {
     const phone = normalizePhone(req.body.phone);
@@ -163,10 +163,7 @@ router.post('/send-whatsapp-otp', async (req, res) => {
 
     await sendWhatsAppAuthOtp(phone, code);
 
-    return res.json({
-      ok: true,
-      message: 'Verification code sent on WhatsApp.',
-    });
+    return res.json({ ok: true, message: 'Verification code sent on WhatsApp.' });
   } catch (err) {
     console.error('Send WhatsApp OTP error:', err.message);
     return res
@@ -219,7 +216,7 @@ async function checkOtpRecord(channel, target, inputCode) {
   return { ok: true };
 }
 
-// POST /api/auth/verify-dual-otp
+// POST /api/v1/auth/verify-dual-otp
 router.post('/verify-dual-otp', async (req, res) => {
   try {
     const email = normalizeEmail(req.body.email);
@@ -248,7 +245,7 @@ router.post('/verify-dual-otp', async (req, res) => {
       token = jwt.sign(
         { email, phone, verified: true },
         process.env.JWT_SECRET,
-        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
+        { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
       );
     }
 
