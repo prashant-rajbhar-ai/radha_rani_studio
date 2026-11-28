@@ -59,6 +59,10 @@ async function sendWhatsAppAuthOtp(toPhone, otpCode) {
         language: { code: OTP_TEMPLATE_LANG },
         components: [
           {
+            type: 'body',
+            parameters: [{ type: 'text', text: otpCode }],
+          },
+          {
             type: 'button',
             sub_type: 'copy_code',
             index: '0',
