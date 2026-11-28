@@ -369,7 +369,8 @@ const createSlider = function (
 createSlider(".main-section", ".slides", 0, "fade");
 
 // Initialize Feedback slider
-const FEEDBACKS_ENDPOINT = "https://radha-rani-studio.onrender.com/api/v1/feedbacks";
+const FEEDBACKS_ENDPOINT =
+  "https://radha-rani-studio.onrender.com/api/v1/feedbacks";
 
 function escapeFeedbackHtml(value) {
   return String(value ?? "")
@@ -460,8 +461,12 @@ if (clientFeedbackForm) {
 
     try {
       const payload = {
-        clientName: document.getElementById("feedback-client-name").value.trim(),
-        locationLabel: document.getElementById("feedback-location").value.trim(),
+        clientName: document
+          .getElementById("feedback-client-name")
+          .value.trim(),
+        locationLabel: document
+          .getElementById("feedback-location")
+          .value.trim(),
         rating: Number(document.getElementById("feedback-rating").value),
         quote: document.getElementById("feedback-quote").value.trim(),
       };
@@ -489,7 +494,12 @@ if (clientFeedbackForm) {
       const refreshRes = await fetch(FEEDBACKS_ENDPOINT);
       const refreshData = await refreshRes.json().catch(() => ({}));
       const updatedList = refreshData?.data?.feedbacks;
-      if (track && refreshRes.ok && Array.isArray(updatedList) && updatedList.length > 0) {
+      if (
+        track &&
+        refreshRes.ok &&
+        Array.isArray(updatedList) &&
+        updatedList.length > 0
+      ) {
         if (dots) dots.innerHTML = "";
         track.innerHTML = updatedList
           .map((item, index) => buildFeedbackSlideMarkup(item, index))
@@ -1065,13 +1075,18 @@ document.addEventListener("keydown", (event) => {
 
 document.querySelectorAll('[data-account-action="gallery"]').forEach((item) => {
   item.addEventListener("click", (event) => {
-    // Keep this as a placeholder hash link until the separate gallery page is built.
-    // Stop the mobile drawer's delegated navigation handler from treating "#" as a section ID.
+    event.preventDefault();
     event.stopPropagation();
+    closeAccountMenu();
     mobileNav?.classList.remove("openDrawer");
     bar1?.classList.remove("animateBar1");
     bar2?.classList.remove("animateBar2");
     bar3?.classList.remove("animateBar3");
+
+    const email = String(localStorage.getItem("userEmail") || "").trim();
+    window.location.href = email
+      ? `clientGallery.html?email=${encodeURIComponent(email)}`
+      : "clientGallery.html";
   });
 });
 

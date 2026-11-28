@@ -1,140 +1,150 @@
 const express = require('express');
-const Gallery = require('../models/Gallery');
+const Gallery = require('../models/galleryModel');
 const {
-  buildObjectKey,
-  createUploadUrl,
-  createReadUrl,
-} = require('../services/cloudMediaService');
+  computeExpiresAt,
+  getSignedReadUrl,
+  getSignedUploadUrl,
+} = require('../services/gcsGalleryService');
 
 const router = express.Router();
 
-function addMonths(baseDate, months) {
-  const validMonths = Number(months) === 6 ? 6 : 3;
-  const d = new Date(baseDate);
-  d.setMonth(d.getMonth() + validMonths);
-  return { months: validMonths, expiresAt: d };
-}
-
-// Client: fetch active (unexpired) galleries for logged-in user with fresh signed read URLs
-router.get('/my', async (req, res, next) => {
-  try {
-    const now = new Date();
-    const galleries = await Gallery.find({
-      client: req.user._id,
-      isActive: true,
-      expiresAt: { $gt: now },
-    }).sort({ createdAt: -1 });
-
-    const hydrated = await Promise.all(
-      galleries.map(async (g) => {
-        const obj = g.toObject();
-        obj.items = await Promise.all(
-          (obj.items || []).map(async (item) => ({
-            ...item,
-            signedUrl: await createReadUrl(item.objectKey).catch(() => item.url),
-          })),
-        );
-        return obj;
-      }),
-    );
-
-    res.status(200).json({ status: 'success', data: { galleries: hydrated } });
-  } catch (err) {
-    next(err);
-  }
-});
-
-// Admin: create a client gallery with 3 or 6 months storage retention
+// POST /api/v1/galleries - Create a 3- or 6-month client gallery
 router.post('/', async (req, res, next) => {
   try {
-    const { title, clientId, bookingId, storageMonths = 3 } = req.body;
-    const { months, expiresAt } = addMonths(new Date(), storageMonths);
+    const clientEmail = String(req.body.clientEmail || '')
+      .trim()
+      .toLowerCase();
+    const clientName = String(req.body.clientName || '').trim();
+    const title = String(req.body.title || '').trim();
+    const retentionMonths = Number(req.body.retentionMonths) === 6 ? 6 : 3;
+
+    if (!clientEmail || !title) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Client email and gallery title are required.',
+      });
+    }
 
     const gallery = await Gallery.create({
+      clientEmail,
+      clientName,
+      bookingId: req.body.bookingId || undefined,
       title,
-      client: clientId,
-      booking: bookingId || undefined,
-      storageMonths: months,
-      expiresAt,
-      items: [],
+      retentionMonths,
+      expiresAt: computeExpiresAt(retentionMonths),
+      status: 'active',
+      items: Array.isArray(req.body.items) ? req.body.items : [],
     });
 
-    res.status(201).json({ status: 'success', data: { gallery } });
+    res.status(201).json({
+      status: 'success',
+      data: { gallery },
+    });
   } catch (err) {
     next(err);
   }
 });
 
-// Admin: request a direct signed upload URL for GCS or Azure Blob
+// POST /api/v1/galleries/:id/upload-url - Generate a v4 signed upload URL for GCS
 router.post('/:id/upload-url', async (req, res, next) => {
   try {
-    const { fileName, contentType, mediaType = 'image' } = req.body;
     const gallery = await Gallery.findById(req.params.id);
     if (!gallery) {
-      return res.status(404).json({ status: 'fail', message: 'Gallery not found.' });
+      return res
+        .status(404)
+        .json({ status: 'fail', message: 'Gallery not found.' });
     }
 
-    const objectKey = buildObjectKey({
-      galleryId: String(gallery._id),
-      originalName: fileName,
+    if (gallery.isExpired()) {
+      return res.status(410).json({
+        status: 'fail',
+        message: 'This gallery retention window has expired.',
+      });
+    }
+
+    const fileName = String(req.body.fileName || '').trim();
+    const contentType = String(req.body.contentType || '').trim();
+    const mediaType = req.body.mediaType === 'video' ? 'video' : 'image';
+
+    if (!fileName || !contentType) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'fileName and contentType are required.',
+      });
+    }
+
+    const safeName = fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const objectKey = `galleries/${gallery._id}/${Date.now()}-${safeName}`;
+    const uploadUrl = await getSignedUploadUrl(objectKey, contentType);
+
+    gallery.items.push({
+      key: objectKey,
+      fileName,
       mediaType,
+      contentType,
+      sizeBytes: Number(req.body.sizeBytes) || 0,
     });
-    const uploadInfo = await createUploadUrl({
-      objectKey,
-      contentType: contentType || (mediaType === 'video' ? 'video/mp4' : 'image/jpeg'),
-    });
+    await gallery.save();
 
     res.status(200).json({
       status: 'success',
-      data: { objectKey, mediaType, ...uploadInfo },
+      data: { uploadUrl, objectKey, gallery },
     });
   } catch (err) {
     next(err);
   }
 });
 
-// Admin: attach uploaded cloud file metadata to the gallery in MongoDB
-router.post('/:id/items', async (req, res, next) => {
+// GET /api/v1/galleries/client?email=... - Fetch active galleries with signed read URLs
+router.get('/client', async (req, res, next) => {
   try {
-    const { objectKey, url, provider, mediaType = 'image', caption = '' } = req.body;
-    const gallery = await Gallery.findByIdAndUpdate(
-      req.params.id,
-      {
-        $push: {
-          items: { objectKey, url, provider, mediaType, caption },
-        },
-      },
-      { new: true, runValidators: true },
+    const clientEmail = String(req.query.email || '')
+      .trim()
+      .toLowerCase();
+    if (!clientEmail) {
+      return res.status(400).json({
+        status: 'fail',
+        message: 'Client email is required.',
+      });
+    }
+
+    const now = new Date();
+    const galleries = await Gallery.find({
+      clientEmail,
+      status: 'active',
+      expiresAt: { $gt: now },
+    }).sort({ createdAt: -1 });
+
+    const hydratedGalleries = await Promise.all(
+      galleries.map(async gallery => {
+        const itemsWithUrls = await Promise.all(
+          (gallery.items || []).map(async item => ({
+            key: item.key,
+            fileName: item.fileName,
+            mediaType: item.mediaType,
+            contentType: item.contentType,
+            sizeBytes: item.sizeBytes,
+            signedUrl: await getSignedReadUrl(item.key),
+          })),
+        );
+
+        return {
+          _id: gallery._id,
+          title: gallery.title,
+          clientName: gallery.clientName,
+          retentionMonths: gallery.retentionMonths,
+          expiresAt: gallery.expiresAt,
+          createdAt: gallery.createdAt,
+          items: itemsWithUrls,
+        };
+      }),
     );
-    if (!gallery) {
-      return res.status(404).json({ status: 'fail', message: 'Gallery not found.' });
-    }
-    res.status(200).json({ status: 'success', data: { gallery } });
-  } catch (err) {
-    next(err);
-  }
-});
 
-// Admin: extend gallery cloud retention by 3 or 6 months
-router.patch('/:id/extend', async (req, res, next) => {
-  try {
-    const gallery = await Gallery.findById(req.params.id);
-    if (!gallery) {
-      return res.status(404).json({ status: 'fail', message: 'Gallery not found.' });
-    }
-
-    const baseDate =
-      gallery.expiresAt && gallery.expiresAt > new Date()
-        ? new Date(gallery.expiresAt)
-        : new Date();
-    const { months, expiresAt } = addMonths(baseDate, req.body.storageMonths || 3);
-
-    gallery.storageMonths = months;
-    gallery.expiresAt = expiresAt;
-    gallery.isActive = true;
-    await gallery.save();
-
-    res.status(200).json({ status: 'success', data: { gallery } });
+    res.status(200).json({
+      status: 'success',
+      results: hydratedGalleries.length,
+      data: { galleries: hydratedGalleries },
+    });
   } catch (err) {
     next(err);
   }

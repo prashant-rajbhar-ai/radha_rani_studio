@@ -5,6 +5,9 @@ dotenv.config({ path: './config.env' });
 
 const mongoose = require('mongoose');
 const app = require('./app');
+const {
+  startEventReminderScheduler,
+} = require('./services/eventReminderService');
 
 const PORT = process.env.PORT || 3000;
 
@@ -27,6 +30,8 @@ async function startServer() {
       serverSelectionTimeoutMS: 10000,
     });
 
+    startEventReminderScheduler();
+
     console.log('✅ MongoDB Atlas connected successfully!');
 
     app.listen(PORT, () => {
@@ -39,3 +44,4 @@ async function startServer() {
 }
 
 startServer();
+

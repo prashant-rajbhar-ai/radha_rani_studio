@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Client Cloud Gallery | Radha Rani Studio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&family=Roboto+Slab:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+    />
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="clientGallery.css" />
+  </head>
+  <body>
+    <header class="gallery-topbar">
+      <div class="gallery-topbar-inner">
+        <a href="index.html" class="gallery-brand">Radha Rani Studio</a>
+        <div class="gallery-topbar-actions">
+          <span id="gallery-client-badge" class="gallery-client-badge hidden"></span>
+          <a href="index.html" class="brown-button gallery-back-btn">
+            <i class="fa-solid fa-arrow-left"></i> Back to Home
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main class="gallery-page-container">
+      <section class="gallery-hero-header">
+        <p class="gallery-eyebrow">PRIVATE CLIENT CLOUD ARCHIVE</p>
+        <h1>Your Wedding & Event Gallery</h1>
+        <p class="gallery-subtitle">
+          High-resolution photos and cinematic films securely stored for your
+          3-to-6-month cloud retention window.
+        </p>
+      </section>
+
+      <!-- Shown if no active session email is detected or client wants to look up another email -->
+      <section id="gallery-lookup-card" class="gallery-lookup-card hidden">
+        <h3>Access Your Gallery</h3>
+        <p>Enter the registered email address used for your booking.</p>
+        <form id="gallery-lookup-form" class="gallery-lookup-form">
+          <input
+            type="email"
+            id="gallery-lookup-email"
+            placeholder="you@example.com"
+            required
+          />
+          <button type="submit" class="brown-button">Load My Gallery</button>
+        </form>
+      </section>
+
+      <!-- Status / loading / empty / error banner -->
+      <div
+        id="gallery-status-banner"
+        class="booking-feedback"
+        role="status"
+        aria-live="polite"
+      ></div>
+
+      <!-- Gallery selector (if client has multiple events) + retention info + filter tabs -->
+      <section id="gallery-controls" class="gallery-controls hidden">
+        <div class="gallery-meta-bar">
+          <div>
+            <h2 id="active-gallery-title">Wedding Gallery</h2>
+            <p id="active-gallery-meta" class="gallery-meta-text"></p>
+          </div>
+          <div class="gallery-retention-pill" id="active-gallery-retention">
+            <i class="fa-regular fa-clock"></i>
+            <span id="active-gallery-expiry-text">Active</span>
+          </div>
+        </div>
+
+        <div class="gallery-toolbar">
+          <div id="gallery-album-switcher" class="gallery-album-switcher"></div>
+          <div class="gallery-filter-tabs" role="tablist">
+            <button type="button" class="filter-tab is-active" data-filter="all">
+              All Media
+            </button>
+            <button type="button" class="filter-tab" data-filter="image">
+              Photos
+            </button>
+            <button type="button" class="filter-tab" data-filter="video">
+              Videos
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Responsive media grid -->
+      <section id="gallery-media-grid" class="gallery-media-grid"></section>
+    </main>
+
+    <!-- Fullscreen Lightbox Modal -->
+    <div id="gallery-lightbox" class="gallery-lightbox hidden" role="dialog" aria-modal="true">
+      <button type="button" id="lightbox-close" class="lightbox-close" aria-label="Close preview">
+        &times;
+      </button>
+      <button type="button" id="lightbox-prev" class="lightbox-nav prev" aria-label="Previous item">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+      <div class="lightbox-stage">
+        <div id="lightbox-media-wrapper" class="lightbox-media-wrapper"></div>
+        <div class="lightbox-footer">
+          <span id="lightbox-filename"></span>
+          <a
+            id="lightbox-download"
+            href="#"
+            download
+            target="_blank"
+            rel="noopener noreferrer"
+            class="brown-button lightbox-download-btn"
+          >
+            <i class="fa-solid fa-download"></i> Download Original
+          </a>
+        </div>
+      </div>
+      <button type="button" id="lightbox-next" class="lightbox-nav next" aria-label="Next item">
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+    </div>
+
+    <footer class="footer">
+      <p>&copy; 2026 Radha Rani Studio. All rights reserved.</p>
+    </footer>
+
+    <script src="clientGallery.js"></script>
+  </body>
+</html>

@@ -7,6 +7,7 @@ const userRouter = require('./routes/userRoutes');
 const bookingRouter = require('./routes/bokingRoutes');
 const feedbackRouter = require('./routes/feedbackRoutes');
 const authOtpRouter = require('./routes/authOtp');
+const galleryRouter = require('./routes/galleryRoutes');
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use('/api/v1/packages', packageRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/bookings', bookingRouter);
 app.use('/api/v1/auth', authOtpRouter);
+app.use('/api/v1/galleries', galleryRouter);
 
 // Handle unknown routes
 app.use((req, res, next) => {

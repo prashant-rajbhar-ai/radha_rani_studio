@@ -7,9 +7,22 @@ const eventLocationSchema = new mongoose.Schema(
     locality: { type: String, required: true, trim: true, maxlength: 100 },
     district: { type: String, required: true, trim: true, maxlength: 100 },
     state: { type: String, required: true, trim: true, maxlength: 100 },
-    pinCode: { type: String, required: true, trim: true, match: [/^[1-9]\d{5}$/, 'Please provide a valid 6-digit Indian PIN code.'] },
+    pinCode: {
+      type: String,
+      required: true,
+      trim: true,
+      match: [
+        /^[1-9]\d{5}$/,
+        'Please provide a valid 6-digit Indian PIN code.',
+      ],
+    },
     landmark: { type: String, trim: true, maxlength: 120, default: '' },
-    country: { type: String, enum: ['India'], default: 'India', required: true },
+    country: {
+      type: String,
+      enum: ['India'],
+      default: 'India',
+      required: true,
+    },
   },
   { _id: false },
 );
@@ -41,6 +54,11 @@ const paymentEntrySchema = new mongoose.Schema(
 
 const bookingSchema = new mongoose.Schema(
   {
+    remindersSent: {
+      sevenDaysBefore: { type: Boolean, default: false },
+      twoDaysBefore: { type: Boolean, default: false },
+      oneDayBefore: { type: Boolean, default: false },
+    },
     package: {
       type: mongoose.Schema.ObjectId,
       ref: 'Package',
@@ -51,7 +69,12 @@ const bookingSchema = new mongoose.Schema(
     user: { type: mongoose.Schema.ObjectId, ref: 'User', required: false },
     clientDetails: { type: clientDetailsSchema, default: undefined },
     createdBy: { type: mongoose.Schema.ObjectId, ref: 'User' },
-    bookingSource: { type: String, enum: ['online', 'offline'], default: 'online', index: true },
+    bookingSource: {
+      type: String,
+      enum: ['online', 'offline'],
+      default: 'online',
+      index: true,
+    },
     price: { type: Number, required: true, min: 0.01 },
     advancePercentage: { type: Number, default: 20, min: 20, max: 20 },
     // advanceAmount always represents the standard 20% booking advance.
@@ -63,7 +86,10 @@ const bookingSchema = new mongoose.Schema(
     amountPaid: { type: Number, min: 0 },
     balanceDue: { type: Number, min: 0 },
     paymentEntries: { type: [paymentEntrySchema], default: [] },
-    eventDate: { type: Date, required: [true, 'Please provide the date of the event'] },
+    eventDate: {
+      type: Date,
+      required: [true, 'Please provide the date of the event'],
+    },
     eventDateKey: { type: String, match: /^\d{4}-\d{2}-\d{2}$/ },
     // Online orders reserve the date temporarily while the customer completes Razorpay.
     // The key is unset after a dismissed/expired order; confirmed bookings retain it.
@@ -78,7 +104,11 @@ const bookingSchema = new mongoose.Schema(
     razorpayOrderId: { type: String },
     razorpayPaymentId: { type: String },
     razorpaySignature: { type: String },
-    receiptEmailStatus: { type: String, enum: ['not_sent', 'sent', 'failed', 'no_email'], default: 'not_sent' },
+    receiptEmailStatus: {
+      type: String,
+      enum: ['not_sent', 'sent', 'failed', 'no_email'],
+      default: 'not_sent',
+    },
     receiptEmailSentAt: { type: Date },
     receiptEmailLastError: { type: String, maxlength: 300, default: '' },
     receiptWhatsappStatus: {
@@ -92,7 +122,12 @@ const bookingSchema = new mongoose.Schema(
     policyAcceptedAt: { type: Date },
     adminNotes: { type: String, trim: true, maxlength: 1000, default: '' },
     cancelledAt: { type: Date },
-    cancellationReason: { type: String, trim: true, maxlength: 500, default: '' },
+    cancellationReason: {
+      type: String,
+      trim: true,
+      maxlength: 500,
+      default: '',
+    },
   },
   { timestamps: true },
 );
