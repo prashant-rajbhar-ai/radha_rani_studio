@@ -130,6 +130,9 @@ async function geocodeEventLocation({ pinCode, locality, district, state }) {
   }
 
   let coords = null;
+  const pinInfo = /^[1-9]\d{5}$/.test(cleanPin)
+    ? await lookupPostalPinInfo(cleanPin)
+    : null;
 
   // 1. Most specific query: locality + district + state + PIN
   if ((cleanLocality || cleanDistrict) && /^[1-9]\d{5}$/.test(cleanPin)) {
@@ -149,22 +152,19 @@ async function geocodeEventLocation({ pinCode, locality, district, state }) {
     });
   }
 
-  // 3. India Post office/district lookup for the PIN code (helps when PIN-only is entered)
-  if (!coords && /^[1-9]\d{5}$/.test(cleanPin)) {
-    const pinInfo = await lookupPostalPinInfo(cleanPin);
-    if (pinInfo) {
-      coords = await queryNominatim({
-        q: [
-          cleanLocality || pinInfo.officeName,
-          cleanDistrict || pinInfo.district,
-          cleanState || pinInfo.state,
-          cleanPin,
-          'India',
-        ]
-          .filter(Boolean)
-          .join(', '),
-      });
-    }
+  // 3. India Post office/district lookup for the PIN code
+  if (!coords && pinInfo) {
+    coords = await queryNominatim({
+      q: [
+        cleanLocality || pinInfo.officeName,
+        cleanDistrict || pinInfo.district,
+        cleanState || pinInfo.state,
+        cleanPin,
+        'India',
+      ]
+        .filter(Boolean)
+        .join(', '),
+    });
   }
 
   // 4. Direct PIN code lookup
@@ -173,10 +173,22 @@ async function geocodeEventLocation({ pinCode, locality, district, state }) {
   }
 
   // 5. District + state fallback
-  if (!coords && cleanDistrict) {
+  if (!coords && (cleanDistrict || pinInfo?.district)) {
     coords = await queryNominatim({
-      q: [cleanDistrict, cleanState, 'India'].filter(Boolean).join(', '),
+      q: [
+        cleanDistrict || pinInfo?.district,
+        cleanState || pinInfo?.state,
+        'India',
+      ]
+        .filter(Boolean)
+        .join(', '),
     });
+  }
+
+  // 6. Studio coordinate fallback for studio PIN (221706) when external geocoders block/miss
+  if (!coords && cleanPin === '221706') {
+    const studioCoords = getStudioCoordinates();
+    coords = { lat: studioCoords.lat, lng: studioCoords.lng };
   }
 
   if (coords) {
