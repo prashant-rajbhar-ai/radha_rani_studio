@@ -3013,3 +3013,78 @@ textarea {
   line-height: 1.4;
   text-align: left;
 }
+
+
+/* Dual-channel Email + WhatsApp OTP inside registration modal */
+.modal {
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.otp-input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.otp-input-group input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 5px 10px !important;
+  box-sizing: border-box;
+}
+
+.modal .modal-form button.otp-send-btn {
+  flex: 0 0 auto;
+  width: auto !important;
+  height: 34px;
+  margin: 10px 0 !important;
+  padding: 0 12px;
+  border: 2px solid var(--text-dark, #312418);
+  border-radius: 5px;
+  background: #fdfaf4;
+  color: var(--text-dark, #312418);
+  font-family: var(--heading-font, "Roboto Slab", serif);
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.modal .modal-form button.otp-send-btn:hover:not(:disabled) {
+  background: var(--text-dark, #312418);
+  color: #fff;
+}
+
+.modal .modal-form button.otp-send-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.otp-verify-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 2px 0 8px;
+}
+
+.otp-verify-row input {
+  max-width: 170px;
+  margin: 0 !important;
+  padding: 5px 10px !important;
+  text-align: center;
+  letter-spacing: 3px;
+  font-weight: 700;
+  border-color: #b78b43 !important;
+  background: #fffdf9;
+  box-sizing: border-box;
+}
+
+.otp-row-hint {
+  font-size: 11px;
+  color: #776b5d;
+  line-height: 1.35;
+}

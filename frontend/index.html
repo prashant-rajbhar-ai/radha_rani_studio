@@ -356,6 +356,7 @@
           <a href="#" id="show-register">Register here</a>
         </form>
 
+      
         <!-- REGISTRATION FORM -->
         <form id="register-form" class="hidden">
           <h2>Create Account</h2>
@@ -377,32 +378,74 @@
           />
 
           <label for="register-email">Email Address</label>
-          <input
-            type="email"
-            name="email"
-            id="register-email"
-            autocomplete="email"
-            required
-          />
+          <div class="otp-input-group">
+            <input
+              type="email"
+              name="email"
+              id="register-email"
+              autocomplete="email"
+              required
+            />
+            <button
+              type="button"
+              class="otp-send-btn"
+              id="send-register-email-otp"
+            >
+              Send OTP
+            </button>
+          </div>
+          <div class="otp-verify-row hidden" id="register-email-otp-row">
+            <input
+              type="text"
+              id="register-email-otp"
+              inputmode="numeric"
+              maxlength="6"
+              pattern="\d{6}"
+              placeholder="6-digit Email OTP"
+              aria-label="Email verification code"
+            />
+            <span class="otp-row-hint">Check your email inbox</span>
+          </div>
 
-          <label for="register-phone">Mobile Number</label>
-          <input
-            type="tel"
-            name="phoneNumber"
-            id="register-phone"
-            autocomplete="tel-national"
-            inputmode="numeric"
-            pattern="(?:\+91 ?)?[6-9][0-9]{4} ?[0-9]{5}"
-            minlength="10"
-            maxlength="16"
-            placeholder="98765 43210"
-            title="Enter a valid 10-digit Indian mobile number, optionally with +91."
-            aria-describedby="register-phone-hint"
-            required
-          />
+          <label for="register-phone">Mobile Number (WhatsApp)</label>
+          <div class="otp-input-group">
+            <input
+              type="tel"
+              name="phoneNumber"
+              id="register-phone"
+              autocomplete="tel-national"
+              inputmode="numeric"
+              pattern="(?:\+91 ?)?[6-9][0-9]{4} ?[0-9]{5}"
+              minlength="10"
+              maxlength="16"
+              placeholder="98765 43210"
+              title="Enter a valid 10-digit Indian mobile number, optionally with +91."
+              aria-describedby="register-phone-hint"
+              required
+            />
+            <button
+              type="button"
+              class="otp-send-btn"
+              id="send-register-whatsapp-otp"
+            >
+              Send OTP
+            </button>
+          </div>
           <small id="register-phone-hint"
-            >Enter a 10-digit Indian mobile number. You may include +91.</small
+            >Enter a 10-digit Indian WhatsApp number. You may include +91.</small
           >
+          <div class="otp-verify-row hidden" id="register-whatsapp-otp-row">
+            <input
+              type="text"
+              id="register-whatsapp-otp"
+              inputmode="numeric"
+              maxlength="6"
+              pattern="\d{6}"
+              placeholder="6-digit WhatsApp OTP"
+              aria-label="WhatsApp verification code"
+            />
+            <span class="otp-row-hint">Check WhatsApp message</span>
+          </div>
 
           <label for="register-password">Password</label>
           <div class="password-input-wrapper">
@@ -424,6 +467,7 @@
               <i class="fa-regular fa-eye" aria-hidden="true"></i>
             </button>
           </div>
+
           <!-- Confirm Password -->
           <label for="register-password-confirm">Confirm Password</label>
           <div class="password-input-wrapper">
@@ -452,7 +496,9 @@
             aria-live="polite"
           ></p>
 
-          <button type="submit" class="brown-button">CREATE ACCOUNT</button>
+          <button type="submit" class="brown-button">
+            VERIFY &amp; CREATE ACCOUNT
+          </button>
 
           <p>Already have an account?</p>
           <a href="#" id="show-login">Login here</a>

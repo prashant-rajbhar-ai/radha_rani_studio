@@ -461,6 +461,7 @@ if (contactForm) {
 
 const API_BASE = "https://radha-rani-studio.onrender.com/api/v1/users";
 const BOOKING_API_BASE = API_BASE.replace(/\/users\/?$/, "/bookings");
+const AUTH_OTP_API_BASE = API_BASE.replace(/\/users\/?$/, "/auth");
 
 const loginForm = document.getElementById("login-form");
 const registerForm = document.getElementById("register-form");
@@ -575,72 +576,141 @@ authSuccessOverlay?.addEventListener("click", (e) => {
   if (e.target === authSuccessOverlay) closeAuthSuccess();
 });
 
-document.addEventListener("keydown", (e) => {
-  if (
-    e.key === "Escape" &&
-    authSuccessOverlay &&
-    !authSuccessOverlay.classList.contains("hidden")
-  ) {
-    closeAuthSuccess();
+// DUAL-CHANNEL OTP (EMAIL + WHATSAPP) FOR REGISTRATION
+const sendRegisterEmailOtpBtn = document.getElementById(
+  "send-register-email-otp",
+);
+const sendRegisterWhatsappOtpBtn = document.getElementById(
+  "send-register-whatsapp-otp",
+);
+const registerEmailOtpRow = document.getElementById("register-email-otp-row");
+const registerWhatsappOtpRow = document.getElementById(
+  "register-whatsapp-otp-row",
+);
+const registerEmailOtpInput = document.getElementById("register-email-otp");
+const registerWhatsappOtpInput = document.getElementById(
+  "register-whatsapp-otp",
+);
+
+const otpCooldownTimers = new Map();
+
+function startOtpCooldown(button, seconds = 30) {
+  if (!button) return;
+  const existing = otpCooldownTimers.get(button);
+  if (existing) clearInterval(existing);
+
+  const originalLabel = button.dataset.label || button.textContent.trim();
+  button.dataset.label = originalLabel;
+  let remaining = seconds;
+  button.disabled = true;
+  button.textContent = `${remaining}s`;
+
+  const timer = setInterval(() => {
+    remaining -= 1;
+    if (remaining <= 0) {
+      clearInterval(timer);
+      otpCooldownTimers.delete(button);
+      button.disabled = false;
+      button.textContent = originalLabel;
+    } else {
+      button.textContent = `${remaining}s`;
+    }
+  }, 1000);
+
+  otpCooldownTimers.set(button, timer);
+}
+
+sendRegisterEmailOtpBtn?.addEventListener("click", async () => {
+  setAuthFeedback(registerFeedback, "");
+  const email = document.getElementById("register-email").value.trim();
+
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    setAuthFeedback(
+      registerFeedback,
+      "Please enter a valid email address before requesting an OTP.",
+    );
+    document.getElementById("register-email").focus();
+    return;
+  }
+
+  sendRegisterEmailOtpBtn.disabled = true;
+  sendRegisterEmailOtpBtn.textContent = "Sending...";
+
+  try {
+    const response = await fetch(`${AUTH_OTP_API_BASE}/send-email-otp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      throw new Error(
+        data.error || data.message || "Failed to send email OTP.",
+      );
+    }
+
+    registerEmailOtpRow?.classList.remove("hidden");
+    registerEmailOtpInput?.focus();
+    setAuthFeedback(
+      registerFeedback,
+      "Verification code sent to your email address.",
+      "success",
+    );
+    startOtpCooldown(sendRegisterEmailOtpBtn, 30);
+  } catch (error) {
+    sendRegisterEmailOtpBtn.disabled = false;
+    sendRegisterEmailOtpBtn.textContent = "Send OTP";
+    setAuthFeedback(registerFeedback, error.message, "error");
   }
 });
 
-// LOGIN
-loginForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  setAuthFeedback(loginFeedback, "");
+sendRegisterWhatsappOtpBtn?.addEventListener("click", async () => {
+  setAuthFeedback(registerFeedback, "");
+  const submittedPhoneNumber = document
+    .getElementById("register-phone")
+    .value.trim();
+  const compactPhoneNumber = submittedPhoneNumber.replace(/[\s()-]/g, "");
+  const indianMobileNumber = compactPhoneNumber.startsWith("+91")
+    ? compactPhoneNumber.slice(3)
+    : compactPhoneNumber;
 
-  const submitButton = loginForm.querySelector('button[type="submit"]');
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
-
-  if (submitButton) {
-    submitButton.disabled = true;
-    submitButton.setAttribute("aria-busy", "true");
+  if (!/^[6-9]\d{9}$/.test(indianMobileNumber)) {
+    setAuthFeedback(
+      registerFeedback,
+      "Please enter a valid 10-digit Indian WhatsApp number first.",
+    );
+    document.getElementById("register-phone").focus();
+    return;
   }
 
+  sendRegisterWhatsappOtpBtn.disabled = true;
+  sendRegisterWhatsappOtpBtn.textContent = "Sending...";
+
   try {
-    const response = await fetch(`${API_BASE}/login`, {
+    const response = await fetch(`${AUTH_OTP_API_BASE}/send-whatsapp-otp`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ phone: indianMobileNumber }),
     });
-
     const data = await response.json().catch(() => ({}));
-
     if (!response.ok) {
-      setAuthFeedback(
-        loginFeedback,
-        data.message ||
-          "We couldn't sign you in. Check your email and password, then try again.",
+      throw new Error(
+        data.error || data.message || "Failed to send WhatsApp OTP.",
       );
-      return;
     }
 
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("userRole", data.data.user.role);
-    localStorage.setItem("userName", data.data.user.name || "Customer");
-    localStorage.setItem("userEmail", data.data.user.email || email);
-    renderAccountNavigation();
-
-    loginForm.reset();
-    switchAuthForm(false);
-    closeModal();
-    showAuthSuccess(
-      "Welcome back!",
-      "You have successfully logged in to Radha Rani Studio.",
-    );
-  } catch (error) {
-    console.error("Login error:", error);
+    registerWhatsappOtpRow?.classList.remove("hidden");
+    registerWhatsappOtpInput?.focus();
     setAuthFeedback(
-      loginFeedback,
-      "We couldn't connect to the server. Please check your connection and try again.",
+      registerFeedback,
+      "Verification code sent to your WhatsApp.",
+      "success",
     );
-  } finally {
-    if (submitButton) {
-      submitButton.disabled = false;
-      submitButton.removeAttribute("aria-busy");
-    }
+    startOtpCooldown(sendRegisterWhatsappOtpBtn, 30);
+  } catch (error) {
+    sendRegisterWhatsappOtpBtn.disabled = false;
+    sendRegisterWhatsappOtpBtn.textContent = "Send OTP";
+    setAuthFeedback(registerFeedback, error.message, "error");
   }
 });
 
@@ -659,6 +729,8 @@ registerForm.addEventListener("submit", async (e) => {
     ? compactPhoneNumber.slice(3)
     : compactPhoneNumber;
   const phoneNumber = `+91${indianMobileNumber}`;
+  const emailOtp = String(registerEmailOtpInput?.value || "").trim();
+  const whatsappOtp = String(registerWhatsappOtpInput?.value || "").trim();
   const password = document.getElementById("register-password").value;
   const passwordConfirm = document.getElementById(
     "register-password-confirm",
@@ -671,6 +743,26 @@ registerForm.addEventListener("submit", async (e) => {
       "Please enter a valid 10-digit Indian mobile number. You may include +91.",
     );
     document.getElementById("register-phone").focus();
+    return;
+  }
+
+  if (!/^\d{6}$/.test(emailOtp)) {
+    registerEmailOtpRow?.classList.remove("hidden");
+    setAuthFeedback(
+      registerFeedback,
+      "Click 'Send OTP' next to your email and enter the 6-digit code.",
+    );
+    registerEmailOtpInput?.focus();
+    return;
+  }
+
+  if (!/^\d{6}$/.test(whatsappOtp)) {
+    registerWhatsappOtpRow?.classList.remove("hidden");
+    setAuthFeedback(
+      registerFeedback,
+      "Click 'Send OTP' next to your WhatsApp number and enter the 6-digit code.",
+    );
+    registerWhatsappOtpInput?.focus();
     return;
   }
 
@@ -697,6 +789,35 @@ registerForm.addEventListener("submit", async (e) => {
   }
 
   try {
+    const otpVerifyResponse = await fetch(
+      `${AUTH_OTP_API_BASE}/verify-dual-otp`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          phone: indianMobileNumber,
+          emailOtp,
+          whatsappOtp,
+        }),
+      },
+    );
+
+    const otpVerifyData = await otpVerifyResponse.json().catch(() => ({}));
+    if (!otpVerifyResponse.ok) {
+      setAuthFeedback(
+        registerFeedback,
+        otpVerifyData.error ||
+          otpVerifyData.message ||
+          "Email or WhatsApp OTP verification failed.",
+      );
+      return;
+    }
+
+    if (otpVerifyData.token) {
+      localStorage.setItem("verifiedOtpToken", otpVerifyData.token);
+    }
+
     const response = await fetch(`${API_BASE}/signup`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -712,7 +833,6 @@ registerForm.addEventListener("submit", async (e) => {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      // Convert technical backend errors into clear, user-friendly messages.
       const backendMessage = String(data.message || "");
       const isDuplicateEmail =
         response.status === 409 ||
@@ -726,7 +846,6 @@ registerForm.addEventListener("submit", async (e) => {
           "An account with this email address already exists. Please log in to your existing account, or use a different email address to create a new account.",
         );
 
-        // Offer a direct path to the login form without showing a browser alert.
         let loginAction = document.getElementById(
           "duplicate-email-login-action",
         );
@@ -746,7 +865,8 @@ registerForm.addEventListener("submit", async (e) => {
       } else {
         setAuthFeedback(
           registerFeedback,
-          "We couldn't create your account. Please review your details and try again.",
+          data.message ||
+            "We couldn't create your account. Please review your details and try again.",
         );
       }
       return;
@@ -759,11 +879,13 @@ registerForm.addEventListener("submit", async (e) => {
     renderAccountNavigation();
 
     registerForm.reset();
+    registerEmailOtpRow?.classList.add("hidden");
+    registerWhatsappOtpRow?.classList.add("hidden");
     switchAuthForm(false);
     closeModal();
     showAuthSuccess(
       "Account created!",
-      "Your Radha Rani Studio account is ready. You are now logged in.",
+      "Your email and WhatsApp are verified and your Radha Rani Studio account is ready.",
     );
   } catch (error) {
     console.error("Registration error:", error);
