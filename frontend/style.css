@@ -3014,7 +3014,6 @@ textarea {
   text-align: left;
 }
 
-
 /* Dual-channel Email + WhatsApp OTP inside registration modal */
 .modal {
   max-height: 90vh;
@@ -3087,4 +3086,94 @@ textarea {
   font-size: 11px;
   color: #776b5d;
   line-height: 1.35;
+}
+
+/* Client feedback submission section aligned with the main section width */
+.feedback-submit-box {
+  width: 70%;
+  box-sizing: border-box;
+  margin: 90px auto 120px;
+  padding: 28px 36px;
+  border-radius: 10px;
+  background-color: var(--bg-white);
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  text-align: center;
+}
+
+.feedback-submit-box h3 {
+  font-family: var(--heading-font);
+  font-size: var(--h3);
+  color: var(--text-dark);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.feedback-submit-box > p {
+  margin: 0 0 20px;
+  font-size: var(--p);
+  color: var(--text-dark);
+}
+
+.client-feedback-form {
+  display: grid;
+  gap: 12px;
+}
+
+.feedback-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 180px;
+  gap: 12px;
+}
+
+.client-feedback-form input,
+.client-feedback-form select,
+.client-feedback-form textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 2px solid var(--text-dark);
+  border-radius: 5px;
+  padding: 8px 12px;
+  background-color: var(--bg-white);
+  color: var(--text-dark);
+  font: 400 0.95rem var(--body-font);
+}
+
+.client-feedback-form textarea {
+  height: auto;
+  min-height: 95px;
+  resize: vertical;
+  margin: 0;
+}
+
+.client-feedback-form button[type="submit"] {
+  justify-self: center;
+  min-width: 240px;
+  padding: 10px 28px;
+  background-color: var(--text-dark);
+  color: var(--bg-white);
+  border: 2px solid var(--text-dark);
+  border-radius: 5px;
+}
+
+.client-feedback-form button[type="submit"]:hover {
+  background-color: var(--bg-white);
+  color: var(--text-dark);
+}
+
+@media only screen and (max-width: 1224px) {
+  .feedback-submit-box {
+    width: 85%;
+  }
+}
+
+@media only screen and (max-width: 840px) {
+  .feedback-submit-box {
+    width: 88%;
+    margin: 80px auto 90px;
+    padding: 20px 16px;
+  }
+
+  .feedback-form-row {
+    grid-template-columns: 1fr;
+  }
 }

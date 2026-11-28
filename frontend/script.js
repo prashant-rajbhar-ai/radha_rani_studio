@@ -369,7 +369,146 @@ const createSlider = function (
 createSlider(".main-section", ".slides", 0, "fade");
 
 // Initialize Feedback slider
-createSlider(".feedbacks", ".feed", 20);
+const FEEDBACKS_ENDPOINT = "https://radha-rani-studio.onrender.com/api/v1/feedbacks";
+
+function escapeFeedbackHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function buildFeedbackSlideMarkup(item, index) {
+  const rating = Math.min(5, Math.max(1, Number(item.rating) || 5));
+  const starsHtml = Array.from({ length: 5 }, (_, i) =>
+    i < rating
+      ? '<i class="fa-solid fa-star"></i>'
+      : '<i class="fa-regular fa-star"></i>',
+  ).join("");
+  const mainImages = [
+    "images/image3.jpg",
+    "images/image10.jpg",
+    "images/image5.jpg",
+    "images/image6.jpg",
+    "images/image8.jpg",
+  ];
+  const mainImg = mainImages[index % mainImages.length];
+
+  return `
+    <div class="feed">
+      <div class="feed-description">
+        <div class="separator"><span>-</span>//<span>-</span></div>
+        <p>${escapeFeedbackHtml(item.quote)}</p>
+        <div class="stars">${starsHtml}</div>
+        <h6 class="client-info">— ${escapeFeedbackHtml(item.clientName)}, ${escapeFeedbackHtml(item.locationLabel)}</h6>
+      </div>
+      <div class="main-image feed-image">
+        <img src="${mainImg}" alt="Wedding photography by Radha Rani Studio" />
+      </div>
+      <div class="image3 feed-image"><img src="images/image3.jpg" alt="" /></div>
+      <div class="image4 feed-image"><img src="images/image4.jpg" alt="" /></div>
+      <div class="image10 feed-image"><img src="images/image10.jpg" alt="" /></div>
+      <div class="image11 feed-image"><img src="images/image11.jpg" alt="" /></div>
+      <div class="image6 feed-image"><img src="images/image6.jpg" alt="" /></div>
+      <div class="image9 feed-image"><img src="images/image9.jpg" alt="" /></div>
+    </div>
+  `;
+}
+
+async function initDynamicFeedbackSection() {
+  const track = document.querySelector(".feedbacks-track");
+  const dots = document.querySelector(".feedbacks .dots");
+  if (!track) return;
+
+  try {
+    const res = await fetch(FEEDBACKS_ENDPOINT);
+    const payload = await res.json().catch(() => ({}));
+    const list = payload?.data?.feedbacks;
+
+    if (res.ok && Array.isArray(list) && list.length > 0) {
+      if (dots) dots.innerHTML = "";
+      track.innerHTML = list
+        .map((item, index) => buildFeedbackSlideMarkup(item, index))
+        .join("");
+    }
+  } catch (err) {
+    console.warn("Falling back to default feedback slides:", err);
+  }
+
+  createSlider(".feedbacks", ".feed", 20);
+}
+
+initDynamicFeedbackSection();
+
+const clientFeedbackForm = document.getElementById("client-feedback-form");
+const feedbackSubmitStatus = document.getElementById("feedback-submit-status");
+
+if (clientFeedbackForm) {
+  clientFeedbackForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (feedbackSubmitStatus) {
+      feedbackSubmitStatus.textContent = "";
+      feedbackSubmitStatus.className = "contact-form-feedback";
+    }
+
+    const submitBtn = clientFeedbackForm.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Submitting...";
+    }
+
+    try {
+      const payload = {
+        clientName: document.getElementById("feedback-client-name").value.trim(),
+        locationLabel: document.getElementById("feedback-location").value.trim(),
+        rating: Number(document.getElementById("feedback-rating").value),
+        quote: document.getElementById("feedback-quote").value.trim(),
+      };
+
+      const res = await fetch(FEEDBACKS_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.message || "Could not submit your feedback.");
+      }
+
+      clientFeedbackForm.reset();
+      if (feedbackSubmitStatus) {
+        feedbackSubmitStatus.textContent =
+          data.message || "Thank you! Your feedback has been saved.";
+        feedbackSubmitStatus.classList.add("is-visible", "is-success");
+      }
+
+      // Reload feedbacks from MongoDB so the new review appears immediately
+      const track = document.querySelector(".feedbacks-track");
+      const dots = document.querySelector(".feedbacks .dots");
+      const refreshRes = await fetch(FEEDBACKS_ENDPOINT);
+      const refreshData = await refreshRes.json().catch(() => ({}));
+      const updatedList = refreshData?.data?.feedbacks;
+      if (track && refreshRes.ok && Array.isArray(updatedList) && updatedList.length > 0) {
+        if (dots) dots.innerHTML = "";
+        track.innerHTML = updatedList
+          .map((item, index) => buildFeedbackSlideMarkup(item, index))
+          .join("");
+        createSlider(".feedbacks", ".feed", 20);
+      }
+    } catch (err) {
+      if (feedbackSubmitStatus) {
+        feedbackSubmitStatus.textContent = err.message;
+        feedbackSubmitStatus.classList.add("is-visible", "is-error");
+      }
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Submit Feedback";
+      }
+    }
+  });
+}
 
 // Initialize Tariff slider
 // createSlider('.tariff', '.col', 0);

@@ -1486,7 +1486,54 @@
       </div>
 
       <div class="dots"></div>
+      
     </section>
+    <div class="feedback-submit-box">
+        <h3>Share Your Experience</h3>
+        <p>Worked with Radha Rani Studio? Leave your review below.</p>
+        <form id="client-feedback-form" class="client-feedback-form">
+          <div class="feedback-form-row">
+            <input
+              type="text"
+              id="feedback-client-name"
+              name="clientName"
+              maxlength="100"
+              placeholder="Your Name (e.g. Rahul & Priya)"
+              required
+            />
+            <input
+              type="text"
+              id="feedback-location"
+              name="locationLabel"
+              maxlength="100"
+              placeholder="City / Village (e.g. Mau)"
+              required
+            />
+            <select id="feedback-rating" name="rating" aria-label="Rating" required>
+              <option value="5" selected>★★★★★ (5/5)</option>
+              <option value="4">★★★★☆ (4/5)</option>
+              <option value="3">★★★☆☆ (3/5)</option>
+              <option value="2">★★☆☆☆ (2/5)</option>
+              <option value="1">★☆☆☆☆ (1/5)</option>
+            </select>
+          </div>
+          <textarea
+            id="feedback-quote"
+            name="quote"
+            rows="3"
+            maxlength="600"
+            placeholder="Write your feedback about our photography or videography..."
+            required
+          ></textarea>
+          <button type="submit" class="brown-button">Submit Feedback</button>
+          <p
+            id="feedback-submit-status"
+            class="contact-form-feedback"
+            role="status"
+            aria-live="polite"
+          ></p>
+        </form>
+      </div>
 
     <div class="contact-section section" id="contact">
       <div class="contact-form">
