@@ -5,6 +5,7 @@ const cors = require('cors');
 const packageRouter = require('./routes/packageRoutes');
 const userRouter = require('./routes/userRoutes');
 const bookingRouter = require('./routes/bokingRoutes');
+const feedbackRouter = require('./routes/feedbackRoutes');
 const authOtpRouter = require('./routes/authOtp');
 
 const app = express();
@@ -18,6 +19,7 @@ if (process.env.NODE_ENV === 'development') {
 app.use(express.json());
 
 // Routes
+app.use('/api/v1/feedbacks', feedbackRouter);
 app.use('/api/v1/packages', packageRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/bookings', bookingRouter);
